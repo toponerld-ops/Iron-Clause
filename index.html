@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mr. Justice Logger - Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-orange: #f97316;
+            --accent-green: #22c55e;
+            --text-main: #f8fafc;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            border-top: 5px solid var(--accent-orange);
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-top: 0;
+            color: var(--accent-orange);
+            letter-spacing: 1px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: white;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent-orange);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 12px;
+        }
+
+        .btn-start {
+            background: var(--accent-green);
+            color: #0f172a;
+        }
+
+        .btn-start:hover { background: #16a34a; }
+
+        .btn-stop {
+            background: #ef4444;
+            color: white;
+            display: none;
+        }
+
+        .btn-stop:hover { background: #dc2626; }
+
+        .status-panel {
+            background: #0f172a;
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 20px;
+            border: 1px solid #334155;
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .status-row:last-child { margin-bottom: 0; }
+        .stat-val { font-weight: bold; }
+        .recording-active { color: var(--accent-green); }
+
+        /* Hidden processing container */
+        #canvasContainer { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>MR. JUSTICE LOGGER</h1>
+        
+        <div class="input-group">
+            <label for="xiaoIp">XIAO ESP32S3 IP ADDRESS</label>
+            <input type="text" id="xiaoIp" placeholder="e.g., 192.168.1.50" value="192.168.">
+        </div>
+
+        <button id="startBtn" class="btn btn-start">START SESSION AUDIT</button>
+        <button id="stopBtn" class="btn btn-stop">STOP & DOWNLOAD LOG</button>
+
+        <div class="status-panel">
+            <div class="status-row">
+                <span>System Pipeline:</span>
+                <span id="sysStatus" class="stat-val" style="color: #64748b;">IDLE</span>
+            </div>
+            <div class="status-row">
+                <span>Logged Duration:</span>
+                <span id="timerVal" class="stat-val">00:00:00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden elements processing the background stream frames -->
+    <div id="canvasContainer">
+        <canvas id="streamCanvas" width="320" height="240"></canvas>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let recordedChunks = [];
+        let timerInterval;
+        let totalSeconds = 0;
+        let streamImg = new Image();
+        let animationFrameId;
+
+        const xiaoIpInput = document.getElementById('xiaoIp');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const sysStatus = document.getElementById('sysStatus');
+        const timerVal = document.getElementById('timerVal');
+        const canvas = document.getElementById('streamCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Force image cross-origin compatibility mapping
+        streamImg.crossOrigin = "anonymous";
+
+        startBtn.addEventListener('click', () => {
+            const ip = xiaoIpInput.value.trim();
+            if (!ip || ip === "192.168.") {
+                alert("Please type your XIAO's absolute network IP first!");
+                return;
+            }
+
+            // Build structural stream URL target string pointing to the ESP32
+            const streamUrl = ip.startsWith('http') ? ip : `http://${ip}/`;
+
+            sysStatus.innerText = "CONNECTING...";
+            sysStatus.style.color = "#eab308";
+
+            // Bind the image feed source target straight to the hardware stream URL
+            streamImg.src = streamUrl;
+
+            streamImg.onload = function() {
+                if (mediaRecorder && mediaRecorder.state === "recording") return;
+                startRecordingPipeline();
+            };
+
+            streamImg.onerror = function() {
+                sysStatus.innerText = "CONNECTING ERROR";
+                sysStatus.style.color = "#ef4444";
+                alert("Could not reach XIAO. Verify your computer is on the same Wi-Fi!");
+            };
+        });
+
+        function startRecordingPipeline() {
+            sysStatus.innerText = "RECORDING ACTIVE";
+            sysStatus.style.color = "var(--accent-green)";
+            
+            startBtn.style.display = "none";
+            stopBtn.style.display = "block";
+            xiaoIpInput.disabled = true;
+
+            // Start the Canvas drawing loops loop matching your 20MHz frame speed
+            function updateCanvasLoop() {
+                ctx.drawImage(streamImg, 0, 0, canvas.width, canvas.height);
+                animationFrameId = requestAnimationFrame(updateCanvasLoop);
+            }
+            updateCanvasLoop();
+
+            // Capture canvas video elements output pipeline at a fixed, lightweight 10 FPS
+            const streamStream = canvas.captureStream(10); 
+            
+            // Choose common efficient video container supported across browsers
+            const options = { mimeType: 'video/webm;codecs=vp8' };
+            recordedChunks = [];
+            
+            mediaRecorder = new MediaRecorder(streamStream, options);
+            
+            mediaRecorder.ondataavailable = function(e) {
+                if (e.data.size > 0) recordedChunks.push(e.data);
+            };
+
+            mediaRecorder.onstop = function() {
+                // Compile the data chunks block array into a single video object file blueprint
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                
+                // Create custom auto-download sequence link parameters
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                
+                // Timestamp named file formatting layout for simple review management
+                const now = new Date();
+                const timeString = now.toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/:/g, '-');
+                a.download = `Justice_Log_${timeString}.webm`;
+                
+                document.body.appendChild(a);
+                a.click();
+                
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                }, 100);
+            };
+
+            // Start recording block slices every 1 second continuously
+            mediaRecorder.start(1000);
+
+            // Arm local presentation countdown timers metrics panels
+            totalSeconds = 0;
+            timerVal.innerText = "00:00:00";
+            timerInterval = setInterval(() => {
+                totalSeconds++;
+                let hr = Math.floor(totalSeconds / 3600);
+                let min = Math.floor((totalSeconds % 3600) / 60);
+                let sec = totalSeconds % 60;
+                timerVal.innerText = `${String(hr).padStart(2, '0')}:${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        stopBtn.addEventListener('click', () => {
+            // Drop processing threads safely to prevent memory leakages
+            clearInterval(timerInterval);
+            cancelAnimationFrame(animationFrameId);
+            
+            if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                mediaRecorder.stop();
+            }
+
+            // Cut data flow connection pipeline to let the XIAO drop its active indicator dot
+            streamImg.src = "";
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Restore user menu parameters options maps back to baseline state layout
+            sysStatus.innerText = "IDLE";
+            sysStatus.style.color = "#64748b";
+            startBtn.style.display = "block";
+            stopBtn.style.display = "none";
+            xiaoIpInput.disabled = false;
+        });
+    </script>
+</body>
+</html>
