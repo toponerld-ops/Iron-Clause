@@ -70,6 +70,35 @@
             border-color: var(--accent-orange);
         }
 
+        .preview-box {
+            width: 100%;
+            height: 280px;
+            background: #0f172a;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .preview-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: none; 
+        }
+
+        .placeholder-text {
+            color: #475569;
+            font-size: 0.9rem;
+            text-align: center;
+            position: absolute;
+            line-height: 1.4;
+        }
+
         .btn {
             width: 100%;
             padding: 14px;
@@ -114,10 +143,8 @@
 
         .status-row:last-child { margin-bottom: 0; }
         .stat-val { font-weight: bold; }
-        .recording-active { color: var(--accent-green); }
 
-        /* Hidden processing container */
-        #canvasContainer { display: none; }
+        #recordingEngine { display: none; }
     </style>
 </head>
 <body>
@@ -125,6 +152,11 @@
     <div class="container">
         <h1>MR. JUSTICE LOGGER</h1>
         
+        <div class="preview-box">
+            <div id="placeholder" class="placeholder-text">LENS DISCONNECTED<br>Await Audit Activation</div>
+            <img id="monitorView" alt="Live Camera Preview">
+        </div>
+
         <div class="input-group">
             <label for="xiaoIp">XIAO ESP32S3 IP ADDRESS</label>
             <input type="text" id="xiaoIp" placeholder="e.g., 192.168.1.50" value="192.168.">
@@ -145,8 +177,7 @@
         </div>
     </div>
 
-    <!-- Hidden elements processing the background stream frames -->
-    <div id="canvasContainer">
+    <div id="recordingEngine">
         <canvas id="streamCanvas" width="320" height="240"></canvas>
     </div>
 
@@ -155,49 +186,58 @@
         let recordedChunks = [];
         let timerInterval;
         let totalSeconds = 0;
-        let streamImg = new Image();
-        let animationFrameId;
+        let recordingLoopId;
 
         const xiaoIpInput = document.getElementById('xiaoIp');
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
         const sysStatus = document.getElementById('sysStatus');
         const timerVal = document.getElementById('timerVal');
+        const placeholder = document.getElementById('placeholder');
+        const monitorView = document.getElementById('monitorView');
         const canvas = document.getElementById('streamCanvas');
         const ctx = canvas.getContext('2d');
 
-        // Force image cross-origin compatibility mapping
-        streamImg.crossOrigin = "anonymous";
+        monitorView.crossOrigin = "anonymous";
 
         startBtn.addEventListener('click', () => {
-            const ip = xiaoIpInput.value.trim();
+            let ip = xiaoIpInput.value.trim();
             if (!ip || ip === "192.168.") {
-                alert("Please type your XIAO's absolute network IP first!");
+                alert("Please enter your absolute XIAO IP address first!");
                 return;
             }
 
-            // Build structural stream URL target string pointing to the ESP32
-            const streamUrl = ip.startsWith('http') ? ip : `http://${ip}/`;
+            if (!ip.startsWith('http://') && !ip.startsWith('https://')) {
+                ip = 'http://' + ip;
+            }
+            if (!ip.endsWith('/')) {
+                ip = ip + '/';
+            }
 
             sysStatus.innerText = "CONNECTING...";
             sysStatus.style.color = "#eab308";
+            placeholder.innerText = "ESTABLISHING CAMERA FEED PIPELINES...";
 
-            // Bind the image feed source target straight to the hardware stream URL
-            streamImg.src = streamUrl;
+            monitorView.src = ip;
+            monitorView.style.display = "block";
+            placeholder.style.display = "none";
 
-            streamImg.onload = function() {
+            monitorView.onload = function() {
                 if (mediaRecorder && mediaRecorder.state === "recording") return;
-                startRecordingPipeline();
+                startRecordingSession();
             };
 
-            streamImg.onerror = function() {
-                sysStatus.innerText = "CONNECTING ERROR";
+            monitorView.onerror = function() {
+                sysStatus.innerText = "CONNECTION TIMEOUT";
                 sysStatus.style.color = "#ef4444";
-                alert("Could not reach XIAO. Verify your computer is on the same Wi-Fi!");
+                placeholder.innerText = "LENS DISCONNECTED\nCheck Network Routing Configuration";
+                monitorView.style.display = "none";
+                placeholder.style.display = "block";
+                alert("Cannot connect to XIAO board! Ensure your laptop is linked to the same 2.4 GHz network pool.");
             };
         });
 
-        function startRecordingPipeline() {
+        function startRecordingSession() {
             sysStatus.innerText = "RECORDING ACTIVE";
             sysStatus.style.color = "var(--accent-green)";
             
@@ -205,54 +245,47 @@
             stopBtn.style.display = "block";
             xiaoIpInput.disabled = true;
 
-            // Start the Canvas drawing loops loop matching your 20MHz frame speed
-            function updateCanvasLoop() {
-                ctx.drawImage(streamImg, 0, 0, canvas.width, canvas.height);
-                animationFrameId = requestAnimationFrame(updateCanvasLoop);
+            function processVideoFrames() {
+                if (monitorView.complete && monitorView.naturalWidth > 0) {
+                    ctx.drawImage(monitorView, 0, 0, canvas.width, canvas.height);
+                }
+                recordingLoopId = setTimeout(processVideoFrames, 100); 
             }
-            updateCanvasLoop();
+            processVideoFrames();
 
-            // Capture canvas video elements output pipeline at a fixed, lightweight 10 FPS
-            const streamStream = canvas.captureStream(10); 
-            
-            // Choose common efficient video container supported across browsers
+            const videoStream = canvas.captureStream(10); 
             const options = { mimeType: 'video/webm;codecs=vp8' };
             recordedChunks = [];
             
-            mediaRecorder = new MediaRecorder(streamStream, options);
+            mediaRecorder = new MediaRecorder(videoStream, options);
             
             mediaRecorder.ondataavailable = function(e) {
                 if (e.data.size > 0) recordedChunks.push(e.data);
             };
 
             mediaRecorder.onstop = function() {
-                // Compile the data chunks block array into a single video object file blueprint
                 const blob = new Blob(recordedChunks, { type: 'video/webm' });
                 const url = URL.createObjectURL(blob);
                 
-                // Create custom auto-download sequence link parameters
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
+                const downloadLink = document.createElement('a');
+                downloadLink.style.display = 'none';
+                downloadLink.href = url;
                 
-                // Timestamp named file formatting layout for simple review management
                 const now = new Date();
-                const timeString = now.toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/:/g, '-');
-                a.download = `Justice_Log_${timeString}.webm`;
+                const fileStamp = now.toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/:/g, '-');
+                downloadLink.download = `Justice_Audit_Log_${fileStamp}.webm`;
                 
-                document.body.appendChild(a);
-                a.click();
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
                 
                 setTimeout(() => {
-                    document.body.removeChild(a);
+                    document.body.removeChild(downloadLink);
                     window.URL.revokeObjectURL(url);
                 }, 100);
             };
 
-            // Start recording block slices every 1 second continuously
-            mediaRecorder.start(1000);
+            mediaRecorder.start(1000); 
 
-            // Arm local presentation countdown timers metrics panels
             totalSeconds = 0;
             timerVal.innerText = "00:00:00";
             timerInterval = setInterval(() => {
@@ -265,25 +298,21 @@
         }
 
         stopBtn.addEventListener('click', () => {
-            // Drop processing threads safely to prevent memory leakages
             clearInterval(timerInterval);
-            cancelAnimationFrame(animationFrameId);
+            clearTimeout(recordingLoopId); 
             
             if (mediaRecorder && mediaRecorder.state !== "inactive") {
                 mediaRecorder.stop();
             }
 
-            // Cut data flow connection pipeline to let the XIAO drop its active indicator dot
-            streamImg.src = "";
+            monitorView.src = "";
+        monitorView.style.display = "none";
+            placeholder.style.display = "block";
+            placeholder.innerText = "LENS DISCONNECTED\nAwait Audit Activation";
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Restore user menu parameters options maps back to baseline state layout
             sysStatus.innerText = "IDLE";
             sysStatus.style.color = "#64748b";
             startBtn.style.display = "block";
             stopBtn.style.display = "none";
             xiaoIpInput.disabled = false;
         });
-    </script>
-</body>
-</html>
