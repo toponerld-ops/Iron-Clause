@@ -335,46 +335,27 @@
         };
 
         const elements = {
-            ipInput: document.getElementById('xiaoIp'),
-            caseInput: document.getElementById('caseId'),
-            officerInput: document.getElementById('officer'),
-            startBtn: document.getElementById('startBtn'),
-            pauseBtn: document.getElementById('pauseBtn'),
-            stopBtn: document.getElementById('stopBtn'),
-            snapBtn: document.getElementById('snapBtn'),
-            sysStatus: document.getElementById('sysStatus'),
-            timerVal: document.getElementById('timerVal'),
-            fpsVal: document.getElementById('fpsVal'),
-            placeholder: document.getElementById('placeholder'),
-            monitorView: document.getElementById('monitorView'),
-            recDot: document.getElementById('recDot'),
-            canvas: document.getElementById('streamCanvas')
+            // ... (keep all your elements the same as the previous HTML)
         };
 
-        const ctx = elements.canvas.getContext('2d', { alpha: false });
+        const ctx = elements.canvas.getContext('2d', { 
+            alpha: false, 
+            desynchronized: true // CRITICAL: Tells browser to bypass some buffering for lower latency
+        });
         elements.monitorView.crossOrigin = "anonymous";
-
-        const formatTime = (s) => {
-            const hrs = Math.floor(s / 3600).toString().padStart(2, '0');
-            const mins = Math.floor((s % 3600) / 60).toString().padStart(2, '0');
-            const secs = (s % 60).toString().padStart(2, '0');
-            return `${hrs}:${mins}:${secs}`;
-        };
 
         async function startAudit() {
             let ip = elements.ipInput.value.trim();
-            if (!ip || ip === "192.168.") {
-                alert("Enter valid Node Address!");
-                return;
-            }
+            if (!ip || ip === "192.168.") return alert("Enter valid Node Address!");
 
             const url = ip.startsWith('http') ? ip : `http://${ip}`;
             const finalUrl = url.endsWith('/') ? url : `${url}/`;
 
             updateUI('CONNECTING...', 'var(--accent-blue)');
-            elements.placeholder.innerHTML = "Establishing Link...<br>Syncing Data Pipeline";
             
-            elements.monitorView.src = finalUrl;
+            // To prevent browser-side MJPEG lag, we add a timestamp to the URL
+            // This forces the browser to open a FRESH socket instead of reusing a lagged one
+            elements.monitorView.src = `${finalUrl}?t=${Date.now()}`;
             elements.monitorView.style.display = "block";
             elements.placeholder.style.display = "none";
 
@@ -395,12 +376,11 @@
             elements.pauseBtn.style.display = "flex";
             elements.stopBtn.style.display = "flex";
             elements.recDot.style.display = "inline-block";
-            elements.ipInput.disabled = true;
 
             const render = (now) => {
                 if (!state.isRecording) return;
 
-                // FPS Calculation
+                // High-performance FPS counter
                 state.frameCount++;
                 if (now - state.lastFrameTime >= 1000) {
                     elements.fpsVal.innerText = state.frameCount;
@@ -409,16 +389,17 @@
                 }
 
                 if (!state.isPaused) {
+                    // Optimized draw call
                     ctx.drawImage(elements.monitorView, 0, 0, elements.canvas.width, elements.canvas.height);
                 }
                 state.animationFrameId = requestAnimationFrame(render);
             };
             requestAnimationFrame(render);
 
-            const stream = elements.canvas.captureStream(25);
+            const stream = elements.canvas.captureStream(30); // Match target FPS
             state.mediaRecorder = new MediaRecorder(stream, { 
                 mimeType: 'video/webm;codecs=vp8',
-                videoBitsPerSecond: 2000000 
+                videoBitsPerSecond: 2500000 // Higher bitrate for better quality
             });
 
             state.chunks = [];
@@ -434,65 +415,7 @@
                 }
             }, 1000);
         }
-
-        function togglePause() {
-            state.isPaused = !state.isPaused;
-            elements.pauseBtn.innerText = state.isPaused ? "▶ Resume" : "⏸ Pause";
-            elements.pauseBtn.style.background = state.isPaused ? "var(--accent-green)" : "var(--accent-blue)";
-            updateUI(state.isPaused ? 'SESSION PAUSED' : 'RECORDING ACTIVE', state.isPaused ? 'var(--accent-blue)' : 'var(--accent-green)');
-            elements.recDot.style.animation = state.isPaused ? 'none' : 'blink 1s infinite';
-            elements.recDot.style.background = state.isPaused ? 'gray' : 'var(--accent-red)';
-        }
-
-        function takeSnapshot() {
-            if (!state.isRecording) return alert("Start audit first!");
-            
-            const link = document.createElement('a');
-            link.download = `SNAP_${elements.caseInput.value || 'LOG'}_${Date.now()}.jpg`;
-            link.href = elements.canvas.toDataURL('image/jpeg', 0.9);
-            link.click();
-        }
-
-        function saveVideo() {
-            const blob = new Blob(state.chunks, { type: 'video/webm' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            const caseName = elements.caseInput.value || 'UNNAMED_SESSION';
-            const officer = elements.officerInput.value || 'UNKNOWN';
-            
-            a.href = url;
-            a.download = `JUSTICE_LOG_${caseName}_OFFICER_${officer}.webm`;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
-        function stopAudit() {
-            state.isRecording = false;
-            clearInterval(state.timerInterval);
-            cancelAnimationFrame(state.animationFrameId);
-            if (state.mediaRecorder) state.mediaRecorder.stop();
-
-            elements.monitorView.src = "";
-            elements.monitorView.style.display = "none";
-            elements.placeholder.style.display = "block";
-            elements.recDot.style.display = "none";
-            
-            updateUI('IDLE', 'var(--text-dim)');
-            elements.startBtn.style.display = "flex";
-            elements.pauseBtn.style.display = "none";
-            elements.stopBtn.style.display = "none";
-            elements.ipInput.disabled = false;
-        }
-
-        function updateUI(text, color) {
-            elements.sysStatus.innerText = `System: ${text}`;
-            elements.sysStatus.style.color = color;
-        }
-
-        elements.startBtn.addEventListener('click', startAudit);
-        elements.stopBtn.addEventListener('click', stopAudit);
-        elements.pauseBtn.addEventListener('click', togglePause);
-        elements.snapBtn.addEventListener('click', takeSnapshot);
+        // ... (keep the rest of the helper functions)
     </script>
 </body>
 </html>
