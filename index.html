@@ -91,7 +91,7 @@
             <div class="input-group"><label>Node Address</label><input type="text" id="xiaoIp" value="192.168."></div>
             <div class="input-group"><label>Case ID</label><input type="text" id="caseId" placeholder="CASE-001"></div>
             <div style="margin-top: auto; font-size: 0.6rem; color: var(--text-dim); text-align: center;">
-                Sovereign System v3.6<br>Stability Patch Active
+                Sovereign System v3.7<br>Split-Server Patch Active
             </div>
         </div>
 
@@ -130,6 +130,9 @@
     <canvas id="streamCanvas" width="640" height="480" style="display:none"></canvas>
 
     <script>
+        const STREAM_PORT = 81;
+        const CONTROL_PORT = 80;
+
         const state = {
             isConnected: false, isRecording: false, isPaused: false,
             startTime: 0, accumulatedElapsed: 0,
@@ -158,18 +161,31 @@
         const ctx = elements.canvas.getContext('2d', { alpha: false, desynchronized: true });
         elements.monitorView.crossOrigin = "anonymous";
 
+        function baseHost() {
+            let ip = elements.ipInput.value.trim();
+            ip = ip.replace(/^https?:\/\//, '').replace(/:\d+$/, '').replace(/\/$/, '');
+            return ip;
+        }
+
+        function streamUrl() {
+            return `http://${baseHost()}:${STREAM_PORT}/`;
+        }
+
+        function controlUrl(path) {
+            return `http://${baseHost()}:${CONTROL_PORT}${path}`;
+        }
+
         function updateUI(text, color) {
             elements.sysStatus.innerText = `System: ${text}`;
             elements.sysStatus.style.color = color;
         }
 
         async function connectStream() {
-            let ip = elements.ipInput.value.trim();
-            if (!ip || ip === "192.168.") return alert("Invalid IP");
-            const url = (ip.startsWith('http') ? ip : `http://${ip}`).replace(/\/$/, "") + "/";
+            const host = baseHost();
+            if (!host || host === "192.168.") return alert("Invalid IP");
 
             updateUI('LINKING...', 'var(--accent-blue)');
-            elements.monitorView.src = `${url}?t=${Date.now()}`;
+            elements.monitorView.src = `${streamUrl()}?t=${Date.now()}`;
             elements.monitorView.style.display = "block";
             elements.placeholder.style.display = "none";
 
@@ -210,13 +226,8 @@
             requestAnimationFrame(render);
         }
 
-        async function startAudit() {
-            const ip = elements.ipInput.value.trim();
-            const url = (ip.startsWith('http') ? ip : `http://${ip}`).replace(/\/$/, "");
-
-            try {
-                await fetch(`${url}/resume`, { mode: 'no-cors' });
-            } catch(e) {}
+        function startAudit() {
+            fetch(controlUrl('/resume'), { mode: 'no-cors' }).catch(() => {});
 
             state.isRecording = true;
             state.isPaused = false;
@@ -248,10 +259,7 @@
             }, 100);
         }
 
-        async function togglePause() {
-            const ip = elements.ipInput.value.trim();
-            const url = (ip.startsWith('http') ? ip : `http://${ip}`).replace(/\/$/, "");
-
+        function togglePause() {
             if (!state.isPaused) {
                 state.accumulatedElapsed += performance.now() - state.startTime;
                 if (state.mediaRecorder && state.mediaRecorder.state === "recording") {
@@ -265,9 +273,7 @@
             }
 
             state.isPaused = !state.isPaused;
-            try {
-                await fetch(`${url}/${state.isPaused ? 'pause' : 'resume'}`, { mode: 'no-cors' });
-            } catch(e) {}
+            fetch(controlUrl(state.isPaused ? '/pause' : '/resume'), { mode: 'no-cors' }).catch(() => {});
 
             elements.pauseBtn.innerText = state.isPaused ? "▶ Resume" : "⏸ Pause";
             updateUI(state.isPaused ? 'SESSION PAUSED' : 'RECORDING ACTIVE', state.isPaused ? 'var(--accent-blue)' : 'var(--accent-green)');
@@ -307,9 +313,7 @@
             if (document.hidden) {
                 elements.monitorView.src = "";
             } else {
-                const ip = elements.ipInput.value.trim();
-                const url = (ip.startsWith('http') ? ip : `http://${ip}`).replace(/\/$/, "") + "/";
-                elements.monitorView.src = `${url}?t=${Date.now()}`;
+                elements.monitorView.src = `${streamUrl()}?t=${Date.now()}`;
             }
         });
 
