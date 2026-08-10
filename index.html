@@ -6,303 +6,141 @@
     <title>JUSTICE LOGGER // COMMAND CENTER</title>
     <style>
         :root {
-            --bg-dark: #0a0f1a; 
-            --panel-bg: rgba(22, 31, 51, 0.9);
-            --accent-orange: #f97316; 
-            --accent-green: #22c55e;
-            --accent-red: #ef4444; 
-            --accent-blue: #3b82f6;
-            --text-main: #e2e8f0; 
-            --text-dim: #94a3b8;
+            --bg-dark: #0a0f1a; --panel-bg: rgba(22, 31, 51, 0.9);
+            --accent-orange: #f97316; --accent-green: #22c55e;
+            --accent-red: #ef4444; --accent-blue: #3b82f6;
+            --text-main: #e2e8f0; --text-dim: #94a3b8;
             --border-glow: rgba(249, 115, 22, 0.3);
         }
-
         body {
-            font-family: 'JetBrains Mono', 'Fira Code', monospace;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            margin: 0; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center;
-            min-height: 100vh; 
-            overflow: hidden;
+            font-family: 'JetBrains Mono', monospace;
+            background-color: var(--bg-dark); color: var(--text-main);
+            margin: 0; display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; overflow: hidden;
         }
-
         .dashboard {
-            display: grid; 
-            grid-template-columns: 320px 1fr; 
-            gap: 20px;
-            width: 95vw; 
-            max-width: 1300px; 
-            height: 90vh;
+            display: grid; grid-template-columns: 320px 1fr; gap: 20px;
+            width: 95vw; max-width: 1300px; height: 90vh;
         }
-
-        /* Sidebar Styling */
         .sidebar {
-            background: var(--panel-bg); 
-            border: 1px solid var(--border-glow);
-            border-radius: 12px; 
-            padding: 20px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            background: var(--panel-bg); border: 1px solid var(--border-glow);
+            border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 15px;
         }
-
         .brand h1 {
-            font-size: 1.1rem; 
-            color: var(--accent-orange); 
-            margin: 0 0 20px 0;
-            text-align: center; 
-            border-bottom: 2px solid var(--accent-orange);
-            padding-bottom: 10px; 
-            text-transform: uppercase;
-            letter-spacing: 2px;
+            font-size: 1.1rem; color: var(--accent-orange); margin: 0 0 20px 0;
+            text-align: center; border-bottom: 2px solid var(--accent-orange);
+            padding-bottom: 10px; text-transform: uppercase;
         }
-
-        .input-group { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 5px; 
-        }
-
-        label { 
-            font-size: 0.65rem; 
-            color: var(--text-dim); 
-            text-transform: uppercase; 
-            letter-spacing: 1px;
-        }
-
+        .input-group { display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; }
         input {
-            background: #0f172a; 
-            border: 1px solid #334155; 
-            border-radius: 4px;
-            padding: 10px; 
-            color: white; 
-            font-family: inherit;
-            transition: border 0.3s;
+            background: #0f172a; border: 1px solid #334155; border-radius: 4px;
+            padding: 10px; color: white; font-family: inherit;
         }
-
-        input:focus {
-            outline: none;
-            border-color: var(--accent-orange);
-        }
-
-        /* Monitor Area */
-        .monitor-area { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 20px; 
-        }
-
+        .monitor-area { display: flex; flex-direction: column; gap: 20px; }
         .viewport-container {
-            position: relative; 
-            flex-grow: 1; 
-            background: #000;
-            border: 1px solid var(--border-glow); 
-            border-radius: 12px; 
-            overflow: hidden;
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            position: relative; flex-grow: 1; background: #000;
+            border: 1px solid var(--border-glow); border-radius: 12px; overflow: hidden;
         }
-
-        #monitorView { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: contain; 
-            display: none; 
-        }
-
+        #monitorView { width: 100%; height: 100%; object-fit: contain; display: none; }
         .overlay {
-            position: absolute; 
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; 
-            padding: 20px; 
-            box-sizing: border-box;
-            display: flex; 
-            flex-direction: column; 
-            justify-content: space-between;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; padding: 20px; box-sizing: border-box;
+            display: flex; flex-direction: column; justify-content: space-between;
         }
-
-        .hud-row { 
-            display: flex; 
-            justify-content: space-between; 
-        }
-
+        .hud-row { display: flex; justify-content: space-between; }
         .status-badge {
-            background: rgba(0,0,0,0.7); 
-            padding: 5px 12px;
-            border-left: 3px solid var(--accent-orange); 
-            font-size: 0.8rem;
-            text-transform: uppercase;
+            background: rgba(0,0,0,0.7); padding: 5px 12px;
+            border-left: 3px solid var(--accent-orange); font-size: 0.8rem;
         }
-
         .rec-dot {
-            display: inline-block; 
-            width: 10px; 
-            height: 10px;
-            background: var(--accent-red); 
-            border-radius: 50%;
-            margin-right: 8px; 
-            animation: blink 1s infinite; 
-            display: none;
+            display: inline-block; width: 10px; height: 10px;
+            background: var(--accent-red); border-radius: 50%;
+            margin-right: 8px; animation: blink 1s infinite; display: none;
         }
-
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-
         .placeholder-screen {
-            position: absolute; 
-            top: 50%; left: 50%; 
-            transform: translate(-50%, -50%);
-            text-align: center; 
-            color: #334155; 
-            text-transform: uppercase;
-            letter-spacing: 2px;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; color: #334155; text-transform: uppercase;
         }
-
-        /* Controls */
-        .controls { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 15px; 
-        }
-
+        .controls { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
         .btn {
-            padding: 15px; 
-            border: none; 
-            border-radius: 6px; 
-            font-family: inherit;
-            font-weight: bold; 
-            cursor: pointer; 
-            text-transform: uppercase; 
-            font-size: 0.7rem;
-            transition: all 0.2s;
+            padding: 12px; border: none; border-radius: 6px; font-family: inherit;
+            font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.65rem;
         }
-
-        .btn-start { background: var(--accent-green); color: #0a0f1a; }
-        .btn-pause { background: var(--accent-blue); color: white; display: none; }
+        .btn-connect { background: var(--accent-blue); color: white; }
+        .btn-start { background: var(--accent-green); color: #0a0f1a; display: none; }
+        .btn-pause { background: #64748b; color: white; display: none; }
         .btn-stop { background: var(--accent-red); color: white; display: none; }
         .btn-snap { background: #475569; color: white; }
-        .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
-
-        /* Telemetry */
         .telemetry {
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 15px;
-            background: var(--panel-bg); 
-            padding: 15px; 
-            border-radius: 12px;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;
+            background: var(--panel-bg); padding: 15px; border-radius: 12px;
             border: 1px solid var(--border-glow);
         }
-
-        .tel-item { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-        }
-
-        .tel-label { 
-            font-size: 0.6rem; 
-            color: var(--text-dim); 
-            margin-bottom: 4px;
-        }
-
-        .tel-val { 
-            font-size: 1.1rem; 
-            font-weight: bold; 
-            color: var(--accent-orange); 
-        }
+        .tel-item { display: flex; flex-direction: column; align-items: center; }
+        .tel-label { font-size: 0.6rem; color: var(--text-dim); }
+        .tel-val { font-size: 1.1rem; font-weight: bold; color: var(--accent-orange); }
     </style>
 </head>
 <body>
 
     <div class="dashboard">
-        <!-- Sidebar -->
         <div class="sidebar">
             <div class="brand"><h1>Justice Logger</h1></div>
-            
-            <div class="input-group">
-                <label>Node Address</label>
-                <input type="text" id="xiaoIp" value="192.168.">
-            </div>
-            
-            <div class="input-group">
-                <label>Case ID</label>
-                <input type="text" id="caseId" placeholder="CASE-001">
-            </div>
-
-            <div style="margin-top: auto; font-size: 0.6rem; color: var(--text-dim); text-align: center; line-height: 1.5;">
-                Sovereign System v3.1<br>Anti-Lag Pipeline Active<br>GitHub Pages Deployment
+            <div class="input-group"><label>Node Address</label><input type="text" id="xiaoIp" value="192.168."></div>
+            <div class="input-group"><label>Case ID</label><input type="text" id="caseId" placeholder="CASE-001"></div>
+            <div style="margin-top: auto; font-size: 0.6rem; color: var(--text-dim); text-align: center;">
+                Sovereign System v3.2<br>Command-Link Active
             </div>
         </div>
 
-        <!-- Monitor Area -->
         <div class="monitor-area">
             <div class="viewport-container">
-                <div id="placeholder" class="placeholder-screen">LENS DISCONNECTED<br>Await System Link</div>
-                <img id="monitorView" alt="Live Audit Feed">
-                
+                <div id="placeholder" class="placeholder-screen">LENS DISCONNECTED</div>
+                <img id="monitorView" alt="Feed">
                 <div class="overlay">
                     <div class="hud-row">
-                        <div class="status-badge">
-                            <span id="recDot" class="rec-dot"></span>
-                            <span id="sysStatus">System: IDLE</span>
-                        </div>
+                        <div class="status-badge"><span id="recDot" class="rec-dot"></span><span id="sysStatus">System: IDLE</span></div>
                         <div class="status-badge">FPS: <span id="fpsVal">0</span></div>
                     </div>
                     <div class="hud-row">
                         <div class="status-badge">TIME: <span id="timerVal">00:00:00</span></div>
-                        <div class="status-badge">MODE: REAL-TIME AUDIT</div>
+                        <div class="status-badge">MODE: PREVIEW</div>
                     </div>
                 </div>
             </div>
 
             <div class="controls">
+                <button id="connectBtn" class="btn btn-connect">🔌 Connect</button>
                 <button id="startBtn" class="btn btn-start">▶ Start Audit</button>
                 <button id="pauseBtn" class="btn btn-pause">⏸ Pause</button>
                 <button id="stopBtn" class="btn btn-stop">⏹ Stop & Save</button>
-                <button id="snapBtn" class="btn btn-snap">📸 Snapshot</button>
+                <button id="snapBtn" class="btn btn-snap">📸 Snap</button>
             </div>
 
             <div class="telemetry">
-                <div class="tel-item">
-                    <span class="tel-label">NETWORK LATENCY</span>
-                    <span id="latVal" class="tel-val">-- ms</span>
-                </div>
-                <div class="tel-item">
-                    <span class="tel-label">STREAM STABILITY</span>
-                    <span id="stabVal" class="tel-val">IDLE</span>
-                </div>
-                <div class="tel-item">
-                    <span class="tel-label">BUFFER LOAD</span>
-                    <span id="bufVal" class="tel-val">0%</span>
-                </div>
+                <div class="tel-item"><span class="tel-label">LATENCY</span><span id="latVal" class="tel-val">-- ms</span></div>
+                <div class="tel-item"><span class="tel-label">STABILITY</span><span id="stabVal" class="tel-val">IDLE</span></div>
+                <div class="tel-item"><span class="tel-label">BUFFER</span><span id="bufVal" class="tel-val">0%</span></div>
             </div>
         </div>
     </div>
 
-    <!-- Hidden processing canvas -->
     <canvas id="streamCanvas" width="640" height="480" style="display:none"></canvas>
 
     <script>
-        /**
-         * Justice Logger v3.1 - Final Optimized Core
-         */
         const state = {
-            isRecording: false, 
-            isPaused: false,
-            totalSeconds: 0, 
-            mediaRecorder: null, 
-            chunks: [],
-            lastFrameTime: 0, 
-            frameCount: 0, 
-            timerInterval: null
+            isConnected: false, isRecording: false, isPaused: false,
+            totalSeconds: 0, mediaRecorder: null, chunks: [],
+            lastFrameTime: 0, frameCount: 0, timerInterval: null,
+            lastPixelData: null
         };
 
         const elements = {
             ipInput: document.getElementById('xiaoIp'),
             caseId: document.getElementById('caseId'),
+            connectBtn: document.getElementById('connectBtn'),
             startBtn: document.getElementById('startBtn'),
             pauseBtn: document.getElementById('pauseBtn'),
             stopBtn: document.getElementById('stopBtn'),
@@ -324,15 +162,13 @@
             elements.sysStatus.style.color = color;
         }
 
-        async function startAudit() {
+        // FEATURE: CONNECT ONLY (No recording, no timer)
+        async function connectStream() {
             let ip = elements.ipInput.value.trim();
-            if (!ip || ip === "192.168.") return alert("Please enter a valid Node Address");
-            
+            if (!ip || ip === "192.168.") return alert("Invalid IP");
             const url = (ip.startsWith('http') ? ip : `http://${ip}`).replace(/\/$/, "") + "/";
             
-            updateUI('CONNECTING...', 'var(--accent-blue)');
-            
-            // Fresh socket with timestamp to prevent browser-side MJPEG buffering
+            updateUI('LINKING...', 'var(--accent-blue)');
             elements.monitorView.src = `${url}?t=${Date.now()}`; 
             elements.monitorView.style.display = "block";
             elements.placeholder.style.display = "none";
@@ -340,13 +176,25 @@
             const check = setInterval(() => {
                 if (elements.monitorView.complete && elements.monitorView.naturalWidth > 0) {
                     clearInterval(check);
-                    initiateRecording();
+                    state.isConnected = true;
+                    updateUI('CONNECTED', 'var(--accent-blue)');
+                    elements.connectBtn.style.display = "none";
+                    elements.startBtn.style.display = "flex";
                 }
             }, 500);
         }
 
-        function initiateRecording() {
+        // FEATURE: START AUDIT (Start recording and timer)
+        async function startAudit() {
+            const ip = elements.ipInput.value.trim();
+            const url = (ip.startsWith('http') ? ip : `http://${ip}`).replace(/\/$/, "");
+            
+            try {
+                await fetch(`${url}/resume`, { mode: 'no-cors' });
+            } catch(e) {}
+
             state.isRecording = true;
+            state.isPaused = false;
             updateUI('RECORDING ACTIVE', 'var(--accent-green)');
             
             elements.startBtn.style.display = "none";
@@ -354,31 +202,30 @@
             elements.stopBtn.style.display = "flex";
             elements.recDot.style.display = "inline-block";
 
-            // Actual Frame-by-Frame Render Loop
             const render = (now) => {
-                if (!state.isRecording) return;
+                if (!state.isConnected) return;
                 
                 if (!state.isPaused) {
                     ctx.drawImage(elements.monitorView, 0, 0, 640, 480);
-                    state.frameCount++;
+                    
+                    // REAL FPS: Compare current frame with last frame
+                    const currentData = ctx.getImageData(10, 10, 1, 1).data;
+                    if (JSON.stringify(currentData) !== JSON.stringify(state.lastPixelData)) {
+                        state.frameCount++;
+                        state.lastPixelData = currentData;
+                    }
                 }
 
                 if (now - state.lastFrameTime >= 1000) {
                     elements.fpsVal.innerText = state.frameCount;
-                    state.frameCount = 0; 
-                    state.lastFrameTime = now;
+                    state.frameCount = 0; state.lastFrameTime = now;
                 }
                 requestAnimationFrame(render);
             };
             requestAnimationFrame(render);
 
-            // Setup MediaRecorder from Canvas
             const stream = elements.canvas.captureStream(30);
-            state.mediaRecorder = new MediaRecorder(stream, { 
-                mimeType: 'video/webm;codecs=vp8', 
-                videoBitsPerSecond: 2500000 
-            });
-            
+            state.mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 2500000 });
             state.chunks = [];
             state.mediaRecorder.ondataavailable = (e) => state.chunks.push(e.data);
             state.mediaRecorder.onstop = saveVideo;
@@ -401,9 +248,8 @@
             const url = (ip.startsWith('http') ? ip : `http://${ip}`).replace(/\/$/, "");
             
             try {
-                // Signal the ESP32 to stop sending frames for the Pause state
                 await fetch(`${url}/${state.isPaused ? 'pause' : 'resume'}`, { mode: 'no-cors' });
-            } catch(e) { console.error("Command Signal Failed"); }
+            } catch(e) {}
 
             elements.pauseBtn.innerText = state.isPaused ? "▶ Resume" : "⏸ Pause";
             updateUI(state.isPaused ? 'SESSION PAUSED' : 'RECORDING ACTIVE', state.isPaused ? 'var(--accent-blue)' : 'var(--accent-green)');
@@ -414,13 +260,13 @@
             const blob = new Blob(state.chunks, { type: 'video/webm' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            const caseName = elements.caseId.value || 'LOG';
-            a.download = `JUSTICE_LOG_${caseName}.webm`;
+            a.download = `JUSTICE_LOG_${elements.caseId.value || 'LOG'}.webm`;
             a.click();
         }
 
         function stopAudit() {
             state.isRecording = false;
+            state.isConnected = false;
             clearInterval(state.timerInterval);
             if (state.mediaRecorder) state.mediaRecorder.stop();
             
@@ -430,27 +276,32 @@
             elements.recDot.style.display = "none";
             
             updateUI('IDLE', 'var(--text-dim)');
-            elements.startBtn.style.display = "flex";
+            elements.connectBtn.style.display = "flex";
+            elements.startBtn.style.display = "none";
             elements.pauseBtn.style.display = "none";
             elements.stopBtn.style.display = "none";
+            state.totalSeconds = 0;
+            elements.timerVal.innerText = "00:00:00";
         }
 
-        // TAB VISIBILITY: Prevents "Fast-Forward" lag when returning to tab
+        // FIXED TAB VISIBILITY: Only kills the socket, DOES NOT reset timer or recording state
         document.addEventListener('visibilitychange', () => {
-            if (document.hidden && state.isRecording) {
-                elements.monitorView.src = ""; // Cut socket
-            } else if (!document.hidden && state.isRecording) {
+            if (!state.isConnected) return;
+            if (document.hidden) {
+                elements.monitorView.src = ""; 
+            } else {
                 const ip = elements.ipInput.value.trim();
                 const url = (ip.startsWith('http') ? ip : `http://${ip}`).replace(/\/$/, "") + "/";
-                elements.monitorView.src = `${url}?t=${Date.now()}`; // Re-establish fresh socket
+                elements.monitorView.src = `${url}?t=${Date.now()}`;
             }
         });
 
+        elements.connectBtn.addEventListener('click', connectStream);
         elements.startBtn.addEventListener('click', startAudit);
         elements.stopBtn.addEventListener('click', stopAudit);
         elements.pauseBtn.addEventListener('click', togglePause);
         elements.snapBtn.addEventListener('click', () => {
-            if(!state.isRecording) return alert("Start audit first");
+            if(!state.isConnected) return alert("Connect first");
             const a = document.createElement('a');
             a.download = `SNAP_${elements.caseId.value || 'LOG'}.jpg`; 
             a.href = elements.canvas.toDataURL('image/jpeg'); 
