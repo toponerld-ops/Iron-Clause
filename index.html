@@ -3,289 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JUSTICE LOGGER // AUDIT SYSTEM</title>
+    <title>JUSTICE LOGGER // COMMAND CENTER</title>
     <style>
         :root {
-            --bg-dark: #0a0f1a;
-            --panel-bg: rgba(22, 31, 51, 0.8);
-            --accent-orange: #f97316;
-            --accent-green: #22c55e;
-            --accent-red: #ef4444;
-            --accent-blue: #3b82f6;
-            --text-main: #e2e8f0;
-            --text-dim: #94a3b8;
+            --bg-dark: #0a0f1a; --panel-bg: rgba(22, 31, 51, 0.9);
+            --accent-orange: #f97316; --accent-green: #22c55e;
+            --accent-red: #ef4444; --accent-blue: #3b82f6;
+            --text-main: #e2e8f0; --text-dim: #94a3b8;
             --border-glow: rgba(249, 115, 22, 0.3);
         }
-
         body {
-            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-family: 'JetBrains Mono', monospace;
             background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(circle at 50% 50%, #1e293b 0%, #0a0f1a 100%),
-                linear-gradient(rgba(18, 24, 38, 0.5) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(18, 24, 38, 0.5) 1px, transparent 1px);
-            background-size: 100% 100%, 30px 30px, 30px 30px;
             color: var(--text-main);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
+            margin: 0; display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; overflow: hidden;
         }
-
-        /* Main Layout */
         .dashboard {
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 20px;
-            width: 95vw;
-            max-width: 1200px;
-            height: 85vh;
+            display: grid; grid-template-columns: 320px 1fr; gap: 20px;
+            width: 95vw; max-width: 1300px; height: 90vh;
         }
-
-        /* Left Sidebar */
         .sidebar {
-            background: var(--panel-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border-glow);
-            border-radius: 12px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            background: var(--panel-bg); border: 1px solid var(--border-glow);
+            border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 15px;
         }
-
         .brand h1 {
-            font-size: 1.2rem;
-            color: var(--accent-orange);
-            margin: 0;
-            text-align: center;
-            border-bottom: 2px solid var(--accent-orange);
-            padding-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 3px;
+            font-size: 1.1rem; color: var(--accent-orange); margin: 0 0 20px 0;
+            text-align: center; border-bottom: 2px solid var(--accent-orange);
+            padding-bottom: 10px; text-transform: uppercase;
         }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        label {
-            font-size: 0.7rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
+        .input-group { display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; }
         input {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid #334155;
-            border-radius: 4px;
-            padding: 10px;
-            color: white;
-            font-family: inherit;
-            transition: all 0.3s;
+            background: #0f172a; border: 1px solid #334155; border-radius: 4px;
+            padding: 10px; color: white; font-family: inherit;
         }
-
-        input:focus {
-            outline: none;
-            border-color: var(--accent-orange);
-            box-shadow: 0 0 8px var(--border-glow);
-        }
-
-        /* Main Monitor Area */
-        .monitor-area {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
+        .monitor-area { display: flex; flex-direction: column; gap: 20px; }
         .viewport-container {
-            position: relative;
-            flex-grow: 1;
-            background: #000;
-            border: 1px solid var(--border-glow);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            position: relative; flex-grow: 1; background: #000;
+            border: 1px solid var(--border-glow); border-radius: 12px; overflow: hidden;
         }
-
-        #monitorView {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: none;
-        }
-
+        #monitorView { width: 100%; height: 100%; object-fit: contain; display: none; }
         .overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            border: 20px solid transparent;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 20px;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; padding: 20px; box-sizing: border-box;
+            display: flex; flex-direction: column; justify-content: space-between;
         }
-
-        .hud-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-
-        .hud-bottom {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-        }
-
+        .hud-row { display: flex; justify-content: space-between; }
         .status-badge {
-            background: rgba(0,0,0,0.7);
-            padding: 5px 12px;
-            border-left: 3px solid var(--accent-orange);
-            font-size: 0.8rem;
-            text-transform: uppercase;
+            background: rgba(0,0,0,0.7); padding: 5px 12px;
+            border-left: 3px solid var(--accent-orange); font-size: 0.8rem;
         }
-
         .rec-dot {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            background: var(--accent-red);
-            border-radius: 50%;
-            margin-right: 8px;
-            animation: blink 1s infinite;
-            display: none;
+            display: inline-block; width: 10px; height: 10px;
+            background: var(--accent-red); border-radius: 50%;
+            margin-right: 8px; animation: blink 1s infinite; display: none;
         }
-
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-
         .placeholder-screen {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            color: #334155;
-            text-transform: uppercase;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; color: #334155; text-transform: uppercase;
         }
-
-        /* Controls */
-        .controls {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-        }
-
+        .controls { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
         .btn {
-            padding: 15px;
-            border: none;
-            border-radius: 6px;
-            font-family: inherit;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            padding: 15px; border: none; border-radius: 6px; font-family: inherit;
+            font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.7rem;
         }
-
         .btn-start { background: var(--accent-green); color: #0a0f1a; }
         .btn-pause { background: var(--accent-blue); color: white; display: none; }
         .btn-stop { background: var(--accent-red); color: white; display: none; }
         .btn-snap { background: #475569; color: white; }
-        .btn:hover { transform: translateY(-2px); filter: brightness(1.2); }
-        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-        /* Bottom Telemetry */
         .telemetry {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            background: var(--panel-bg);
-            padding: 15px;
-            border-radius: 12px;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;
+            background: var(--panel-bg); padding: 15px; border-radius: 12px;
             border: 1px solid var(--border-glow);
         }
-
-        .tel-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border-right: 1px solid #334155;
-        }
-
-        .tel-item:last-child { border: none; }
-        .tel-label { font-size: 0.6rem; color: var(--text-dim); margin-bottom: 5px; }
+        .tel-item { display: flex; flex-direction: column; align-items: center; }
+        .tel-label { font-size: 0.6rem; color: var(--text-dim); }
         .tel-val { font-size: 1.1rem; font-weight: bold; color: var(--accent-orange); }
-
-        #recordingEngine { display: none; }
     </style>
 </head>
 <body>
 
     <div class="dashboard">
-        <!-- Sidebar -->
         <div class="sidebar">
-            <div class="brand">
-                <h1>Justice Logger</h1>
-            </div>
-
-            <div class="input-group">
-                <label>ESP32-S3 Node Address</label>
-                <input type="text" id="xiaoIp" placeholder="192.168.1.xx" value="192.168.">
-            </div>
-
-            <div class="input-group">
-                <label>Case ID / Session Name</label>
-                <input type="text" id="caseId" placeholder="CASE-001-ALPHA">
-            </div>
-
-            <div class="input-group">
-                <label>Audit Officer</label>
-                <input type="text" id="officer" placeholder="Detective Name">
-            </div>
-
+            <div class="brand"><h1>Justice Logger</h1></div>
+            <div class="input-group"><label>Node Address</label><input type="text" id="xiaoIp" value="192.168."></div>
+            <div class="input-group"><label>Case ID</label><input type="text" id="caseId" placeholder="CASE-001"></div>
+            <div class="input-group"><label>Audit Officer</label><input type="text" id="officer" placeholder="Name"></div>
             <div style="margin-top: auto; font-size: 0.6rem; color: var(--text-dim); text-align: center;">
-                SYSTEM VERSION 2.0.4<br>ENCRYPTED PIPELINE ACTIVE
+                Sovereign System v3.0<br>Anti-Lag Pipeline Active
             </div>
         </div>
 
-        <!-- Main Area -->
         <div class="monitor-area">
             <div class="viewport-container">
-                <div id="placeholder" class="placeholder-screen">
-                    <div style="font-size: 2rem; margin-bottom: 10px;">⚠️</div>
-                    LENS DISCONNECTED<br>Await System Link
-                </div>
-                
-                <img id="monitorView" alt="Live Audit Feed">
-                
+                <div id="placeholder" class="placeholder-screen">LENS DISCONNECTED</div>
+                <img id="monitorView" alt="Feed">
                 <div class="overlay">
-                    <div class="hud-top">
-                        <div class="status-badge">
-                            <span id="recDot" class="rec-dot"></span>
-                            <span id="sysStatus">System: IDLE</span>
-                        </div>
-                        <div class="status-badge" style="border-color: var(--accent-blue);">
-                            FPS: <span id="fpsVal">0</span>
-                        </div>
+                    <div class="hud-row">
+                        <div class="status-badge"><span id="recDot" class="rec-dot"></span><span id="sysStatus">System: IDLE</span></div>
+                        <div class="status-badge">FPS: <span id="fpsVal">0</span></div>
                     </div>
-                    <div class="hud-bottom">
-                        <div class="status-badge" style="border-color: var(--accent-green);">
-                            SESS_TIME: <span id="timerVal">00:00:00</span>
-                        </div>
-                        <div class="status-badge" style="border-color: white;">
-                            COORD: 34.0522° N, 118.2437° W
-                        </div>
+                    <div class="hud-row">
+                        <div class="status-badge">TIME: <span id="timerVal">00:00:00</span></div>
+                        <div class="status-badge">COORD: 34.0522° N, 118.2437° W</div>
                     </div>
                 </div>
             </div>
@@ -298,70 +120,54 @@
             </div>
 
             <div class="telemetry">
-                <div class="tel-item">
-                    <span class="tel-label">NETWORK LATENCY</span>
-                    <span id="latVal" class="tel-val">-- ms</span>
-                </div>
-                <div class="tel-item">
-                    <span class="tel-label">STREAM STABILITY</span>
-                    <span id="stabVal" class="tel-val">IDLE</span>
-                </div>
-                <div class="tel-item">
-                    <span class="tel-label">MEMORY BUFFER</span>
-                    <span id="bufVal" class="tel-val">0%</span>
-                </div>
+                <div class="tel-item"><span class="tel-label">LATENCY</span><span id="latVal" class="tel-val">-- ms</span></div>
+                <div class="tel-item"><span class="tel-label">STABILITY</span><span id="stabVal" class="tel-val">IDLE</span></div>
+                <div class="tel-item"><span class="tel-label">BUFFER</span><span id="bufVal" class="tel-val">0%</span></div>
             </div>
         </div>
     </div>
 
-    <div id="recordingEngine">
-        <canvas id="streamCanvas" width="640" height="480"></canvas>
-    </div>
+    <canvas id="streamCanvas" width="640" height="480" style="display:none"></canvas>
 
     <script>
-        /**
-         * Justice Logger v2 - Enhanced Core
-         */
         const state = {
-            isRecording: false,
-            isPaused: false,
-            timerInterval: null,
-            animationFrameId: null,
-            totalSeconds: 0,
-            mediaRecorder: null,
-            chunks: [],
-            lastFrameTime: 0,
-            frameCount: 0
+            isRecording: false, isPaused: false,
+            totalSeconds: 0, mediaRecorder: null, chunks: [],
+            lastFrameTime: 0, frameCount: 0, timerInterval: null
         };
 
         const elements = {
-            // ... (keep all your elements the same as the previous HTML)
+            ipInput: document.getElementById('xiaoIp'),
+            startBtn: document.getElementById('startBtn'),
+            pauseBtn: document.getElementById('pauseBtn'),
+            stopBtn: document.getElementById('stopBtn'),
+            snapBtn: document.getElementById('snapBtn'),
+            sysStatus: document.getElementById('sysStatus'),
+            timerVal: document.getElementById('timerVal'),
+            fpsVal: document.getElementById('fpsVal'),
+            placeholder: document.getElementById('placeholder'),
+            monitorView: document.getElementById('monitorView'),
+            recDot: document.getElementById('recDot'),
+            canvas: document.getElementById('streamCanvas')
         };
 
-        const ctx = elements.canvas.getContext('2d', { 
-            alpha: false, 
-            desynchronized: true // CRITICAL: Tells browser to bypass some buffering for lower latency
-        });
+        const ctx = elements.canvas.getContext('2d', { alpha: false, desynchronized: true });
         elements.monitorView.crossOrigin = "anonymous";
 
         async function startAudit() {
             let ip = elements.ipInput.value.trim();
-            if (!ip || ip === "192.168.") return alert("Enter valid Node Address!");
-
-            const url = ip.startsWith('http') ? ip : `http://${ip}`;
-            const finalUrl = url.endsWith('/') ? url : `${url}/`;
-
-            updateUI('CONNECTING...', 'var(--accent-blue)');
+            if (!ip || ip === "192.168.") return alert("Invalid IP");
             
-            // To prevent browser-side MJPEG lag, we add a timestamp to the URL
-            // This forces the browser to open a FRESH socket instead of reusing a lagged one
-            elements.monitorView.src = `${finalUrl}?t=${Date.now()}`;
+            const url = (ip.startsWith('http') ? ip : `http://${ip}`).replace(/\/$/, "") + "/";
+            
+            updateUI('CONNECTING...', 'var(--accent-blue)');
+            elements.monitorView.src = `${url}?t=${Date.now()}`; 
             elements.monitorView.style.display = "block";
             elements.placeholder.style.display = "none";
 
-            const checkConnection = setInterval(() => {
+            const check = setInterval(() => {
                 if (elements.monitorView.complete && elements.monitorView.naturalWidth > 0) {
-                    clearInterval(checkConnection);
+                    clearInterval(check);
                     initiateRecording();
                 }
             }, 500);
@@ -369,9 +175,7 @@
 
         function initiateRecording() {
             state.isRecording = true;
-            state.isPaused = false;
             updateUI('RECORDING ACTIVE', 'var(--accent-green)');
-            
             elements.startBtn.style.display = "none";
             elements.pauseBtn.style.display = "flex";
             elements.stopBtn.style.display = "flex";
@@ -379,43 +183,94 @@
 
             const render = (now) => {
                 if (!state.isRecording) return;
-
-                // High-performance FPS counter
                 state.frameCount++;
                 if (now - state.lastFrameTime >= 1000) {
                     elements.fpsVal.innerText = state.frameCount;
-                    state.frameCount = 0;
-                    state.lastFrameTime = now;
+                    state.frameCount = 0; state.lastFrameTime = now;
                 }
-
-                if (!state.isPaused) {
-                    // Optimized draw call
-                    ctx.drawImage(elements.monitorView, 0, 0, elements.canvas.width, elements.canvas.height);
-                }
-                state.animationFrameId = requestAnimationFrame(render);
+                if (!state.isPaused) ctx.drawImage(elements.monitorView, 0, 0, 640, 480);
+                requestAnimationFrame(render);
             };
             requestAnimationFrame(render);
 
-            const stream = elements.canvas.captureStream(30); // Match target FPS
-            state.mediaRecorder = new MediaRecorder(stream, { 
-                mimeType: 'video/webm;codecs=vp8',
-                videoBitsPerSecond: 2500000 // Higher bitrate for better quality
-            });
-
+            const stream = elements.canvas.captureStream(30);
+            state.mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 2500000 });
             state.chunks = [];
-            state.mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) state.chunks.push(e.data); };
+            state.mediaRecorder.ondataavailable = (e) => state.chunks.push(e.data);
             state.mediaRecorder.onstop = saveVideo;
             state.mediaRecorder.start();
 
-            state.totalSeconds = 0;
             state.timerInterval = setInterval(() => {
                 if (!state.isPaused) {
                     state.totalSeconds++;
-                    elements.timerVal.innerText = formatTime(state.totalSeconds);
+                    const h = Math.floor(state.totalSeconds/3600).toString().padStart(2,'0');
+                    const m = Math.floor((state.totalSeconds%3600)/60).toString().padStart(2,'0');
+                    const s = (state.totalSeconds%60).toString().padStart(2,'0');
+                    elements.timerVal.innerText = `${h}:${m}:${s}`;
                 }
             }, 1000);
         }
-        // ... (keep the rest of the helper functions)
+
+        async function togglePause() {
+            state.isPaused = !state.isPaused;
+            const ip = elements.ipInput.value.trim();
+            const url = (ip.startsWith('http') ? ip : `http://${ip}`).replace(/\/$/, "");
+            
+            // SEND COMMAND TO ESP32
+            try {
+                await fetch(`${url}/${state.isPaused ? 'pause' : 'resume'}`);
+            } catch(e) { console.log("ESP32 Command Failed"); }
+
+            elements.pauseBtn.innerText = state.isPaused ? "▶ Resume" : "⏸ Pause";
+            updateUI(state.isPaused ? 'SESSION PAUSED' : 'RECORDING ACTIVE', state.isPaused ? 'var(--accent-blue)' : 'var(--accent-green)');
+            elements.recDot.style.animation = state.isPaused ? 'none' : 'blink 1s infinite';
+        }
+
+        function saveVideo() {
+            const blob = new Blob(state.chunks, { type: 'video/webm' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `JUSTICE_LOG_${document.getElementById('caseId').value || 'LOG'}.webm`;
+            a.click();
+        }
+
+        function stopAudit() {
+            state.isRecording = false;
+            clearInterval(state.timerInterval);
+            if (state.mediaRecorder) state.mediaRecorder.stop();
+            elements.monitorView.src = "";
+            elements.monitorView.style.display = "none";
+            elements.placeholder.style.display = "block";
+            elements.recDot.style.display = "none";
+            updateUI('IDLE', 'var(--text-dim)');
+            elements.startBtn.style.display = "flex";
+            elements.pauseBtn.style.display = "none";
+            elements.stopBtn.style.display = "none";
+        }
+
+        function updateUI(text, color) {
+            elements.sysStatus.innerText = `System: ${text}`;
+            elements.sysStatus.style.color = color;
+        }
+
+        // TAB VISIBILITY FIX: Kill stream when switching tabs to prevent "Catch-up Lag"
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && state.isRecording) {
+                elements.monitorView.src = ""; // Kill the socket
+            } else if (!document.hidden && state.isRecording) {
+                const ip = elements.ipInput.value.trim();
+                const url = (ip.startsWith('http') ? ip : `http://${ip}`).replace(/\/$/, "") + "/";
+                elements.monitorView.src = `${url}?t=${Date.now()}`; // Fresh socket
+            }
+        });
+
+        elements.startBtn.addEventListener('click', startAudit);
+        elements.stopBtn.addEventListener('click', stopAudit);
+        elements.pauseBtn.addEventListener('click', togglePause);
+        elements.snapBtn.addEventListener('click', () => {
+            const a = document.createElement('a');
+            a.download = 'snapshot.jpg'; a.href = elements.canvas.toDataURL('image/jpeg'); a.click();
+        });
     </script>
 </body>
 </html>
