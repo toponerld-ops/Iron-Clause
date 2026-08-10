@@ -91,7 +91,7 @@
             <div class="input-group"><label>Node Address</label><input type="text" id="xiaoIp" value="192.168."></div>
             <div class="input-group"><label>Case ID</label><input type="text" id="caseId" placeholder="CASE-001"></div>
             <div style="margin-top: auto; font-size: 0.6rem; color: var(--text-dim); text-align: center;">
-                Sovereign System v3.2<br>Command-Link Active
+                Sovereign System v3.3<br> Command-Link Active
             </div>
         </div>
 
@@ -162,7 +162,6 @@
             elements.sysStatus.style.color = color;
         }
 
-        // FEATURE: CONNECT ONLY (No recording, no timer)
         async function connectStream() {
             let ip = elements.ipInput.value.trim();
             if (!ip || ip === "192.168.") return alert("Invalid IP");
@@ -184,7 +183,6 @@
             }, 500);
         }
 
-        // FEATURE: START AUDIT (Start recording and timer)
         async function startAudit() {
             const ip = elements.ipInput.value.trim();
             const url = (ip.startsWith('http') ? ip : `http://${ip}`).replace(/\/$/, "");
@@ -204,18 +202,14 @@
 
             const render = (now) => {
                 if (!state.isConnected) return;
-                
                 if (!state.isPaused) {
                     ctx.drawImage(elements.monitorView, 0, 0, 640, 480);
-                    
-                    // REAL FPS: Compare current frame with last frame
                     const currentData = ctx.getImageData(10, 10, 1, 1).data;
                     if (JSON.stringify(currentData) !== JSON.stringify(state.lastPixelData)) {
                         state.frameCount++;
                         state.lastPixelData = currentData;
                     }
                 }
-
                 if (now - state.lastFrameTime >= 1000) {
                     elements.fpsVal.innerText = state.frameCount;
                     state.frameCount = 0; state.lastFrameTime = now;
@@ -246,7 +240,6 @@
             state.isPaused = !state.isPaused;
             const ip = elements.ipInput.value.trim();
             const url = (ip.startsWith('http') ? ip : `http://${ip}`).replace(/\/$/, "");
-            
             try {
                 await fetch(`${url}/${state.isPaused ? 'pause' : 'resume'}`, { mode: 'no-cors' });
             } catch(e) {}
@@ -269,12 +262,10 @@
             state.isConnected = false;
             clearInterval(state.timerInterval);
             if (state.mediaRecorder) state.mediaRecorder.stop();
-            
             elements.monitorView.src = "";
             elements.monitorView.style.display = "none";
             elements.placeholder.style.display = "block";
             elements.recDot.style.display = "none";
-            
             updateUI('IDLE', 'var(--text-dim)');
             elements.connectBtn.style.display = "flex";
             elements.startBtn.style.display = "none";
@@ -284,7 +275,6 @@
             elements.timerVal.innerText = "00:00:00";
         }
 
-        // FIXED TAB VISIBILITY: Only kills the socket, DOES NOT reset timer or recording state
         document.addEventListener('visibilitychange', () => {
             if (!state.isConnected) return;
             if (document.hidden) {
