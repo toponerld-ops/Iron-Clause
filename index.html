@@ -10,139 +10,156 @@
             --card-bg: #1e293b;
             --accent-orange: #f97316;
             --accent-green: #22c55e;
+            --accent-red: #ef4444;
             --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --border-color: #334155;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
             padding: 20px;
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
         }
 
         .container {
             width: 100%;
-            max-width: 500px;
+            max-width: 480px;
             background: var(--card-bg);
-            border-radius: 12px;
+            border-radius: 16px;
             padding: 24px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-            border-top: 5px solid var(--accent-orange);
-            box-sizing: border-box;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+            border-top: 6px solid var(--accent-orange);
+            height: fit-content;
         }
 
         h1 {
             text-align: center;
-            font-size: 1.5rem;
-            margin-top: 0;
+            font-size: 1.4rem;
+            margin: 0 0 20px 0;
             color: var(--accent-orange);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .preview-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: #000;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #monitorView {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: none;
+        }
+
+        .placeholder-text {
+            color: #475569;
+            font-size: 0.85rem;
+            text-align: center;
+            line-height: 1.6;
+            text-transform: uppercase;
             letter-spacing: 1px;
         }
 
-        .input-group {
-            margin-bottom: 20px;
+        /* Recording Pulse Indicator */
+        .rec-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,0,0,0.5);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .pulse {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            animation: blink 1s infinite;
         }
 
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
+
+        .input-group { margin-bottom: 20px; }
         label {
             display: block;
             margin-bottom: 8px;
-            font-size: 0.85rem;
-            color: #94a3b8;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
         }
 
         input {
             width: 100%;
             padding: 12px;
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 6px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
             color: white;
             font-size: 1rem;
             box-sizing: border-box;
+            transition: border 0.2s;
         }
 
-        input:focus {
-            outline: none;
-            border-color: var(--accent-orange);
-        }
-
-        .preview-box {
-            width: 100%;
-            height: 280px;
-            background: #0f172a;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            border: 1px solid #334155;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .preview-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: none; 
-        }
-
-        .placeholder-text {
-            color: #475569;
-            font-size: 0.9rem;
-            text-align: center;
-            position: absolute;
-            line-height: 1.4;
-        }
+        input:focus { outline: none; border-color: var(--accent-orange); }
+        input:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .btn {
             width: 100%;
             padding: 14px;
             border: none;
-            border-radius: 6px;
-            font-size: 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
             font-weight: bold;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
             margin-bottom: 12px;
+            text-transform: uppercase;
         }
 
-        .btn-start {
-            background: var(--accent-green);
-            color: #0f172a;
-        }
+        .btn-start { background: var(--accent-green); color: #0f172a; }
+        .btn-start:hover { background: #16a34a; transform: translateY(-1px); }
 
-        .btn-start:hover { background: #16a34a; }
-
-        .btn-stop {
-            background: #ef4444;
-            color: white;
-            display: none;
-        }
-
-        .btn-stop:hover { background: #dc2626; }
+        .btn-stop { background: var(--accent-red); color: white; display: none; }
+        .btn-stop:hover { background: #dc2626; transform: translateY(-1px); }
 
         .status-panel {
-            background: #0f172a;
-            border-radius: 6px;
+            background: var(--bg-color);
+            border-radius: 8px;
             padding: 16px;
-            margin-top: 20px;
-            border: 1px solid #334155;
+            border: 1px solid var(--border-color);
         }
 
         .status-row {
             display: flex;
             justify-content: space-between;
             margin-bottom: 8px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
-
         .status-row:last-child { margin-bottom: 0; }
-        .stat-val { font-weight: bold; }
+        .stat-val { font-family: monospace; font-weight: bold; }
 
         #recordingEngine { display: none; }
     </style>
@@ -150,9 +167,12 @@
 <body>
 
     <div class="container">
-        <h1>MR. JUSTICE LOGGER</h1>
+        <h1>Mr. Justice Logger</h1>
         
-        <div class="preview-box">
+        <div class="preview-container">
+            <div id="recIndicator" class="rec-indicator">
+                <div class="pulse"></div> REC
+            </div>
             <div id="placeholder" class="placeholder-text">LENS DISCONNECTED<br>Await Audit Activation</div>
             <img id="monitorView" alt="Live Camera Preview">
         </div>
@@ -162,13 +182,13 @@
             <input type="text" id="xiaoIp" placeholder="e.g., 192.168.1.50" value="192.168.">
         </div>
 
-        <button id="startBtn" class="btn btn-start">START SESSION AUDIT</button>
-        <button id="stopBtn" class="btn btn-stop">STOP & DOWNLOAD LOG</button>
+        <button id="startBtn" class="btn btn-start">Start Session Audit</button>
+        <button id="stopBtn" class="btn btn-stop">Stop & Download Log</button>
 
         <div class="status-panel">
             <div class="status-row">
                 <span>System Pipeline:</span>
-                <span id="sysStatus" class="stat-val" style="color: #64748b;">IDLE</span>
+                <span id="sysStatus" class="stat-val" style="color: var(--text-dim);">IDLE</span>
             </div>
             <div class="status-row">
                 <span>Logged Duration:</span>
@@ -177,142 +197,173 @@
         </div>
     </div>
 
+    <!-- Hidden processing layer -->
     <div id="recordingEngine">
-        <canvas id="streamCanvas" width="320" height="240"></canvas>
+        <canvas id="streamCanvas" width="640" height="480"></canvas>
     </div>
 
     <script>
-        let mediaRecorder;
-        let recordedChunks = [];
-        let timerInterval;
-        let totalSeconds = 0;
-        let recordingLoopId;
+        /**
+         * JusticeLogger Logic
+         */
+        const state = {
+            isRecording: false,
+            timerInterval: null,
+            animationFrameId: null,
+            totalSeconds: 0,
+            mediaRecorder: null,
+            chunks: []
+        };
 
-        const xiaoIpInput = document.getElementById('xiaoIp');
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const sysStatus = document.getElementById('sysStatus');
-        const timerVal = document.getElementById('timerVal');
-        const placeholder = document.getElementById('placeholder');
-        const monitorView = document.getElementById('monitorView');
-        const canvas = document.getElementById('streamCanvas');
-        const ctx = canvas.getContext('2d');
+        const elements = {
+            ipInput: document.getElementById('xiaoIp'),
+            startBtn: document.getElementById('startBtn'),
+            stopBtn: document.getElementById('stopBtn'),
+            sysStatus: document.getElementById('sysStatus'),
+            timerVal: document.getElementById('timerVal'),
+            placeholder: document.getElementById('placeholder'),
+            monitorView: document.getElementById('monitorView'),
+            recIndicator: document.getElementById('recIndicator'),
+            canvas: document.getElementById('streamCanvas')
+        };
 
-        monitorView.crossOrigin = "anonymous";
+        const ctx = elements.canvas.getContext('2d', { alpha: false });
+        elements.monitorView.crossOrigin = "anonymous";
 
-        startBtn.addEventListener('click', () => {
-            let ip = xiaoIpInput.value.trim();
+        // Format time helper
+        const formatTime = (s) => {
+            const hrs = Math.floor(s / 3600).toString().padStart(2, '0');
+            const mins = Math.floor((s % 3600) / 60).toString().padStart(2, '0');
+            const secs = (s % 60).toString().padStart(2, '0');
+            return `${hrs}:${mins}:${secs}`;
+        };
+
+        async function startAudit() {
+            let ip = elements.ipInput.value.trim();
             if (!ip || ip === "192.168.") {
-                alert("Please enter your absolute XIAO IP address first!");
+                alert("Please enter a valid XIAO IP address!");
                 return;
             }
 
-            if (!ip.startsWith('http://') && !ip.startsWith('https://')) {
-                ip = 'http://' + ip;
-            }
-            if (!ip.endsWith('/')) {
-                ip = ip + '/';
-            }
+            // Normalize URL
+            const url = ip.startsWith('http') ? ip : `http://${ip}`;
+            const finalUrl = url.endsWith('/') ? url : `${url}/`;
 
-            sysStatus.innerText = "CONNECTING...";
-            sysStatus.style.color = "#eab308";
-            placeholder.innerText = "ESTABLISHING CAMERA FEED PIPELINES...";
-
-            monitorView.src = ip;
-            monitorView.style.display = "block";
-            placeholder.style.display = "none";
-
-            monitorView.onload = function() {
-                if (mediaRecorder && mediaRecorder.state === "recording") return;
-                startRecordingSession();
-            };
-
-            monitorView.onerror = function() {
-                sysStatus.innerText = "CONNECTION TIMEOUT";
-                sysStatus.style.color = "#ef4444";
-                placeholder.innerText = "LENS DISCONNECTED\nCheck Network Routing Configuration";
-                monitorView.style.display = "none";
-                placeholder.style.display = "block";
-                alert("Cannot connect to XIAO board! Ensure your laptop is linked to the same 2.4 GHz network pool.");
-            };
-        });
-
-        function startRecordingSession() {
-            sysStatus.innerText = "RECORDING ACTIVE";
-            sysStatus.style.color = "var(--accent-green)";
+            updateUI('CONNECTING', '#eab308');
+            elements.placeholder.innerText = "Establishing Camera Feed...";
             
-            startBtn.style.display = "none";
-            stopBtn.style.display = "block";
-            xiaoIpInput.disabled = true;
+            elements.monitorView.src = finalUrl;
+            elements.monitorView.style.display = "block";
+            elements.placeholder.style.display = "none";
 
-            function processVideoFrames() {
-                if (monitorView.complete && monitorView.naturalWidth > 0) {
-                    ctx.drawImage(monitorView, 0, 0, canvas.width, canvas.height);
+            // ESP32 MJPEG streams don't always trigger onload correctly.
+            // We check if the image is actually rendering.
+            const checkConnection = setInterval(() => {
+                if (elements.monitorView.complete && elements.monitorView.naturalWidth > 0) {
+                    clearInterval(checkConnection);
+                    initiateRecording();
                 }
-                recordingLoopId = setTimeout(processVideoFrames, 100); 
-            }
-            processVideoFrames();
+            }, 500);
 
-            const videoStream = canvas.captureStream(10); 
-            const options = { mimeType: 'video/webm;codecs=vp8' };
-            recordedChunks = [];
+            // Timeout if connection fails
+            setTimeout(() => {
+                if (!state.isRecording) {
+                    clearInterval(checkConnection);
+                    handleConnectionError();
+                }
+            }, 8000);
+        }
+
+        function handleConnectionError() {
+            updateUI('CONNECTION TIMEOUT', 'var(--accent-red)');
+            elements.placeholder.innerText = "LENS DISCONNECTED\nCheck Network Configuration";
+            elements.monitorView.style.display = "none";
+            elements.placeholder.style.display = "block";
+            alert("Connection failed. Ensure you are on the same 2.4GHz network.");
+        }
+
+        function initiateRecording() {
+            state.isRecording = true;
+            updateUI('RECORDING ACTIVE', 'var(--accent-green)');
             
-            mediaRecorder = new MediaRecorder(videoStream, options);
-            
-            mediaRecorder.ondataavailable = function(e) {
-                if (e.data.size > 0) recordedChunks.push(e.data);
+            elements.startBtn.style.display = "none";
+            elements.stopBtn.style.display = "block";
+            elements.recIndicator.style.display = "flex";
+            elements.ipInput.disabled = true;
+
+            // 1. Start the high-performance render loop
+            const render = () => {
+                if (!state.isRecording) return;
+                ctx.drawImage(elements.monitorView, 0, 0, elements.canvas.width, elements.canvas.height);
+                state.animationFrameId = requestAnimationFrame(render);
+            };
+            render();
+
+            // 2. Set up MediaRecorder from Canvas stream
+            const stream = elements.canvas.captureStream(20); // 20 FPS
+            state.mediaRecorder = new MediaRecorder(stream, { 
+                mimeType: 'video/webm;codecs=vp8',
+                videoBitsPerSecond: 1000000 // 1Mbps for decent quality
+            });
+
+            state.chunks = [];
+            state.mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) state.chunks.push(e.data);
             };
 
-            mediaRecorder.onstop = function() {
-                const blob = new Blob(recordedChunks, { type: 'video/webm' });
-                const url = URL.createObjectURL(blob);
-                
-                const downloadLink = document.createElement('a');
-                downloadLink.style.display = 'none';
-                downloadLink.href = url;
-                
-                const now = new Date();
-                const fileStamp = now.toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/:/g, '-');
-                downloadLink.download = `Justice_Audit_Log_${fileStamp}.webm`;
-                
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-                
-                setTimeout(() => {
-                    document.body.removeChild(downloadLink);
-                    window.URL.revokeObjectURL(url);
-                }, 100);
-            };
+            state.mediaRecorder.onstop = saveVideo;
+            state.mediaRecorder.start();
 
-            mediaRecorder.start(1000); 
-
-            totalSeconds = 0;
-            timerVal.innerText = "00:00:00";
-            timerInterval = setInterval(() => {
-                totalSeconds++;
-                let hr = Math.floor(totalSeconds / 3600);
-                let min = Math.floor((totalSeconds % 3600) / 60);
-                let sec = totalSeconds % 60;
-                timerVal.innerText = `${String(hr).padStart(2, '0')}:${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+            // 3. Timer
+            state.totalSeconds = 0;
+            state.timerInterval = setInterval(() => {
+                state.totalSeconds++;
+                elements.timerVal.innerText = formatTime(state.totalSeconds);
             }, 1000);
         }
 
-        stopBtn.addEventListener('click', () => {
-            clearInterval(timerInterval);
-            clearTimeout(recordingLoopId); 
+        function saveVideo() {
+            const blob = new Blob(state.chunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
             
-            if (mediaRecorder && mediaRecorder.state !== "inactive") {
-                mediaRecorder.stop();
+            a.href = url;
+            a.download = `Justice_Audit_${stamp}.webm`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function stopAudit() {
+            state.isRecording = false;
+            
+            // Cleanup
+            clearInterval(state.timerInterval);
+            cancelAnimationFrame(state.animationFrameId);
+            
+            if (state.mediaRecorder && state.mediaRecorder.state !== "inactive") {
+                state.mediaRecorder.stop();
             }
 
-            monitorView.src = "";
-        monitorView.style.display = "none";
-            placeholder.style.display = "block";
-            placeholder.innerText = "LENS DISCONNECTED\nAwait Audit Activation";
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            sysStatus.innerText = "IDLE";
-            sysStatus.style.color = "#64748b";
-            startBtn.style.display = "block";
-            stopBtn.style.display = "none";
-            xiaoIpInput.disabled = false;
-        });
+            elements.monitorView.src = "";
+            elements.monitorView.style.display = "none";
+            elements.placeholder.style.display = "block";
+            elements.placeholder.innerText = "LENS DISCONNECTED\nAwait Audit Activation";
+            elements.recIndicator.style.display = "none";
+            
+            updateUI('IDLE', 'var(--text-dim)');
+            elements.startBtn.style.display = "block";
+            elements.stopBtn.style.display = "none";
+            elements.ipInput.disabled = false;
+        }
+
+        function updateUI(text, color) {
+            elements.sysStatus.innerText = text;
+            elements.sysStatus.style.color = color;
+        }
+
+        elements.startBtn.addEventListener('click', startAudit);
+        elements.stopBtn.addEventListener('click', stopAudit);
+    </script>
+</body>
+</html>
