@@ -3,62 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mr. Justice Logger - Dashboard</title>
+    <title>JUSTICE LOGGER // AUDIT SYSTEM</title>
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
+            --bg-dark: #0a0f1a;
+            --panel-bg: rgba(22, 31, 51, 0.8);
             --accent-orange: #f97316;
             --accent-green: #22c55e;
             --accent-red: #ef4444;
-            --text-main: #f8fafc;
+            --accent-blue: #3b82f6;
+            --text-main: #e2e8f0;
             --text-dim: #94a3b8;
-            --border-color: #334155;
+            --border-glow: rgba(249, 115, 22, 0.3);
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 50% 50%, #1e293b 0%, #0a0f1a 100%),
+                linear-gradient(rgba(18, 24, 38, 0.5) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(18, 24, 38, 0.5) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
             color: var(--text-main);
             margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Main Layout */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            width: 95vw;
+            max-width: 1200px;
+            height: 85vh;
+        }
+
+        /* Left Sidebar */
+        .sidebar {
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-glow);
+            border-radius: 12px;
             padding: 20px;
             display: flex;
-            justify-content: center;
-            min-height: 100vh;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
-        .container {
-            width: 100%;
-            max-width: 480px;
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
-            border-top: 6px solid var(--accent-orange);
-            height: fit-content;
-        }
-
-        h1 {
-            text-align: center;
-            font-size: 1.4rem;
-            margin: 0 0 20px 0;
+        .brand h1 {
+            font-size: 1.2rem;
             color: var(--accent-orange);
-            letter-spacing: 2px;
+            margin: 0;
+            text-align: center;
+            border-bottom: 2px solid var(--accent-orange);
+            padding-bottom: 10px;
             text-transform: uppercase;
+            letter-spacing: 3px;
         }
 
-        .preview-container {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 4/3;
-            background: #000;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
-            overflow: hidden;
+        .input-group {
             display: flex;
-            align-items: center;
-            justify-content: center;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid #334155;
+            border-radius: 4px;
+            padding: 10px;
+            color: white;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 8px var(--border-glow);
+        }
+
+        /* Main Monitor Area */
+        .monitor-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .viewport-container {
+            position: relative;
+            flex-grow: 1;
+            background: #000;
+            border: 1px solid var(--border-glow);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
         }
 
         #monitorView {
@@ -68,169 +121,239 @@
             display: none;
         }
 
-        .placeholder-text {
-            color: #475569;
-            font-size: 0.85rem;
-            text-align: center;
-            line-height: 1.6;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* Recording Pulse Indicator */
-        .rec-indicator {
+        .overlay {
             position: absolute;
-            top: 15px;
-            right: 15px;
-            display: none;
-            align-items: center;
-            gap: 8px;
-            background: rgba(0,0,0,0.5);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: bold;
-        }
-        .pulse {
-            width: 8px;
-            height: 8px;
-            background: var(--accent-red);
-            border-radius: 50%;
-            animation: blink 1s infinite;
-        }
-
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
-
-        .input-group { margin-bottom: 20px; }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-dim);
-            text-transform: uppercase;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: white;
-            font-size: 1rem;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            border: 20px solid transparent;
             box-sizing: border-box;
-            transition: border 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
         }
 
-        input:focus { outline: none; border-color: var(--accent-orange); }
-        input:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-        }
-
-        .btn-start { background: var(--accent-green); color: #0f172a; }
-        .btn-start:hover { background: #16a34a; transform: translateY(-1px); }
-
-        .btn-stop { background: var(--accent-red); color: white; display: none; }
-        .btn-stop:hover { background: #dc2626; transform: translateY(-1px); }
-
-        .status-panel {
-            background: var(--bg-color);
-            border-radius: 8px;
-            padding: 16px;
-            border: 1px solid var(--border-color);
-        }
-
-        .status-row {
+        .hud-top {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 0.85rem;
+            align-items: flex-start;
         }
-        .status-row:last-child { margin-bottom: 0; }
-        .stat-val { font-family: monospace; font-weight: bold; }
+
+        .hud-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .status-badge {
+            background: rgba(0,0,0,0.7);
+            padding: 5px 12px;
+            border-left: 3px solid var(--accent-orange);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .rec-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: blink 1s infinite;
+            display: none;
+        }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        .placeholder-screen {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #334155;
+            text-transform: uppercase;
+        }
+
+        /* Controls */
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 15px;
+            border: none;
+            border-radius: 6px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-start { background: var(--accent-green); color: #0a0f1a; }
+        .btn-pause { background: var(--accent-blue); color: white; display: none; }
+        .btn-stop { background: var(--accent-red); color: white; display: none; }
+        .btn-snap { background: #475569; color: white; }
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.2); }
+        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* Bottom Telemetry */
+        .telemetry {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            background: var(--panel-bg);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border-glow);
+        }
+
+        .tel-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-right: 1px solid #334155;
+        }
+
+        .tel-item:last-child { border: none; }
+        .tel-label { font-size: 0.6rem; color: var(--text-dim); margin-bottom: 5px; }
+        .tel-val { font-size: 1.1rem; font-weight: bold; color: var(--accent-orange); }
 
         #recordingEngine { display: none; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Mr. Justice Logger</h1>
-        
-        <div class="preview-container">
-            <div id="recIndicator" class="rec-indicator">
-                <div class="pulse"></div> REC
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="brand">
+                <h1>Justice Logger</h1>
             </div>
-            <div id="placeholder" class="placeholder-text">LENS DISCONNECTED<br>Await Audit Activation</div>
-            <img id="monitorView" alt="Live Camera Preview">
+
+            <div class="input-group">
+                <label>ESP32-S3 Node Address</label>
+                <input type="text" id="xiaoIp" placeholder="192.168.1.xx" value="192.168.">
+            </div>
+
+            <div class="input-group">
+                <label>Case ID / Session Name</label>
+                <input type="text" id="caseId" placeholder="CASE-001-ALPHA">
+            </div>
+
+            <div class="input-group">
+                <label>Audit Officer</label>
+                <input type="text" id="officer" placeholder="Detective Name">
+            </div>
+
+            <div style="margin-top: auto; font-size: 0.6rem; color: var(--text-dim); text-align: center;">
+                SYSTEM VERSION 2.0.4<br>ENCRYPTED PIPELINE ACTIVE
+            </div>
         </div>
 
-        <div class="input-group">
-            <label for="xiaoIp">XIAO ESP32S3 IP ADDRESS</label>
-            <input type="text" id="xiaoIp" placeholder="e.g., 192.168.1.50" value="192.168.">
-        </div>
-
-        <button id="startBtn" class="btn btn-start">Start Session Audit</button>
-        <button id="stopBtn" class="btn btn-stop">Stop & Download Log</button>
-
-        <div class="status-panel">
-            <div class="status-row">
-                <span>System Pipeline:</span>
-                <span id="sysStatus" class="stat-val" style="color: var(--text-dim);">IDLE</span>
+        <!-- Main Area -->
+        <div class="monitor-area">
+            <div class="viewport-container">
+                <div id="placeholder" class="placeholder-screen">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">⚠️</div>
+                    LENS DISCONNECTED<br>Await System Link
+                </div>
+                
+                <img id="monitorView" alt="Live Audit Feed">
+                
+                <div class="overlay">
+                    <div class="hud-top">
+                        <div class="status-badge">
+                            <span id="recDot" class="rec-dot"></span>
+                            <span id="sysStatus">System: IDLE</span>
+                        </div>
+                        <div class="status-badge" style="border-color: var(--accent-blue);">
+                            FPS: <span id="fpsVal">0</span>
+                        </div>
+                    </div>
+                    <div class="hud-bottom">
+                        <div class="status-badge" style="border-color: var(--accent-green);">
+                            SESS_TIME: <span id="timerVal">00:00:00</span>
+                        </div>
+                        <div class="status-badge" style="border-color: white;">
+                            COORD: 34.0522° N, 118.2437° W
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="status-row">
-                <span>Logged Duration:</span>
-                <span id="timerVal" class="stat-val">00:00:00</span>
+
+            <div class="controls">
+                <button id="startBtn" class="btn btn-start">▶ Start Audit</button>
+                <button id="pauseBtn" class="btn btn-pause">⏸ Pause</button>
+                <button id="stopBtn" class="btn btn-stop">⏹ Stop & Save</button>
+                <button id="snapBtn" class="btn btn-snap">📸 Snapshot</button>
+            </div>
+
+            <div class="telemetry">
+                <div class="tel-item">
+                    <span class="tel-label">NETWORK LATENCY</span>
+                    <span id="latVal" class="tel-val">-- ms</span>
+                </div>
+                <div class="tel-item">
+                    <span class="tel-label">STREAM STABILITY</span>
+                    <span id="stabVal" class="tel-val">IDLE</span>
+                </div>
+                <div class="tel-item">
+                    <span class="tel-label">MEMORY BUFFER</span>
+                    <span id="bufVal" class="tel-val">0%</span>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Hidden processing layer -->
     <div id="recordingEngine">
         <canvas id="streamCanvas" width="640" height="480"></canvas>
     </div>
 
     <script>
         /**
-         * JusticeLogger Logic
+         * Justice Logger v2 - Enhanced Core
          */
         const state = {
             isRecording: false,
+            isPaused: false,
             timerInterval: null,
             animationFrameId: null,
             totalSeconds: 0,
             mediaRecorder: null,
-            chunks: []
+            chunks: [],
+            lastFrameTime: 0,
+            frameCount: 0
         };
 
         const elements = {
             ipInput: document.getElementById('xiaoIp'),
+            caseInput: document.getElementById('caseId'),
+            officerInput: document.getElementById('officer'),
             startBtn: document.getElementById('startBtn'),
+            pauseBtn: document.getElementById('pauseBtn'),
             stopBtn: document.getElementById('stopBtn'),
+            snapBtn: document.getElementById('snapBtn'),
             sysStatus: document.getElementById('sysStatus'),
             timerVal: document.getElementById('timerVal'),
+            fpsVal: document.getElementById('fpsVal'),
             placeholder: document.getElementById('placeholder'),
             monitorView: document.getElementById('monitorView'),
-            recIndicator: document.getElementById('recIndicator'),
+            recDot: document.getElementById('recDot'),
             canvas: document.getElementById('streamCanvas')
         };
 
         const ctx = elements.canvas.getContext('2d', { alpha: false });
         elements.monitorView.crossOrigin = "anonymous";
 
-        // Format time helper
         const formatTime = (s) => {
             const hrs = Math.floor(s / 3600).toString().padStart(2, '0');
             const mins = Math.floor((s % 3600) / 60).toString().padStart(2, '0');
@@ -241,129 +364,135 @@
         async function startAudit() {
             let ip = elements.ipInput.value.trim();
             if (!ip || ip === "192.168.") {
-                alert("Please enter a valid XIAO IP address!");
+                alert("Enter valid Node Address!");
                 return;
             }
 
-            // Normalize URL
             const url = ip.startsWith('http') ? ip : `http://${ip}`;
             const finalUrl = url.endsWith('/') ? url : `${url}/`;
 
-            updateUI('CONNECTING', '#eab308');
-            elements.placeholder.innerText = "Establishing Camera Feed...";
+            updateUI('CONNECTING...', 'var(--accent-blue)');
+            elements.placeholder.innerHTML = "Establishing Link...<br>Syncing Data Pipeline";
             
             elements.monitorView.src = finalUrl;
             elements.monitorView.style.display = "block";
             elements.placeholder.style.display = "none";
 
-            // ESP32 MJPEG streams don't always trigger onload correctly.
-            // We check if the image is actually rendering.
             const checkConnection = setInterval(() => {
                 if (elements.monitorView.complete && elements.monitorView.naturalWidth > 0) {
                     clearInterval(checkConnection);
                     initiateRecording();
                 }
             }, 500);
-
-            // Timeout if connection fails
-            setTimeout(() => {
-                if (!state.isRecording) {
-                    clearInterval(checkConnection);
-                    handleConnectionError();
-                }
-            }, 8000);
-        }
-
-        function handleConnectionError() {
-            updateUI('CONNECTION TIMEOUT', 'var(--accent-red)');
-            elements.placeholder.innerText = "LENS DISCONNECTED\nCheck Network Configuration";
-            elements.monitorView.style.display = "none";
-            elements.placeholder.style.display = "block";
-            alert("Connection failed. Ensure you are on the same 2.4GHz network.");
         }
 
         function initiateRecording() {
             state.isRecording = true;
+            state.isPaused = false;
             updateUI('RECORDING ACTIVE', 'var(--accent-green)');
             
             elements.startBtn.style.display = "none";
-            elements.stopBtn.style.display = "block";
-            elements.recIndicator.style.display = "flex";
+            elements.pauseBtn.style.display = "flex";
+            elements.stopBtn.style.display = "flex";
+            elements.recDot.style.display = "inline-block";
             elements.ipInput.disabled = true;
 
-            // 1. Start the high-performance render loop
-            const render = () => {
+            const render = (now) => {
                 if (!state.isRecording) return;
-                ctx.drawImage(elements.monitorView, 0, 0, elements.canvas.width, elements.canvas.height);
+
+                // FPS Calculation
+                state.frameCount++;
+                if (now - state.lastFrameTime >= 1000) {
+                    elements.fpsVal.innerText = state.frameCount;
+                    state.frameCount = 0;
+                    state.lastFrameTime = now;
+                }
+
+                if (!state.isPaused) {
+                    ctx.drawImage(elements.monitorView, 0, 0, elements.canvas.width, elements.canvas.height);
+                }
                 state.animationFrameId = requestAnimationFrame(render);
             };
-            render();
+            requestAnimationFrame(render);
 
-            // 2. Set up MediaRecorder from Canvas stream
-            const stream = elements.canvas.captureStream(20); // 20 FPS
+            const stream = elements.canvas.captureStream(25);
             state.mediaRecorder = new MediaRecorder(stream, { 
                 mimeType: 'video/webm;codecs=vp8',
-                videoBitsPerSecond: 1000000 // 1Mbps for decent quality
+                videoBitsPerSecond: 2000000 
             });
 
             state.chunks = [];
-            state.mediaRecorder.ondataavailable = (e) => {
-                if (e.data.size > 0) state.chunks.push(e.data);
-            };
-
+            state.mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) state.chunks.push(e.data); };
             state.mediaRecorder.onstop = saveVideo;
             state.mediaRecorder.start();
 
-            // 3. Timer
             state.totalSeconds = 0;
             state.timerInterval = setInterval(() => {
-                state.totalSeconds++;
-                elements.timerVal.innerText = formatTime(state.totalSeconds);
+                if (!state.isPaused) {
+                    state.totalSeconds++;
+                    elements.timerVal.innerText = formatTime(state.totalSeconds);
+                }
             }, 1000);
+        }
+
+        function togglePause() {
+            state.isPaused = !state.isPaused;
+            elements.pauseBtn.innerText = state.isPaused ? "▶ Resume" : "⏸ Pause";
+            elements.pauseBtn.style.background = state.isPaused ? "var(--accent-green)" : "var(--accent-blue)";
+            updateUI(state.isPaused ? 'SESSION PAUSED' : 'RECORDING ACTIVE', state.isPaused ? 'var(--accent-blue)' : 'var(--accent-green)');
+            elements.recDot.style.animation = state.isPaused ? 'none' : 'blink 1s infinite';
+            elements.recDot.style.background = state.isPaused ? 'gray' : 'var(--accent-red)';
+        }
+
+        function takeSnapshot() {
+            if (!state.isRecording) return alert("Start audit first!");
+            
+            const link = document.createElement('a');
+            link.download = `SNAP_${elements.caseInput.value || 'LOG'}_${Date.now()}.jpg`;
+            link.href = elements.canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
         }
 
         function saveVideo() {
             const blob = new Blob(state.chunks, { type: 'video/webm' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            const caseName = elements.caseInput.value || 'UNNAMED_SESSION';
+            const officer = elements.officerInput.value || 'UNKNOWN';
             
             a.href = url;
-            a.download = `Justice_Audit_${stamp}.webm`;
+            a.download = `JUSTICE_LOG_${caseName}_OFFICER_${officer}.webm`;
             a.click();
             URL.revokeObjectURL(url);
         }
 
         function stopAudit() {
             state.isRecording = false;
-            
-            // Cleanup
             clearInterval(state.timerInterval);
             cancelAnimationFrame(state.animationFrameId);
-            
-            if (state.mediaRecorder && state.mediaRecorder.state !== "inactive") {
-                state.mediaRecorder.stop();
-            }
+            if (state.mediaRecorder) state.mediaRecorder.stop();
 
             elements.monitorView.src = "";
             elements.monitorView.style.display = "none";
             elements.placeholder.style.display = "block";
-            elements.placeholder.innerText = "LENS DISCONNECTED\nAwait Audit Activation";
-            elements.recIndicator.style.display = "none";
+            elements.recDot.style.display = "none";
             
             updateUI('IDLE', 'var(--text-dim)');
-            elements.startBtn.style.display = "block";
+            elements.startBtn.style.display = "flex";
+            elements.pauseBtn.style.display = "none";
             elements.stopBtn.style.display = "none";
             elements.ipInput.disabled = false;
         }
 
         function updateUI(text, color) {
-            elements.sysStatus.innerText = text;
+            elements.sysStatus.innerText = `System: ${text}`;
             elements.sysStatus.style.color = color;
         }
 
         elements.startBtn.addEventListener('click', startAudit);
         elements.stopBtn.addEventListener('click', stopAudit);
+        elements.pauseBtn.addEventListener('click', togglePause);
+        elements.snapBtn.addEventListener('click', takeSnapshot);
     </script>
 </body>
 </html>
