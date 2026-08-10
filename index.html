@@ -91,7 +91,7 @@
             <div class="input-group"><label>Node Address</label><input type="text" id="xiaoIp" value="192.168."></div>
             <div class="input-group"><label>Case ID</label><input type="text" id="caseId" placeholder="CASE-001"></div>
             <div style="margin-top: auto; font-size: 0.6rem; color: var(--text-dim); text-align: center;">
-                Sovereign System v3.4<br>Precision Delta Timing Active
+                Sovereign System v3.5<br>Stability Patch Active
             </div>
         </div>
 
@@ -180,8 +180,32 @@
                     updateUI('CONNECTED', 'var(--accent-blue)');
                     elements.connectBtn.style.display = "none";
                     elements.startBtn.style.display = "flex";
+                    startPreviewLoop();
                 }
             }, 500);
+        }
+
+        function startPreviewLoop() {
+            const render = (now) => {
+                if (!state.isConnected) return;
+                
+                // Always draw if connected, regardless of recording state
+                ctx.drawImage(elements.monitorView, 0, 0, 640, 480);
+
+                // FPS Calculation (Pixel Change Detection)
+                const currentData = ctx.getImageData(10, 10, 1, 1).data;
+                if (JSON.stringify(currentData) !== JSON.stringify(state.lastPixelData)) {
+                    state.frameCount++;
+                    state.lastPixelData = currentData;
+                }
+
+                if (now - state.lastFrameTime >= 1000) {
+                    elements.fpsVal.innerText = state.frameCount;
+                    state.frameCount = 0; state.lastFrameTime = now;
+                }
+                requestAnimationFrame(render);
+            };
+            requestAnimationFrame(render);
         }
 
         async function startAudit() {
@@ -194,7 +218,7 @@
 
             state.isRecording = true;
             state.isPaused = false;
-            state.startTime = performance.now(); // Precision Timestamp
+            state.startTime = performance.now();
             state.pausedTimeDelta = 0;
             
             updateUI('RECORDING ACTIVE', 'var(--accent-green)');
@@ -203,24 +227,6 @@
             elements.stopBtn.style.display = "flex";
             elements.recDot.style.display = "inline-block";
 
-            const render = (now) => {
-                if (!state.isRecording) return;
-                if (!state.isPaused) {
-                    ctx.drawImage(elements.monitorView, 0, 0, 640, 480);
-                    const currentData = ctx.getImageData(10, 10, 1, 1).data;
-                    if (JSON.stringify(currentData) !== JSON.stringify(state.lastPixelData)) {
-                        state.frameCount++;
-                        state.lastPixelData = currentData;
-                    }
-                }
-                if (now - state.lastFrameTime >= 1000) {
-                    elements.fpsVal.innerText = state.frameCount;
-                    state.frameCount = 0; state.lastFrameTime = now;
-                }
-                requestAnimationFrame(render);
-            };
-            requestAnimationFrame(render);
-
             const stream = elements.canvas.captureStream(30);
             state.mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 2500000 });
             state.chunks = [];
@@ -228,19 +234,16 @@
             state.mediaRecorder.onstop = saveVideo;
             state.mediaRecorder.start();
 
-            // PRECISION TIMER: Calculates delta from startTime
             state.timerInterval = setInterval(() => {
                 if (!state.isPaused) {
-                    const current = performance.now();
-                    const elapsedMs = current - state.startTime - state.pausedTimeDelta;
+                    const elapsedMs = performance.now() - state.startTime - state.pausedTimeDelta;
                     const totalSeconds = Math.floor(elapsedMs / 1000);
-                    
                     const h = Math.floor(totalSeconds/3600).toString().padStart(2,'0');
                     const m = Math.floor((totalSeconds%3600)/60).toString().padStart(2,'0');
                     const s = (totalSeconds%60).toString().padStart(2,'0');
                     elements.timerVal.innerText = `${h}:${m}:${s}`;
                 }
-            }, 100); // Update every 100ms for smoothness
+            }, 100);
         }
 
         async function togglePause() {
@@ -248,10 +251,17 @@
             const url = (ip.startsWith('http') ? ip : `http://${ip}`).replace(/\/$/, "");
             
             if (!state.isPaused) {
-                // Pausing: Save the current time as the pause point
+                // Pause: Record how much time passed until this moment
                 state.pausedTimeDelta += (performance.now() - state.startTime);
-                state.startTime = performance.now(); // This is a simplified delta, better to store a pause timestamp
-                // For simplicity in this specific logic, we just flip a flag and call ESP
+                if (state.mediaRecorder && state.mediaRecorder.state === "recording") {
+                    state.mediaRecorder.pause();
+                }
+            } else {
+                // Resume: Reset startTime to now so delta is correct
+                state.startTime = performance.now();
+                if (state.mediaRecorder && state.mediaRecorder.state === "paused") {
+                    state.mediaRecorder.resume();
+                }
             }
 
             state.isPaused = !state.isPaused;
@@ -275,22 +285,15 @@
         function stopAudit() {
             state.isRecording = false;
             state.isConnected = false;
-            
-            // ABSOLUTE KILL: Clear interval and stop recording
-            if (state.timerInterval) {
-                clearInterval(state.timerInterval);
-                state.timerInterval = null;
-            }
+            if (state.timerInterval) clearInterval(state.timerInterval);
             if (state.mediaRecorder) {
                 state.mediaRecorder.stop();
                 state.mediaRecorder = null;
             }
-            
             elements.monitorView.src = "";
             elements.monitorView.style.display = "none";
             elements.placeholder.style.display = "block";
             elements.recDot.style.display = "none";
-            
             updateUI('IDLE', 'var(--text-dim)');
             elements.connectBtn.style.display = "flex";
             elements.startBtn.style.display = "none";
