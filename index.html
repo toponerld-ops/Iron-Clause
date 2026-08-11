@@ -3,386 +3,721 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JUSTICE LOGGER // COMMAND CENTER</title>
+<title>Mr. Justice Logger</title>
 <style>
-:root{--bg:#080d16;--panel:#111a2a;--orange:#f97316;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--yellow:#facc15;--text:#e5e7eb;--muted:#94a3b8;--border:rgba(249,115,22,.3)}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#111b2d 0,#080d16 55%);color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
-.dashboard{width:min(1400px,96vw);min-height:92vh;margin:4vh auto;display:grid;grid-template-columns:300px 1fr;gap:18px}
-.sidebar,.monitor-area,.telemetry{background:rgba(17,26,42,.94);border:1px solid var(--border);border-radius:14px}
-.sidebar{padding:20px;display:flex;flex-direction:column;gap:16px}.brand h1{margin:0;color:var(--orange);text-align:center;font-size:1.1rem;padding-bottom:12px;border-bottom:2px solid var(--orange)}
-.input-group{display:flex;flex-direction:column;gap:7px}label{color:var(--muted);font-size:.68rem;text-transform:uppercase}
-input{width:100%;background:#0a1220;color:#fff;border:1px solid #334155;border-radius:6px;padding:11px;font:inherit;outline:none}input:focus{border-color:var(--orange)}
-.help{color:var(--muted);font-size:.65rem;line-height:1.6}.monitor-area{padding:16px;display:flex;flex-direction:column;gap:14px}
-.viewport{position:relative;min-height:55vh;flex:1;background:#000;border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center}
-#monitorView{width:100%;height:100%;object-fit:contain;display:none}.placeholder{color:#475569;text-align:center;font-size:.85rem}
-.overlay{pointer-events:none;position:absolute;inset:0;padding:14px;display:flex;flex-direction:column;justify-content:space-between}.row{display:flex;justify-content:space-between;gap:10px}
-.badge{background:rgba(0,0,0,.72);border-left:3px solid var(--orange);padding:7px 10px;font-size:.72rem}
-#recDot{display:none;width:9px;height:9px;border-radius:50%;background:var(--red);margin-right:7px;vertical-align:middle;animation:blink 1s infinite}@keyframes blink{50%{opacity:.25}}
-.controls{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}button{border:0;border-radius:7px;padding:12px 8px;font:inherit;font-weight:700;font-size:.68rem;cursor:pointer}button:disabled{opacity:.4;cursor:not-allowed}
-.connect{background:var(--blue);color:#fff}.start{background:var(--green);color:#06110a}.pause{background:#64748b;color:#fff}.stop{background:var(--red);color:#fff}.snap{background:#475569;color:#fff}.hidden{display:none!important}
-.telemetry{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:12px}.tel{text-align:center;min-width:0}.tel label{display:block}.value{display:block;margin-top:4px;color:var(--orange);font-size:.95rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#streamCanvas{display:none}@media(max-width:900px){.dashboard{grid-template-columns:1fr}.viewport{min-height:50vh}}@media(max-width:650px){.controls{grid-template-columns:1fr 1fr}.telemetry{grid-template-columns:repeat(2,1fr)}}
+:root{
+  --bg:#0b0e12;
+  --panel:#121820;
+  --panel2:#18212b;
+  --line:#2a3542;
+  --text:#eaf0f6;
+  --muted:#91a0af;
+  --green:#35e27a;
+  --red:#ff5263;
+  --yellow:#ffd45a;
+  --blue:#4da3ff;
+  --cyan:#44e6ff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+header{
+  padding:18px 22px;
+  border-bottom:1px solid var(--line);
+  background:#0e1319;
+}
+h1{margin:0;font-size:20px;letter-spacing:1.5px}
+.wrap{max-width:1200px;margin:auto;padding:18px}
+.grid{
+  display:grid;
+  grid-template-columns:minmax(0,2fr) minmax(280px,1fr);
+  gap:18px;
+}
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:16px;
+}
+.stream{
+  width:100%;
+  min-height:240px;
+  background:#000;
+  border-radius:8px;
+  object-fit:contain;
+  display:block;
+}
+.placeholder{
+  min-height:240px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--muted);
+  background:#050608;
+  border-radius:8px;
+}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+label{font-size:12px;color:var(--muted)}
+input{
+  flex:1;
+  min-width:180px;
+  padding:11px 12px;
+  border:1px solid var(--line);
+  border-radius:7px;
+  background:#0b1015;
+  color:var(--text);
+  font:inherit;
+}
+button{
+  border:1px solid var(--line);
+  border-radius:7px;
+  padding:10px 15px;
+  background:var(--panel2);
+  color:var(--text);
+  cursor:pointer;
+  font-weight:700;
+}
+button:hover{filter:brightness(1.15)}
+button:disabled{opacity:.4;cursor:not-allowed}
+.primary{background:#164f31;border-color:#287e4b}
+.danger{background:#5c1d28;border-color:#8e3040}
+.warn{background:#5a4718;border-color:#866b27}
+.blue{background:#173e64;border-color:#2867a3}
+.status{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 10px;
+  border-radius:999px;
+  background:#0b1015;
+  font-size:12px;
+  color:var(--muted);
+}
+.dot{width:9px;height:9px;border-radius:50%;background:#687482}
+.dot.green{background:var(--green)}
+.dot.red{background:var(--red)}
+.dot.yellow{background:var(--yellow)}
+.kv{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:8px;
+  font-size:13px;
+  padding:6px 0;
+  border-bottom:1px solid #202a34;
+}
+.kv:last-child{border-bottom:0}
+.kv span:first-child{color:var(--muted)}
+.big{
+  font-size:28px;
+  font-variant-numeric:tabular-nums;
+  margin:4px 0 12px;
+}
+#message{min-height:22px;color:var(--muted);font-size:13px;margin-top:10px}
+#recordState{font-weight:800;letter-spacing:1px}
+.footer{margin-top:18px;color:var(--muted);font-size:12px;text-align:center}
+@media(max-width:800px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<div class="dashboard">
-<aside class="sidebar">
-  <div class="brand"><h1>JUSTICE LOGGER</h1></div>
-  <div class="input-group"><label for="xiaoIp">XIAO IP / URL</label><input id="xiaoIp" value="192.168.1.8" placeholder="192.168.1.50"></div>
-  <div class="input-group"><label for="caseId">Case ID</label><input id="caseId" placeholder="CASE-001"></div>
-  <div class="help">XIAO camera → MJPEG → browser canvas → MediaRecorder → WebM<br><br>Recording happens in the browser. The XIAO only receives the recording state for the TFT.<br><br>Stream + control: port 80</div>
-  <div style="margin-top:auto;text-align:center;color:var(--muted);font-size:.62rem">JUSTICE LOGGER<br>LOCAL CAMERA NODE</div>
-</aside>
 
-<main class="monitor-area">
-  <div class="viewport">
-    <div id="placeholder" class="placeholder">LENS DISCONNECTED</div>
-    <img id="monitorView" alt="XIAO camera stream">
-    <div class="overlay">
-      <div class="row"><div class="badge"><span id="recDot"></span><span id="sysStatus">System: IDLE</span></div><div class="badge">FPS: <span id="fpsVal">0</span></div></div>
-      <div class="row"><div class="badge">TIME: <span id="timerVal">00:00:00</span></div><div class="badge">MODE: <span id="modeVal">OFFLINE</span></div></div>
-    </div>
+<header>
+  <div class="wrap" style="padding:0">
+    <h1>MR. JUSTICE LOGGER</h1>
   </div>
+</header>
 
-  <div class="controls">
-    <button id="connectBtn" class="connect">🔌 Connect</button>
-    <button id="startBtn" class="start hidden">▶ Start Record</button>
-    <button id="pauseBtn" class="pause hidden">⏸ Pause</button>
-    <button id="stopBtn" class="stop hidden">⏹ Stop & Save</button>
-    <button id="snapBtn" class="snap" disabled>📸 Snapshot</button>
-  </div>
+<div class="wrap">
+  <div class="grid">
 
-  <div class="telemetry">
-    <div class="tel"><label>LATENCY</label><span id="latVal" class="value">-- ms</span></div>
-    <div class="tel"><label>FPS</label><span id="fpsTelVal" class="value">0</span></div>
-    <div class="tel"><label>XIAO</label><span id="nodeVal" class="value">OFFLINE</span></div>
-    <div class="tel"><label>PSRAM</label><span id="psramVal" class="value">-- KB</span></div>
-    <div class="tel"><label>BUFFER</label><span id="bufVal" class="value">0 KB</span></div>
+    <main class="panel">
+      <div class="row" style="justify-content:space-between;margin-bottom:12px">
+        <div class="status">
+          <span id="connDot" class="dot"></span>
+          <span id="connText">DISCONNECTED</span>
+        </div>
+        <div id="recordState">PREVIEW</div>
+      </div>
+
+      <div id="placeholder" class="placeholder">Enter the XIAO IP and click Connect.</div>
+      <img id="stream" class="stream" alt="XIAO camera stream" style="display:none">
+
+      <div style="height:14px"></div>
+
+      <div class="row">
+        <input id="ip" value="192.168.1.10" placeholder="192.168.1.10">
+        <button id="connectBtn" class="blue">Connect</button>
+        <button id="disconnectBtn">Disconnect</button>
+      </div>
+
+      <div id="message"></div>
+
+      <div style="height:14px"></div>
+
+      <div class="row">
+        <button id="startBtn" class="primary" disabled>Start Record</button>
+        <button id="pauseBtn" class="warn" disabled>Pause</button>
+        <button id="resumeBtn" class="blue" disabled>Resume</button>
+        <button id="stopBtn" class="danger" disabled>Stop & Save</button>
+      </div>
+
+      <div class="big" id="timer">00:00:00</div>
+
+      <div class="footer">
+        The XIAO controls its recording state; the browser saves the recording.
+      </div>
+    </main>
+
+    <aside class="panel">
+      <h3 style="margin-top:0">XIAO STATUS</h3>
+
+      <div class="kv"><span>Connection</span><strong id="sConnection">OFFLINE</strong></div>
+      <div class="kv"><span>Wi-Fi</span><strong id="sWifi">—</strong></div>
+      <div class="kv"><span>RSSI</span><strong id="sRssi">—</strong></div>
+      <div class="kv"><span>Free heap</span><strong id="sHeap">—</strong></div>
+      <div class="kv"><span>Free PSRAM</span><strong id="sPsram">—</strong></div>
+      <div class="kv"><span>PSRAM size</span><strong id="sPsramSize">—</strong></div>
+      <div class="kv"><span>Resolution</span><strong id="sResolution">—</strong></div>
+      <div class="kv"><span>Recording</span><strong id="sRecording">—</strong></div>
+      <div class="kv"><span>Paused</span><strong id="sPaused">—</strong></div>
+    </aside>
+
   </div>
-</main>
 </div>
-
-<canvas id="streamCanvas" width="320" height="240"></canvas>
 
 <script>
 "use strict";
 
-const state={
-  baseUrl:"",controlUrl:"",connected:false,recording:false,paused:false,
-  recorder:null,chunks:[],canvasStream:null,
-  recordStart:0,pauseStarted:0,totalPaused:0,
-  timer:null,renderRunning:false,renderFrame:0,
-  fpsFrames:0,fpsWindowStart:0,shouldSave:false,stopping:false
+const $ = id => document.getElementById(id);
+
+const el = {
+  ip: $("ip"),
+  connect: $("connectBtn"),
+  disconnect: $("disconnectBtn"),
+  start: $("startBtn"),
+  pause: $("pauseBtn"),
+  resume: $("resumeBtn"),
+  stop: $("stopBtn"),
+  stream: $("stream"),
+  placeholder: $("placeholder"),
+  message: $("message"),
+  connDot: $("connDot"),
+  connText: $("connText"),
+  recordState: $("recordState"),
+  timer: $("timer"),
+  sConnection: $("sConnection"),
+  sWifi: $("sWifi"),
+  sRssi: $("sRssi"),
+  sHeap: $("sHeap"),
+  sPsram: $("sPsram"),
+  sPsramSize: $("sPsramSize"),
+  sResolution: $("sResolution"),
+  sRecording: $("sRecording"),
+  sPaused: $("sPaused")
 };
 
-const el={
-  ip:document.getElementById("xiaoIp"),caseId:document.getElementById("caseId"),
-  connect:document.getElementById("connectBtn"),start:document.getElementById("startBtn"),
-  pause:document.getElementById("pauseBtn"),stop:document.getElementById("stopBtn"),
-  snap:document.getElementById("snapBtn"),img:document.getElementById("monitorView"),
-  placeholder:document.getElementById("placeholder"),sys:document.getElementById("sysStatus"),
-  dot:document.getElementById("recDot"),timer:document.getElementById("timerVal"),
-  mode:document.getElementById("modeVal"),fps:document.getElementById("fpsVal"),
-  latency:document.getElementById("latVal"),fpsTel:document.getElementById("fpsTelVal"),
-  node:document.getElementById("nodeVal"),psram:document.getElementById("psramVal"),
-  buffer:document.getElementById("bufVal"),canvas:document.getElementById("streamCanvas")
-};
-const ctx=el.canvas.getContext("2d",{alpha:false,desynchronized:true});
+let baseUrl = "";
+let connected = false;
+let recording = false;
+let paused = false;
 
-function normalizeUrl(v){
-  v=v.trim();
-  if(!v)throw new Error("Enter the XIAO IP address.");
-  if(!/^https?:\/\//i.test(v))v="http://"+v;
-  return v.replace(/\/+$/,"");
+let recordStartedAt = 0;
+let pausedAt = 0;
+let accumulatedPause = 0;
+let timerHandle = null;
+
+let recorder = null;
+let chunks = [];
+let captureStream = null;
+let mediaVideo = null;
+let stopRequested = false;
+
+function normalizeUrl(value){
+  let v = value.trim();
+  if(!v) throw new Error("Enter the XIAO IP address.");
+  if(!/^https?:\/\//i.test(v)) v = "http://" + v;
+  v = v.replace(/\/+$/, "");
+  const u = new URL(v);
+  return u.origin;
 }
-function setStatus(text,color){el.sys.textContent="System: "+text;if(color)el.sys.style.color=color}
-function show(btn,yes){btn.classList.toggle("hidden",!yes)}
-function setButtons(){
-  show(el.connect,!state.connected);show(el.start,state.connected&&!state.recording);
-  show(el.pause,state.recording);show(el.stop,state.recording);el.snap.disabled=!state.connected;
-  if(state.recording)el.pause.textContent=state.paused?"▶ Resume":"⏸ Pause";
+
+function message(text, color=""){
+  el.message.textContent = text;
+  el.message.style.color = color || "var(--muted)";
 }
-function updateMode(){
-  el.mode.textContent=!state.connected?"OFFLINE":!state.recording?"PREVIEW":state.paused?"PAUSED":"RECORDING";
+
+function setConnection(ok, text){
+  connected = ok;
+  el.connText.textContent = text;
+  el.sConnection.textContent = ok ? "ONLINE" : "OFFLINE";
+  el.connDot.className = "dot " + (ok ? "green" : "red");
+  el.start.disabled = !ok || recording;
+  el.disconnect.disabled = !ok;
 }
+
 function formatTime(ms){
-  const total=Math.max(0,Math.floor(ms/1000));
-  return String(Math.floor(total/3600)).padStart(2,"0")+":"+String(Math.floor((total%3600)/60)).padStart(2,"0")+":"+String(total%60).padStart(2,"0");
-}
-async function xiaoRequest(path){
-  if(!state.controlUrl) throw new Error("XIAO IP is not configured.");
-
-  const url = state.controlUrl + path + "?t=" + Date.now();
-  const started = performance.now();
-
-  // Normal CORS fetch first. This lets us verify the response text.
-  try{
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-
-    const r = await fetch(url, {
-      method:"GET",
-      mode:"cors",
-      cache:"no-store",
-      signal:controller.signal
-    });
-
-    clearTimeout(timeout);
-
-    el.latency.textContent = Math.round(performance.now()-started) + " ms";
-
-    if(!r.ok) throw new Error("HTTP " + r.status);
-    return await r.text();
-  }catch(fetchError){
-    // Fallback: send the GET without needing CORS response access.
-    // This is useful when the page is opened from file:// or another origin
-    // where the browser blocks the response.
-    await new Promise((resolve,reject)=>{
-      const beacon = new Image();
-      let finished = false;
-
-      const timer = setTimeout(()=>{
-        if(!finished){
-          finished = true;
-          beacon.onload = beacon.onerror = null;
-          // The request may still have reached the XIAO. We deliberately
-          // don't claim a verified response here.
-          resolve();
-        }
-      }, 3000);
-
-      beacon.onload = ()=>{
-        if(finished) return;
-        finished = true;
-        clearTimeout(timer);
-        resolve();
-      };
-
-      beacon.onerror = ()=>{
-        if(finished) return;
-        finished = true;
-        clearTimeout(timer);
-        // An image request can report an error even when the HTTP endpoint
-        // was reached because its response is plain text.
-        resolve();
-      };
-
-      beacon.src = url;
-    });
-
-    // The caller can still use the command, but there is no response body
-    // available through the fallback.
-    return "";
-  }
+  const sec = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  return [h,m,s].map(v => String(v).padStart(2,"0")).join(":");
 }
 
-async function getStatus(){
-  if(!state.controlUrl) throw new Error("XIAO IP is not configured.");
-
-  const url = state.controlUrl + "/status?t=" + Date.now();
-  const r = await fetch(url,{mode:"cors",cache:"no-store"});
-  if(!r.ok) throw new Error("HTTP " + r.status);
-  return await r.json();
-}
-
-async function connectStream(){
-  if(state.recording)return;
-
-  let url;
-  try{
-    url=normalizeUrl(el.ip.value);
-  }catch(e){
-    alert(e.message);
+function updateTimer(){
+  if(!recording){
+    el.timer.textContent = "00:00:00";
     return;
   }
 
-  state.baseUrl=url;
-  state.controlUrl=url;
+  let now = performance.now();
+  let pausedTotal = accumulatedPause;
 
-  setStatus("LINKING...","var(--blue)");
+  if(paused) pausedTotal += now - pausedAt;
 
-  // IMPORTANT:
-  // Do not make the connection depend on /status. The camera stream itself
-  // is the primary connection test, and it is available at port 80.
-  state.connected=true;
-  state.fpsFrames=0;
-  state.fpsWindowStart=performance.now();
+  el.timer.textContent = formatTime(now - recordStartedAt - pausedTotal);
+}
 
-  el.img.crossOrigin="anonymous";
-  el.img.onerror=()=>{
-    if(!state.stopping){
-      setStatus("STREAM ERROR","var(--red)");
-      el.node.textContent="STREAM ERROR";
-      state.connected=false;
-      setButtons();
-      updateMode();
-    }
-  };
+function startTimer(){
+  clearInterval(timerHandle);
+  timerHandle = setInterval(updateTimer, 250);
+  updateTimer();
+}
 
-  el.img.onload=()=>{
-    setStatus("CONNECTED","var(--blue)");
-    el.node.textContent="ONLINE";
-    el.node.style.color="var(--green)";
-  };
+function stopTimer(){
+  clearInterval(timerHandle);
+  timerHandle = null;
+}
 
-  el.img.src=url+"/?t="+Date.now();
-  el.img.style.display="block";
-  el.placeholder.style.display="none";
+function updateButtons(){
+  el.start.disabled = !connected || recording;
+  el.pause.disabled = !recording || paused;
+  el.resume.disabled = !recording || !paused;
+  el.stop.disabled = !recording;
+  el.disconnect.disabled = !connected;
+}
 
-  startRenderLoop();
-  setStatus("CONNECTED","var(--blue)");
-  el.node.textContent="ONLINE";
-  el.node.style.color="var(--green)";
-  setButtons();
-  updateMode();
+function showPreview(){
+  el.placeholder.style.display = "none";
+  el.stream.style.display = "block";
+}
 
-  // Read telemetry in the background. A browser CORS policy must not prevent
-  // the live stream from connecting.
+function hidePreview(){
+  el.stream.removeAttribute("src");
+  el.stream.style.display = "none";
+  el.placeholder.style.display = "flex";
+}
+
+async function getStatus(){
+  const response = await fetch(baseUrl + "/status?t=" + Date.now(), {
+    method:"GET",
+    cache:"no-store"
+  });
+
+  if(!response.ok) throw new Error("Status HTTP " + response.status);
+  return await response.json();
+}
+
+function updateStatus(s){
+  el.sWifi.textContent = s.wifi ? "CONNECTED" : "OFFLINE";
+  el.sRssi.textContent = Number.isFinite(s.wifi_rssi) ? s.wifi_rssi + " dBm" : "—";
+  el.sHeap.textContent = Number.isFinite(s.free_heap) ? Math.round(s.free_heap / 1024) + " KB" : "—";
+  el.sPsram.textContent = Number.isFinite(s.free_psram) ? Math.round(s.free_psram / 1024) + " KB" : "—";
+  el.sPsramSize.textContent = Number.isFinite(s.psram_size) ? Math.round(s.psram_size / 1024) + " KB" : "—";
+  el.sResolution.textContent =
+    Number.isFinite(s.width) && Number.isFinite(s.height)
+      ? s.width + " × " + s.height
+      : "—";
+
+  el.sRecording.textContent = s.recording ? "ON" : "OFF";
+  el.sPaused.textContent = s.paused ? "YES" : "NO";
+
+  if(!recording && s.recording){
+    recording = true;
+    paused = !!s.paused;
+    recordStartedAt = performance.now();
+    startTimer();
+  }
+
+  el.recordState.textContent =
+    s.recording ? (s.paused ? "PAUSED" : "RECORDING") : "PREVIEW";
+
+  updateButtons();
+}
+
+async function pollStatus(){
+  if(!connected) return;
+
   try{
-    const started=performance.now();
-    const s=await getStatus();
-    el.latency.textContent=Math.round(performance.now()-started)+" ms";
-    el.node.textContent=s.wifi?"ONLINE":"OFFLINE";
-    el.node.style.color=s.wifi?"var(--green)":"var(--red)";
-    el.psram.textContent=Math.round((s.free_psram||0)/1024)+" KB";
+    const s = await getStatus();
+    updateStatus(s);
   }catch(e){
-    console.warn("Status fetch unavailable:",e);
-    // Stream is still considered connected.
+    // Don't kill the live stream because a status request fails.
+    console.warn("Status unavailable:", e);
   }
 }
 
-function startRenderLoop(){
-  if(state.renderRunning)return;
-  state.renderRunning=true;state.fpsWindowStart=performance.now();state.fpsFrames=0;
-  const render=now=>{
-    if(!state.renderRunning)return;
-    if(el.img.complete&&el.img.naturalWidth>0){ctx.drawImage(el.img,0,0,320,240);state.fpsFrames++}
-    if(now-state.fpsWindowStart>=1000){
-      el.fps.textContent=state.fpsFrames;el.fpsTel.textContent=state.fpsFrames;
-      state.fpsFrames=0;state.fpsWindowStart=now;
-    }
-    state.renderFrame=requestAnimationFrame(render);
+async function xiaoCommand(path){
+  if(!baseUrl) throw new Error("Not connected.");
+
+  const response = await fetch(baseUrl + path + "?t=" + Date.now(), {
+    method:"GET",
+    cache:"no-store"
+  });
+
+  if(!response.ok){
+    throw new Error("XIAO HTTP " + response.status);
+  }
+
+  return await response.text();
+}
+
+/*
+  IMPORTANT:
+  The camera stream is connected exactly like the proven test.html:
+      <img src="http://XIAO-IP/">
+  No crossorigin attribute is used.
+*/
+function connectPreview(){
+  const url = normalizeUrl(el.ip.value);
+
+  baseUrl = url;
+
+  setConnection(false, "CONNECTING...");
+  message("Connecting to " + url + "...");
+
+  el.stream.onload = () => {
+    setConnection(true, "CONNECTED");
+    message("Camera stream connected.", "var(--green)");
+    showPreview();
+    updateButtons();
+    pollStatus();
   };
-  state.renderFrame=requestAnimationFrame(render);
+
+  el.stream.onerror = () => {
+    setConnection(false, "STREAM ERROR");
+    message(
+      "Could not load the XIAO stream. Open " + url + "/ directly to test it.",
+      "var(--red)"
+    );
+    hidePreview();
+    updateButtons();
+  };
+
+  // Exactly the same mechanism as the working test.html.
+  el.stream.removeAttribute("crossorigin");
+  el.stream.src = url + "/?t=" + Date.now();
+
+  showPreview();
+
+  // Do not wait for /status to declare the camera connection.
+  // The image stream is the primary connection.
+  setTimeout(() => {
+    if(el.stream.complete || connected) return;
+
+    // If the browser hasn't emitted onload yet, give it a moment.
+    // The stream can remain open indefinitely.
+  }, 1500);
 }
-function chooseMimeType(){
-  const types=["video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"];
-  for(const t of types)if(MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(t))return t;
-  return "";
+
+function disconnect(){
+  if(recording){
+    message("Stop the recording before disconnecting.", "var(--yellow)");
+    return;
+  }
+
+  baseUrl = "";
+  setConnection(false, "DISCONNECTED");
+  hidePreview();
+  message("Disconnected.");
+  el.sConnection.textContent = "OFFLINE";
+  updateButtons();
 }
-function updateTimer(){
-  if(!state.recording){el.timer.textContent="00:00:00";return}
-  let paused=state.totalPaused;
-  if(state.paused)paused+=performance.now()-state.pauseStarted;
-  el.timer.textContent=formatTime(performance.now()-state.recordStart-paused);
-}
-function startTimer(){if(state.timer)clearInterval(state.timer);updateTimer();state.timer=setInterval(updateTimer,100)}
-function stopTimer(){if(state.timer){clearInterval(state.timer);state.timer=null}}
 
 async function startRecording(){
-  if(!state.connected||state.recording)return;
-  if(!window.MediaRecorder){alert("This browser does not support MediaRecorder.");return}
-  const mimeType=chooseMimeType();
-  if(!mimeType){alert("No supported WebM MediaRecorder format was found.");return}
-  if(!el.img.complete||el.img.naturalWidth===0){alert("Camera stream is not ready yet.");return}
+  if(!connected || recording) return;
 
-  state.chunks=[];state.shouldSave=false;state.stopping=false;
+  message("Starting browser recording...");
+
   try{
-    state.canvasStream=el.canvas.captureStream(20);
-    state.recorder=new MediaRecorder(state.canvasStream,{videoBitsPerSecond:1800000,mimeType});
-    state.recorder.ondataavailable=e=>{if(e.data&&e.data.size>0)state.chunks.push(e.data)};
-    state.recorder.onerror=e=>{console.error(e);setStatus("RECORDER ERROR","var(--red)")};
-    state.recorder.onstop=()=>{
-      if(state.shouldSave)saveRecording();
-      if(state.canvasStream)state.canvasStream.getTracks().forEach(t=>t.stop());
-      state.canvasStream=null;
+    /*
+      The browser needs a MediaStream to encode.
+      We use the camera's visible frames through a canvas.
+      This requires the XIAO server to permit canvas access.
+
+      If the canvas becomes security-tainted, the page will show a clear
+      message rather than silently failing.
+    */
+    captureStream = await buildCaptureStream();
+
+    const mime =
+      MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
+        ? "video/webm;codecs=vp9"
+        : MediaRecorder.isTypeSupported("video/webm;codecs=vp8")
+          ? "video/webm;codecs=vp8"
+          : "video/webm";
+
+    recorder = new MediaRecorder(captureStream, {
+      mimeType:mime,
+      videoBitsPerSecond:2500000
+    });
+
+    chunks = [];
+
+    recorder.ondataavailable = e => {
+      if(e.data && e.data.size) chunks.push(e.data);
     };
-    state.recorder.start(1000);
 
-    await xiaoRequest("/record/start");
+    recorder.onerror = e => {
+      console.error("MediaRecorder error", e);
+      message("Browser recording error: " + (e.error?.message || "unknown error"), "var(--red)");
+    };
 
-    state.recording=true;state.paused=false;state.recordStart=performance.now();
-    state.pauseStarted=0;state.totalPaused=0;
-    startTimer();setStatus("RECORDING ACTIVE","var(--green)");
-    el.dot.style.display="inline-block";el.dot.style.animation="blink 1s infinite";
-    setButtons();updateMode();
+    recorder.onstop = saveRecording;
+
+    recorder.start(500);
+
+    await xiaoCommand("/record/start");
+
+    recording = true;
+    paused = false;
+    recordStartedAt = performance.now();
+    pausedAt = 0;
+    accumulatedPause = 0;
+
+    el.recordState.textContent = "RECORDING";
+    startTimer();
+    updateButtons();
+
+    message("Recording started.", "var(--green)");
+    pollStatus();
+
   }catch(e){
     console.error(e);
-    try{if(state.recorder&&(state.recorder.state==="recording"||state.recorder.state==="paused"))state.recorder.stop()}catch(_){}
-    state.recorder=null;state.recording=false;state.paused=false;state.shouldSave=false;stopTimer();
-    try{await xiaoRequest("/record/stop")}catch(_){}
-    setStatus("RECORD START FAILED","var(--red)");setButtons();updateMode();
-    alert("Recording could not be started.\n\n"+e.message);
+
+    if(recorder){
+      try{ recorder.stop(); }catch(_){}
+    }
+
+    if(captureStream){
+      captureStream.getTracks().forEach(t => t.stop());
+      captureStream = null;
+    }
+
+    recording = false;
+    paused = false;
+    updateButtons();
+
+    message(
+      "Record start failed: " + e.message,
+      "var(--red)"
+    );
   }
 }
 
-async function togglePause(){
-  if(!state.recording||!state.recorder)return;
-  try{
-    if(!state.paused){
-      if(state.recorder.state!=="recording")return;
-      state.recorder.pause();
-      await xiaoRequest("/record/pause");
-      state.paused=true;state.pauseStarted=performance.now();
-      setStatus("SESSION PAUSED","var(--yellow)");el.dot.style.animation="none";
-    }else{
-      await xiaoRequest("/record/resume");
-      if(state.recorder.state==="paused")state.recorder.resume();
-      state.totalPaused+=performance.now()-state.pauseStarted;state.pauseStarted=0;state.paused=false;
-      setStatus("RECORDING ACTIVE","var(--green)");el.dot.style.animation="blink 1s infinite";
+async function buildCaptureStream(){
+  /*
+    Use a canvas fed by the MJPEG image.
+    This function intentionally does NOT modify the live <img> element.
+  */
+  const canvas = document.createElement("canvas");
+
+  const width = el.stream.naturalWidth || 320;
+  const height = el.stream.naturalHeight || 240;
+
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext("2d", {alpha:false});
+
+  if(!ctx) throw new Error("Canvas is unavailable.");
+
+  const draw = () => {
+    if(!recording && !recorder) return;
+
+    try{
+      ctx.drawImage(el.stream, 0, 0, width, height);
+    }catch(e){
+      console.warn("Frame capture failed:", e);
     }
-    updateTimer();setButtons();updateMode();
-  }catch(e){console.error(e);setStatus("PAUSE/RESUME FAILED","var(--red)");alert(e.message)}
+
+    requestAnimationFrame(draw);
+  };
+
+  /*
+    Test canvas access before starting MediaRecorder.
+    A SecurityError means the browser refuses cross-origin pixel access.
+  */
+  try{
+    ctx.drawImage(el.stream, 0, 0, width, height);
+    ctx.getImageData(0, 0, 1, 1);
+  }catch(e){
+    throw new Error(
+      "The browser can display the MJPEG stream but will not expose its pixels to recording. " +
+      "The XIAO needs CORS-compatible frame capture for browser recording."
+    );
+  }
+
+  const stream = canvas.captureStream(20);
+
+  // Keep drawing after captureStream has been created.
+  const drawLoop = () => {
+    if(!captureStream) return;
+
+    try{
+      ctx.drawImage(el.stream, 0, 0, width, height);
+    }catch(e){}
+
+    requestAnimationFrame(drawLoop);
+  };
+
+  drawLoop();
+
+  return stream;
+}
+
+function pauseRecording(){
+  if(!recording || paused) return;
+
+  try{
+    if(recorder && recorder.state === "recording"){
+      recorder.pause();
+    }
+  }catch(e){
+    console.warn(e);
+  }
+
+  xiaoCommand("/record/pause")
+    .then(() => {
+      paused = true;
+      pausedAt = performance.now();
+      el.recordState.textContent = "PAUSED";
+      updateButtons();
+      message("Recording paused.", "var(--yellow)");
+      pollStatus();
+    })
+    .catch(e => {
+      try{
+        if(recorder && recorder.state === "paused") recorder.resume();
+      }catch(_){}
+      message("Pause failed: " + e.message, "var(--red)");
+    });
+}
+
+function resumeRecording(){
+  if(!recording || !paused) return;
+
+  xiaoCommand("/record/resume")
+    .then(() => {
+      try{
+        if(recorder && recorder.state === "paused") recorder.resume();
+      }catch(e){
+        console.warn(e);
+      }
+
+      accumulatedPause += performance.now() - pausedAt;
+      pausedAt = 0;
+      paused = false;
+
+      el.recordState.textContent = "RECORDING";
+      updateButtons();
+      message("Recording resumed.", "var(--green)");
+      pollStatus();
+    })
+    .catch(e => {
+      message("Resume failed: " + e.message, "var(--red)");
+    });
+}
+
+function stopRecording(){
+  if(!recording) return;
+
+  message("Stopping recording...");
+
+  try{
+    if(recorder && recorder.state !== "inactive"){
+      recorder.stop();
+    }else{
+      saveRecording();
+    }
+  }catch(e){
+    console.error(e);
+    saveRecording();
+  }
+
+  try{
+    xiaoCommand("/record/stop").catch(console.warn);
+  }catch(_){}
+
+  recording = false;
+  paused = false;
+
+  stopTimer();
+
+  el.recordState.textContent = "PREVIEW";
+  updateButtons();
+
+  if(captureStream){
+    captureStream.getTracks().forEach(t => t.stop());
+    captureStream = null;
+  }
 }
 
 function saveRecording(){
-  if(!state.chunks.length){setStatus("NO VIDEO DATA","var(--red)");return}
-  const mime=state.recorder?.mimeType||"video/webm",blob=new Blob(state.chunks,{type:mime});
-  const caseName=(el.caseId.value.trim()||"LOG").replace(/[^a-zA-Z0-9_-]+/g,"_");
-  const stamp=new Date().toISOString().replace(/[:.]/g,"-");
-  const a=document.createElement("a"),u=URL.createObjectURL(blob);
-  a.href=u;a.download=`JUSTICE_LOG_${caseName}_${stamp}.webm`;document.body.appendChild(a);a.click();a.remove();
-  setTimeout(()=>URL.revokeObjectURL(u),2000);
-  el.buffer.textContent=Math.round(blob.size/1024)+" KB";
+  if(!chunks.length){
+    message("No recording data was produced.", "var(--red)");
+    return;
+  }
+
+  const blob = new Blob(chunks, {type:"video/webm"});
+  const url = URL.createObjectURL(blob);
+
+  const now = new Date();
+  const stamp =
+    now.getFullYear() +
+    String(now.getMonth()+1).padStart(2,"0") +
+    String(now.getDate()).padStart(2,"0") + "_" +
+    String(now.getHours()).padStart(2,"0") +
+    String(now.getMinutes()).padStart(2,"0") +
+    String(now.getSeconds()).padStart(2,"0");
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "justice_logger_" + stamp + ".webm";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+
+  chunks = [];
+  recorder = null;
+
+  message("Recording saved.", "var(--green)");
 }
 
-async function stopRecording(){
-  if(!state.recording||!state.recorder||state.stopping)return;
-  state.stopping=true;setStatus("SAVING...","var(--orange)");stopTimer();
-  try{await xiaoRequest("/record/stop")}catch(e){console.warn(e)}
-  state.recording=false;state.paused=false;state.shouldSave=true;el.dot.style.display="none";el.timer.textContent="00:00:00";
-  if(state.recorder.state==="recording"||state.recorder.state==="paused")state.recorder.stop();
-  setStatus("PREVIEW","var(--blue)");setButtons();updateMode();state.stopping=false;
-}
-
-async function refreshStatus(){
-  if(!state.connected||state.recording)return;
+el.connect.addEventListener("click", () => {
   try{
-    const started=performance.now(),r=await fetch(state.controlUrl+"/status?t="+Date.now(),{mode:"cors",cache:"no-store"});
-    if(!r.ok)return;
-    const s=await r.json();
-    el.latency.textContent=Math.round(performance.now()-started)+" ms";
-    el.node.textContent=s.wifi?"ONLINE":"OFFLINE";el.node.style.color=s.wifi?"var(--green)":"var(--red)";
-    el.psram.textContent=Math.round((s.free_psram||0)/1024)+" KB";
-  }catch(_){el.node.textContent="OFFLINE";el.node.style.color="var(--red)"}
-}
+    connectPreview();
+  }catch(e){
+    message(e.message, "var(--red)");
+  }
+});
 
-function takeSnapshot(){
-  if(!state.connected){alert("Connect to the camera first.");return}
-  try{
-    const name=(el.caseId.value.trim()||"LOG").replace(/[^a-zA-Z0-9_-]+/g,"_");
-    const a=document.createElement("a");a.download=`SNAP_${name}_${Date.now()}.jpg`;a.href=el.canvas.toDataURL("image/jpeg",.92);
-    document.body.appendChild(a);a.click();a.remove();
-  }catch(e){alert("Snapshot failed.\n\n"+e.message)}
-}
+el.disconnect.addEventListener("click", disconnect);
+el.start.addEventListener("click", startRecording);
+el.pause.addEventListener("click", pauseRecording);
+el.resume.addEventListener("click", resumeRecording);
+el.stop.addEventListener("click", stopRecording);
 
-el.connect.addEventListener("click",connectStream);
-el.start.addEventListener("click",startRecording);
-el.pause.addEventListener("click",togglePause);
-el.stop.addEventListener("click",stopRecording);
-el.snap.addEventListener("click",takeSnapshot);
+setInterval(() => {
+  if(connected) pollStatus();
+}, 2000);
 
-setButtons();updateMode();setInterval(refreshStatus,3000);
+updateButtons();
 </script>
+
 </body>
 </html>
