@@ -30,7 +30,7 @@ input{width:100%;background:#0a1220;color:#fff;border:1px solid #334155;border-r
   <div class="brand"><h1>JUSTICE LOGGER</h1></div>
   <div class="input-group"><label for="xiaoIp">XIAO IP / URL</label><input id="xiaoIp" placeholder="192.168.1.50"></div>
   <div class="input-group"><label for="caseId">Case ID</label><input id="caseId" placeholder="CASE-001"></div>
-  <div class="help">XIAO camera → MJPEG → browser canvas → MediaRecorder → WebM<br><br>Recording happens in the browser. The XIAO only receives the recording state for the TFT.</div>
+  <div class="help">XIAO camera → MJPEG → browser canvas → MediaRecorder → WebM<br><br>Recording happens in the browser. The XIAO only receives the recording state for the TFT.<br><br>Stream: port 80 &nbsp;|&nbsp; Control: port 81</div>
   <div style="margin-top:auto;text-align:center;color:var(--muted);font-size:.62rem">JUSTICE LOGGER<br>LOCAL CAMERA NODE</div>
 </aside>
 
@@ -68,7 +68,7 @@ input{width:100%;background:#0a1220;color:#fff;border:1px solid #334155;border-r
 "use strict";
 
 const state={
-  baseUrl:"",connected:false,recording:false,paused:false,
+  baseUrl:"",controlUrl:"",connected:false,recording:false,paused:false,
   recorder:null,chunks:[],canvasStream:null,
   recordStart:0,pauseStarted:0,totalPaused:0,
   timer:null,renderRunning:false,renderFrame:0,
@@ -110,23 +110,39 @@ function formatTime(ms){
   return String(Math.floor(total/3600)).padStart(2,"0")+":"+String(Math.floor((total%3600)/60)).padStart(2,"0")+":"+String(total%60).padStart(2,"0");
 }
 async function xiaoRequest(path){
-  if(!state.baseUrl)throw new Error("XIAO is not connected.");
-  const started=performance.now(),controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),4000);
+  if(!state.controlUrl)throw new Error("XIAO control server is not connected.");
+  const started=performance.now();
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort("XIAO command timeout"),10000);
+
   try{
-    const r=await fetch(state.baseUrl+path,{method:"GET",cache:"no-store",signal:controller.signal});
+    const r=await fetch(state.controlUrl+path+"?t="+Date.now(),{
+      method:"GET",
+      cache:"no-store",
+      signal:controller.signal
+    });
+
     el.latency.textContent=Math.round(performance.now()-started)+" ms";
+
     if(!r.ok)throw new Error("XIAO HTTP "+r.status);
     return await r.text();
-  }finally{clearTimeout(timeout)}
+  }catch(e){
+    if(e.name==="AbortError"){
+      throw new Error("XIAO control request timed out. Check port 81.");
+    }
+    throw e;
+  }finally{
+    clearTimeout(timeout);
+  }
 }
 async function connectStream(){
   if(state.recording)return;
   let url;
   try{url=normalizeUrl(el.ip.value)}catch(e){alert(e.message);return}
-  state.baseUrl=url;setStatus("LINKING...","var(--blue)");
+  state.baseUrl=url;state.controlUrl=url.replace(/:\d+$/, "")+":81";setStatus("LINKING...","var(--blue)");
   try{
     const started=performance.now();
-    const r=await fetch(url+"/status?t="+Date.now(),{cache:"no-store"});
+    const r=await fetch(state.controlUrl+"/status?t="+Date.now(),{cache:"no-store"});
     if(!r.ok)throw new Error("HTTP "+r.status);
     const s=await r.json();
     el.latency.textContent=Math.round(performance.now()-started)+" ms";
@@ -134,7 +150,7 @@ async function connectStream(){
     el.node.style.color=s.wifi?"var(--green)":"var(--red)";
     el.psram.textContent=Math.round((s.free_psram||0)/1024)+" KB";
   }catch(e){
-    state.baseUrl="";setStatus("XIAO NOT REACHABLE","var(--red)");
+    state.baseUrl="";state.controlUrl="";setStatus("XIAO NOT REACHABLE","var(--red)");
     alert("Could not reach the XIAO.\n\n"+e.message);return;
   }
 
@@ -256,7 +272,7 @@ async function stopRecording(){
 async function refreshStatus(){
   if(!state.connected||state.recording)return;
   try{
-    const started=performance.now(),r=await fetch(state.baseUrl+"/status?t="+Date.now(),{cache:"no-store"});
+    const started=performance.now(),r=await fetch(state.controlUrl+"/status?t="+Date.now(),{cache:"no-store"});
     if(!r.ok)return;
     const s=await r.json();
     el.latency.textContent=Math.round(performance.now()-started)+" ms";
