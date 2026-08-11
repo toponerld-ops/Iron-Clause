@@ -1,333 +1,942 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JUSTICE LOGGER // COMMAND CENTER</title>
-    <style>
-        :root {
-            --bg-dark: #0a0f1a; --panel-bg: rgba(22, 31, 51, 0.9);
-            --accent-orange: #f97316; --accent-green: #22c55e;
-            --accent-red: #ef4444; --accent-blue: #3b82f6;
-            --text-main: #e2e8f0; --text-dim: #94a3b8;
-            --border-glow: rgba(249, 115, 22, 0.3);
-        }
-        body {
-            font-family: 'JetBrains Mono', monospace;
-            background-color: var(--bg-dark); color: var(--text-main);
-            margin: 0; display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; overflow: hidden;
-        }
-        .dashboard {
-            display: grid; grid-template-columns: 320px 1fr; gap: 20px;
-            width: 95vw; max-width: 1300px; height: 90vh;
-        }
-        .sidebar {
-            background: var(--panel-bg); border: 1px solid var(--border-glow);
-            border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 15px;
-        }
-        .brand h1 {
-            font-size: 1.1rem; color: var(--accent-orange); margin: 0 0 20px 0;
-            text-align: center; border-bottom: 2px solid var(--accent-orange);
-            padding-bottom: 10px; text-transform: uppercase;
-        }
-        .input-group { display: flex; flex-direction: column; gap: 5px; }
-        label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; }
-        input {
-            background: #0f172a; border: 1px solid #334155; border-radius: 4px;
-            padding: 10px; color: white; font-family: inherit;
-        }
-        .monitor-area { display: flex; flex-direction: column; gap: 20px; }
-        .viewport-container {
-            position: relative; flex-grow: 1; background: #000;
-            border: 1px solid var(--border-glow); border-radius: 12px; overflow: hidden;
-        }
-        #monitorView { width: 100%; height: 100%; object-fit: contain; display: none; }
-        .overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; padding: 20px; box-sizing: border-box;
-            display: flex; flex-direction: column; justify-content: space-between;
-        }
-        .hud-row { display: flex; justify-content: space-between; }
-        .status-badge {
-            background: rgba(0,0,0,0.7); padding: 5px 12px;
-            border-left: 3px solid var(--accent-orange); font-size: 0.8rem;
-        }
-        .rec-dot {
-            display: inline-block; width: 10px; height: 10px;
-            background: var(--accent-red); border-radius: 50%;
-            margin-right: 8px; animation: blink 1s infinite; display: none;
-        }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-        .placeholder-screen {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            text-align: center; color: #334155; text-transform: uppercase;
-        }
-        .controls { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-        .btn {
-            padding: 12px; border: none; border-radius: 6px; font-family: inherit;
-            font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.65rem;
-        }
-        .btn-connect { background: var(--accent-blue); color: white; }
-        .btn-start { background: var(--accent-green); color: #0a0f1a; display: none; }
-        .btn-pause { background: #64748b; color: white; display: none; }
-        .btn-stop { background: var(--accent-red); color: white; display: none; }
-        .btn-snap { background: #475569; color: white; }
-        .telemetry {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;
-            background: var(--panel-bg); padding: 15px; border-radius: 12px;
-            border: 1px solid var(--border-glow);
-        }
-        .tel-item { display: flex; flex-direction: column; align-items: center; }
-        .tel-label { font-size: 0.6rem; color: var(--text-dim); }
-        .tel-val { font-size: 1.1rem; font-weight: bold; color: var(--accent-orange); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JUSTICE LOGGER // CAMERA COMMAND</title>
+<style>
+:root{
+  --bg:#070b12;
+  --panel:#111827;
+  --panel2:#0d1421;
+  --line:#263449;
+  --orange:#f97316;
+  --green:#22c55e;
+  --red:#ef4444;
+  --blue:#3b82f6;
+  --yellow:#eab308;
+  --text:#e5e7eb;
+  --muted:#94a3b8;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  background:var(--bg);
+  color:var(--text);
+  font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+}
+button,input{font:inherit}
+.app{
+  width:min(1400px,96vw);
+  min-height:94vh;
+  margin:3vh auto;
+  display:grid;
+  grid-template-columns:300px 1fr;
+  gap:16px;
+}
+.panel{
+  background:linear-gradient(180deg,var(--panel),var(--panel2));
+  border:1px solid var(--line);
+  border-radius:14px;
+  box-shadow:0 12px 40px rgba(0,0,0,.28);
+}
+.sidebar{
+  padding:18px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+.brand{
+  color:var(--orange);
+  font-size:1.05rem;
+  font-weight:800;
+  text-align:center;
+  padding-bottom:12px;
+  border-bottom:2px solid var(--orange);
+}
+label{
+  display:block;
+  color:var(--muted);
+  font-size:.68rem;
+  margin-bottom:6px;
+}
+input{
+  width:100%;
+  padding:11px;
+  color:white;
+  background:#080d17;
+  border:1px solid var(--line);
+  border-radius:7px;
+  outline:none;
+}
+input:focus{border-color:var(--orange)}
+.small{
+  color:var(--muted);
+  font-size:.68rem;
+  line-height:1.5;
+}
+.spacer{flex:1}
+.main{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+.viewport{
+  position:relative;
+  min-height:0;
+  height:calc(94vh - 170px);
+  background:#000;
+  border-radius:14px;
+  border:1px solid var(--line);
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+#monitor{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:none;
+}
+.placeholder{
+  color:#334155;
+  text-align:center;
+  font-size:.9rem;
+}
+.overlay{
+  position:absolute;
+  inset:0;
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  pointer-events:none;
+}
+.row{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+}
+.badge{
+  background:rgba(0,0,0,.72);
+  border:1px solid rgba(255,255,255,.08);
+  padding:6px 10px;
+  border-radius:6px;
+  font-size:.7rem;
+}
+.dot{
+  display:inline-block;
+  width:9px;height:9px;
+  border-radius:50%;
+  background:var(--red);
+  margin-right:6px;
+  visibility:hidden;
+}
+.dot.live{visibility:visible;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.25}}
+.controls{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:9px;
+}
+button{
+  padding:12px 8px;
+  border:0;
+  border-radius:7px;
+  cursor:pointer;
+  font-weight:800;
+  font-size:.67rem;
+}
+button:disabled{opacity:.35;cursor:not-allowed}
+.connect{background:var(--blue);color:white}
+.start{background:var(--green);color:#06110a}
+.pause{background:#64748b;color:white}
+.stop{background:var(--red);color:white}
+.snap{background:#475569;color:white}
+.telemetry{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  padding:12px;
+}
+.tel{
+  text-align:center;
+  padding:7px;
+  border-right:1px solid var(--line);
+}
+.tel:last-child{border-right:0}
+.tel span:first-child{
+  display:block;color:var(--muted);font-size:.58rem;margin-bottom:5px
+}
+.tel span:last-child{
+  font-size:.85rem;color:var(--orange);font-weight:800
+}
+#canvas{display:none}
+@media(max-width:900px){
+  .app{grid-template-columns:1fr}
+  .viewport{height:60vh}
+}
+@media(max-width:600px){
+  .controls{grid-template-columns:repeat(2,1fr)}
+  .telemetry{grid-template-columns:repeat(2,1fr)}
+  .tel{border-right:0}
+}
+</style>
 </head>
 <body>
+<div class="app">
 
-    <div class="dashboard">
-        <div class="sidebar">
-            <div class="brand"><h1>Justice Logger</h1></div>
-            <div class="input-group"><label>Node Address</label><input type="text" id="xiaoIp" value="192.168."></div>
-            <div class="input-group"><label>Case ID</label><input type="text" id="caseId" placeholder="CASE-001"></div>
-            <div style="margin-top: auto; font-size: 0.6rem; color: var(--text-dim); text-align: center;">
-                Sovereign System v3.7<br>Split-Server Patch Active
-            </div>
-        </div>
+  <aside class="panel sidebar">
+    <div class="brand">JUSTICE LOGGER</div>
 
-        <div class="monitor-area">
-            <div class="viewport-container">
-                <div id="placeholder" class="placeholder-screen">LENS DISCONNECTED</div>
-                <img id="monitorView" alt="Feed">
-                <div class="overlay">
-                    <div class="hud-row">
-                        <div class="status-badge"><span id="recDot" class="rec-dot"></span><span id="sysStatus">System: IDLE</span></div>
-                        <div class="status-badge">FPS: <span id="fpsVal">0</span></div>
-                    </div>
-                    <div class="hud-row">
-                        <div class="status-badge">TIME: <span id="timerVal">00:00:00</span></div>
-                        <div class="status-badge">MODE: PREVIEW</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="controls">
-                <button id="connectBtn" class="btn btn-connect">🔌 Connect</button>
-                <button id="startBtn" class="btn btn-start">▶ Start Audit</button>
-                <button id="pauseBtn" class="btn btn-pause">⏸ Pause</button>
-                <button id="stopBtn" class="btn btn-stop">⏹ Stop & Save</button>
-                <button id="snapBtn" class="btn btn-snap">📸 Snap</button>
-            </div>
-
-            <div class="telemetry">
-                <div class="tel-item"><span class="tel-label">LATENCY</span><span id="latVal" class="tel-val">-- ms</span></div>
-                <div class="tel-item"><span class="tel-label">STABILITY</span><span id="stabVal" class="tel-val">IDLE</span></div>
-                <div class="tel-item"><span class="tel-label">BUFFER</span><span id="bufVal" class="tel-val">0%</span></div>
-            </div>
-        </div>
+    <div>
+      <label for="ip">XIAO IP ADDRESS</label>
+      <input id="ip" placeholder="192.168.1.50" autocomplete="off">
     </div>
 
-    <canvas id="streamCanvas" width="640" height="480" style="display:none"></canvas>
+    <div>
+      <label for="caseId">CASE ID</label>
+      <input id="caseId" placeholder="CASE-001" maxlength="80">
+    </div>
 
-    <script>
-        const STREAM_PORT = 81;
-        const CONTROL_PORT = 80;
+    <div class="small">
+      CAMERA: XIAO ESP32-S3 SENSE<br>
+      TRANSPORT: MJPEG / HTTP<br>
+      RECORDING: BROWSER / WEBM
+    </div>
 
-        const state = {
-            isConnected: false, isRecording: false, isPaused: false,
-            startTime: 0, accumulatedElapsed: 0,
-            mediaRecorder: null, chunks: [],
-            lastFrameTime: 0, frameCount: 0, timerInterval: null,
-            lastPixelData: null
-        };
+    <div class="spacer"></div>
 
-        const elements = {
-            ipInput: document.getElementById('xiaoIp'),
-            caseId: document.getElementById('caseId'),
-            connectBtn: document.getElementById('connectBtn'),
-            startBtn: document.getElementById('startBtn'),
-            pauseBtn: document.getElementById('pauseBtn'),
-            stopBtn: document.getElementById('stopBtn'),
-            snapBtn: document.getElementById('snapBtn'),
-            sysStatus: document.getElementById('sysStatus'),
-            timerVal: document.getElementById('timerVal'),
-            fpsVal: document.getElementById('fpsVal'),
-            placeholder: document.getElementById('placeholder'),
-            monitorView: document.getElementById('monitorView'),
-            recDot: document.getElementById('recDot'),
-            canvas: document.getElementById('streamCanvas')
-        };
+    <div class="small">
+      Tip: keep this tab visible while recording for the most reliable capture.
+    </div>
+  </aside>
 
-        const ctx = elements.canvas.getContext('2d', { alpha: false, desynchronized: true });
-        elements.monitorView.crossOrigin = "anonymous";
+  <main class="main">
 
-        function baseHost() {
-            let ip = elements.ipInput.value.trim();
-            ip = ip.replace(/^https?:\/\//, '').replace(/:\d+$/, '').replace(/\/$/, '');
-            return ip;
+    <section class="viewport panel">
+      <div id="placeholder" class="placeholder">
+        LENS DISCONNECTED<br><br>
+        Enter the XIAO IP and connect.
+      </div>
+
+      <img id="monitor" alt="XIAO camera stream" crossorigin="anonymous">
+
+      <div class="overlay">
+        <div class="row">
+          <div class="badge">
+            <span id="dot" class="dot"></span>
+            <span id="status">SYSTEM: IDLE</span>
+          </div>
+          <div class="badge">FPS: <span id="fps">0</span></div>
+        </div>
+
+        <div class="row">
+          <div class="badge">TIME: <span id="timer">00:00:00</span></div>
+          <div class="badge">MODE: <span id="mode">DISCONNECTED</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="controls">
+      <button id="connect" class="connect">CONNECT</button>
+      <button id="start" class="start" disabled>START RECORD</button>
+      <button id="pause" class="pause" disabled>PAUSE</button>
+      <button id="stop" class="stop" disabled>STOP &amp; SAVE</button>
+      <button id="snap" class="snap" disabled>SNAPSHOT</button>
+    </section>
+
+    <section class="panel telemetry">
+      <div class="tel"><span>LATENCY</span><span id="latency">--</span></div>
+      <div class="tel"><span>STREAM</span><span id="streamState">OFFLINE</span></div>
+      <div class="tel"><span>WIFI RSSI</span><span id="rssi">--</span></div>
+      <div class="tel"><span>BUFFER</span><span id="buffer">--</span></div>
+    </section>
+
+  </main>
+</div>
+
+<canvas id="canvas" width="320" height="240"></canvas>
+
+<script>
+"use strict";
+
+/*
+  Browser architecture:
+
+  XIAO MJPEG <img>
+       ↓
+  Canvas renderer
+       ↓
+  canvas.captureStream()
+       ↓
+  MediaRecorder
+       ↓
+  WebM download
+*/
+
+const state = {
+  connected: false,
+  streamReady: false,
+  recording: false,
+  paused: false,
+
+  recorder: null,
+  chunks: [],
+
+  animationId: 0,
+  timerId: 0,
+  telemetryId: 0,
+
+  startTime: 0,
+  pausedAt: 0,
+  totalPausedMs: 0,
+
+  hasFrame: false,
+  frameChanges: 0,
+  fpsWindowStart: 0,
+
+  lastImageLoadTime: 0,
+  lastCanvasFrameTime: 0,
+
+  cameraWidth: 320,
+  cameraHeight: 240
+};
+
+const $ = id => document.getElementById(id);
+
+const ui = {
+  ip: $("ip"),
+  caseId: $("caseId"),
+
+  monitor: $("monitor"),
+  canvas: $("canvas"),
+  ctx: $("canvas").getContext("2d", {
+    alpha:false,
+    desynchronized:true
+  }),
+
+  placeholder: $("placeholder"),
+
+  status: $("status"),
+  mode: $("mode"),
+  dot: $("dot"),
+  timer: $("timer"),
+  fps: $("fps"),
+
+  latency: $("latency"),
+  streamState: $("streamState"),
+  rssi: $("rssi"),
+  buffer: $("buffer"),
+
+  connect: $("connect"),
+  start: $("start"),
+  pause: $("pause"),
+  stop: $("stop"),
+  snap: $("snap")
+};
+
+// ---------------- URL helpers ----------------
+
+function baseUrl() {
+  let value = ui.ip.value.trim();
+
+  if (!value) {
+    throw new Error("Enter the XIAO IP address.");
+  }
+
+  if (!/^https?:\/\//i.test(value)) {
+    value = "http://" + value;
+  }
+
+  return value.replace(/\/+$/, "");
+}
+
+function endpoint(path) {
+  return baseUrl() + path;
+}
+
+// ---------------- UI ----------------
+
+function setStatus(text, color) {
+  ui.status.textContent = "SYSTEM: " + text;
+  ui.status.style.color = color || "";
+}
+
+function setMode(text) {
+  ui.mode.textContent = text;
+}
+
+function setButtons() {
+  ui.connect.disabled = state.connected;
+  ui.start.disabled = !state.connected || !state.streamReady || state.recording;
+  ui.pause.disabled = !state.recording;
+  ui.stop.disabled = !state.recording;
+  ui.snap.disabled = !state.connected || !state.hasFrame;
+
+  ui.start.style.display = state.recording ? "none" : "";
+  ui.pause.textContent = state.paused ? "RESUME" : "PAUSE";
+}
+
+function formatTime(ms) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const h = String(Math.floor(total / 3600)).padStart(2, "0");
+  const m = String(Math.floor((total % 3600) / 60)).padStart(2, "0");
+  const s = String(total % 60).padStart(2, "0");
+  return `${h}:${m}:${s}`;
+}
+
+function updateTimer() {
+  if (!state.recording) {
+    ui.timer.textContent = "00:00:00";
+    return;
+  }
+
+  let pausedMs = state.totalPausedMs;
+
+  if (state.paused) {
+    pausedMs += performance.now() - state.pausedAt;
+  }
+
+  const elapsed = performance.now() - state.startTime - pausedMs;
+  ui.timer.textContent = formatTime(elapsed);
+}
+
+// ---------------- Canvas renderer ----------------
+
+function startRenderer() {
+  if (state.animationId) {
+    cancelAnimationFrame(state.animationId);
+  }
+
+  state.fpsWindowStart = performance.now();
+  state.frameChanges = 0;
+
+  const render = now => {
+    if (!state.connected) return;
+
+    try {
+      if (
+        ui.monitor.naturalWidth > 0 &&
+        ui.monitor.naturalHeight > 0
+      ) {
+        if (
+          ui.canvas.width !== ui.monitor.naturalWidth ||
+          ui.canvas.height !== ui.monitor.naturalHeight
+        ) {
+          ui.canvas.width = ui.monitor.naturalWidth;
+          ui.canvas.height = ui.monitor.naturalHeight;
+
+          state.cameraWidth = ui.monitor.naturalWidth;
+          state.cameraHeight = ui.monitor.naturalHeight;
         }
 
-        function streamUrl() {
-            return `http://${baseHost()}:${STREAM_PORT}/`;
-        }
+        ui.ctx.drawImage(
+          ui.monitor,
+          0,
+          0,
+          ui.canvas.width,
+          ui.canvas.height
+        );
 
-        function controlUrl(path) {
-            return `http://${baseHost()}:${CONTROL_PORT}${path}`;
-        }
+        state.hasFrame = true;
+        state.streamReady = true;
+        state.lastCanvasFrameTime = now;
+        state.frameChanges++;
+      }
+    } catch (err) {
+      console.error("Canvas render error:", err);
+      setStatus("CANVAS ERROR", "var(--red)");
+    }
 
-        function updateUI(text, color) {
-            elements.sysStatus.innerText = `System: ${text}`;
-            elements.sysStatus.style.color = color;
-        }
+    if (now - state.fpsWindowStart >= 1000) {
+      ui.fps.textContent = String(state.frameChanges);
+      state.frameChanges = 0;
+      state.fpsWindowStart = now;
+    }
 
-        async function connectStream() {
-            const host = baseHost();
-            if (!host || host === "192.168.") return alert("Invalid IP");
+    setButtons();
+    state.animationId = requestAnimationFrame(render);
+  };
 
-            updateUI('LINKING...', 'var(--accent-blue)');
-            elements.monitorView.src = `${streamUrl()}?t=${Date.now()}`;
-            elements.monitorView.style.display = "block";
-            elements.placeholder.style.display = "none";
+  state.animationId = requestAnimationFrame(render);
+}
 
-            const check = setInterval(() => {
-                if (elements.monitorView.complete && elements.monitorView.naturalWidth > 0) {
-                    clearInterval(check);
-                    state.isConnected = true;
-                    updateUI('CONNECTED', 'var(--accent-blue)');
-                    elements.connectBtn.style.display = "none";
-                    elements.startBtn.style.display = "flex";
-                    startPreviewLoop();
-                }
-            }, 500);
-        }
+// ---------------- Camera connection ----------------
 
-        function startPreviewLoop() {
-            const render = (now) => {
-                if (!state.isConnected) return;
+async function connectStream() {
+  if (state.connected) return;
 
-                ctx.drawImage(elements.monitorView, 0, 0, 640, 480);
+  let url;
 
-                try {
-                    const currentData = ctx.getImageData(10, 10, 1, 1).data;
-                    if (JSON.stringify(currentData) !== JSON.stringify(state.lastPixelData)) {
-                        state.frameCount++;
-                        state.lastPixelData = currentData;
-                    }
-                } catch (e) {
-                    elements.fpsVal.innerText = "CORS?";
-                }
+  try {
+    url = baseUrl();
+  } catch (err) {
+    alert(err.message);
+    return;
+  }
 
-                if (now - state.lastFrameTime >= 1000) {
-                    elements.fpsVal.innerText = state.frameCount;
-                    state.frameCount = 0; state.lastFrameTime = now;
-                }
-                requestAnimationFrame(render);
-            };
-            requestAnimationFrame(render);
-        }
+  setStatus("CONNECTING...", "var(--blue)");
+  setMode("CONNECTING");
+  ui.streamState.textContent = "CONNECTING";
 
-        function startAudit() {
-            fetch(controlUrl('/resume'), { mode: 'no-cors' }).catch(() => {});
+  state.streamReady = false;
+  state.hasFrame = false;
 
-            state.isRecording = true;
-            state.isPaused = false;
-            state.startTime = performance.now();
-            state.accumulatedElapsed = 0;
+  ui.monitor.style.display = "block";
+  ui.placeholder.style.display = "none";
 
-            updateUI('RECORDING ACTIVE', 'var(--accent-green)');
-            elements.startBtn.style.display = "none";
-            elements.pauseBtn.style.display = "flex";
-            elements.stopBtn.style.display = "flex";
-            elements.recDot.style.display = "inline-block";
+  // Set crossorigin BEFORE src.
+  ui.monitor.crossOrigin = "anonymous";
 
-            const stream = elements.canvas.captureStream(30);
-            state.mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 2500000 });
-            state.chunks = [];
-            state.mediaRecorder.ondataavailable = (e) => state.chunks.push(e.data);
-            state.mediaRecorder.onstop = saveVideo;
-            state.mediaRecorder.start();
+  const streamUrl = url + "/?t=" + Date.now();
 
-            state.timerInterval = setInterval(() => {
-                if (!state.isPaused) {
-                    const elapsedMs = state.accumulatedElapsed + (performance.now() - state.startTime);
-                    const totalSeconds = Math.floor(elapsedMs / 1000);
-                    const h = Math.floor(totalSeconds/3600).toString().padStart(2,'0');
-                    const m = Math.floor((totalSeconds%3600)/60).toString().padStart(2,'0');
-                    const s = (totalSeconds%60).toString().padStart(2,'0');
-                    elements.timerVal.innerText = `${h}:${m}:${s}`;
-                }
-            }, 100);
-        }
+  ui.monitor.onload = () => {
+    state.connected = true;
+    state.streamReady = true;
+    state.lastImageLoadTime = performance.now();
 
-        function togglePause() {
-            if (!state.isPaused) {
-                state.accumulatedElapsed += performance.now() - state.startTime;
-                if (state.mediaRecorder && state.mediaRecorder.state === "recording") {
-                    state.mediaRecorder.pause();
-                }
-            } else {
-                state.startTime = performance.now();
-                if (state.mediaRecorder && state.mediaRecorder.state === "paused") {
-                    state.mediaRecorder.resume();
-                }
-            }
+    setStatus("CONNECTED", "var(--blue)");
+    setMode("PREVIEW");
+    ui.streamState.textContent = "LIVE";
 
-            state.isPaused = !state.isPaused;
-            fetch(controlUrl(state.isPaused ? '/pause' : '/resume'), { mode: 'no-cors' }).catch(() => {});
+    startRenderer();
+    setButtons();
+  };
 
-            elements.pauseBtn.innerText = state.isPaused ? "▶ Resume" : "⏸ Pause";
-            updateUI(state.isPaused ? 'SESSION PAUSED' : 'RECORDING ACTIVE', state.isPaused ? 'var(--accent-blue)' : 'var(--accent-green)');
-            elements.recDot.style.animation = state.isPaused ? 'none' : 'blink 1s infinite';
-        }
+  ui.monitor.onerror = () => {
+    state.streamReady = false;
+    ui.streamState.textContent = "ERROR";
 
-        function saveVideo() {
-            const blob = new Blob(state.chunks, { type: 'video/webm' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `JUSTICE_LOG_${elements.caseId.value || 'LOG'}.webm`;
-            a.click();
-        }
+    if (!state.recording) {
+      state.connected = false;
+      ui.monitor.style.display = "none";
+      ui.placeholder.style.display = "block";
+      setStatus("STREAM ERROR", "var(--red)");
+      setMode("ERROR");
+      setButtons();
+    }
+  };
 
-        function stopAudit() {
-            state.isRecording = false;
-            state.isConnected = false;
-            if (state.timerInterval) clearInterval(state.timerInterval);
-            if (state.mediaRecorder) {
-                state.mediaRecorder.stop();
-                state.mediaRecorder = null;
-            }
-            elements.monitorView.src = "";
-            elements.monitorView.style.display = "none";
-            elements.placeholder.style.display = "block";
-            elements.recDot.style.display = "none";
-            updateUI('IDLE', 'var(--text-dim)');
-            elements.connectBtn.style.display = "flex";
-            elements.startBtn.style.display = "none";
-            elements.pauseBtn.style.display = "none";
-            elements.stopBtn.style.display = "none";
-            elements.timerVal.innerText = "00:00:00";
-        }
+  ui.monitor.src = streamUrl;
 
-        document.addEventListener('visibilitychange', () => {
-            if (!state.isConnected) return;
-            if (document.hidden) {
-                elements.monitorView.src = "";
-            } else {
-                elements.monitorView.src = `${streamUrl()}?t=${Date.now()}`;
-            }
-        });
+  // The browser can keep an MJPEG image open without
+  // producing repeated load events, so also test naturalWidth.
+  const deadline = Date.now() + 10000;
 
-        elements.connectBtn.addEventListener('click', connectStream);
-        elements.startBtn.addEventListener('click', startAudit);
-        elements.stopBtn.addEventListener('click', stopAudit);
-        elements.pauseBtn.addEventListener('click', togglePause);
-        elements.snapBtn.addEventListener('click', () => {
-            if(!state.isConnected) return alert("Connect first");
-            const a = document.createElement('a');
-            a.download = `SNAP_${elements.caseId.value || 'LOG'}.jpg`;
-            a.href = elements.canvas.toDataURL('image/jpeg');
-            a.click();
-        });
-    </script>
+  const waitForImage = setInterval(() => {
+    if (!state.connected &&
+        ui.monitor.naturalWidth > 0 &&
+        ui.monitor.naturalHeight > 0) {
+
+      state.connected = true;
+      state.streamReady = true;
+
+      setStatus("CONNECTED", "var(--blue)");
+      setMode("PREVIEW");
+      ui.streamState.textContent = "LIVE";
+
+      clearInterval(waitForImage);
+      startRenderer();
+      setButtons();
+    }
+
+    if (Date.now() > deadline) {
+      clearInterval(waitForImage);
+
+      if (!state.connected) {
+        setStatus("CONNECTION TIMEOUT", "var(--red)");
+        setMode("ERROR");
+        ui.streamState.textContent = "OFFLINE";
+        ui.monitor.src = "";
+        ui.monitor.style.display = "none";
+        ui.placeholder.style.display = "block";
+        setButtons();
+      }
+    }
+  }, 250);
+
+  // Basic reachability/status check.
+  try {
+    const started = performance.now();
+
+    const response = await fetch(
+      url + "/status?t=" + Date.now(),
+      {
+        method:"GET",
+        cache:"no-store"
+      }
+    );
+
+    if (response.ok) {
+      ui.latency.textContent =
+        Math.round(performance.now() - started) + " ms";
+
+      const data = await response.json();
+
+      if (typeof data.wifi_rssi === "number") {
+        ui.rssi.textContent = data.wifi_rssi + " dBm";
+      }
+    }
+  } catch (err) {
+    // The MJPEG stream can still work even if status fetch is blocked.
+    console.warn("Status fetch failed:", err);
+  }
+}
+
+// ---------------- ESP32 state commands ----------------
+
+async function sendCameraCommand(path) {
+  try {
+    const response = await fetch(
+      endpoint(path) + "?t=" + Date.now(),
+      {
+        method:"GET",
+        cache:"no-store"
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("HTTP " + response.status);
+    }
+
+    return await response.text();
+  } catch (err) {
+    console.warn("Camera command failed:", path, err);
+    return null;
+  }
+}
+
+// ---------------- Recording ----------------
+
+function chooseMimeType() {
+  const candidates = [
+    "video/webm;codecs=vp8",
+    "video/webm"
+  ];
+
+  for (const type of candidates) {
+    if (MediaRecorder.isTypeSupported(type)) {
+      return type;
+    }
+  }
+
+  return "";
+}
+
+async function startRecording() {
+  if (!state.connected || !state.hasFrame) {
+    alert("Wait for a live camera frame first.");
+    return;
+  }
+
+  if (!window.MediaRecorder) {
+    alert("This browser does not support MediaRecorder.");
+    return;
+  }
+
+  const mimeType = chooseMimeType();
+
+  if (!mimeType) {
+    alert("No supported WebM recording format was found.");
+    return;
+  }
+
+  // Make sure we have a real frame before starting.
+  try {
+    ui.ctx.getImageData(0, 0, 1, 1);
+  } catch (err) {
+    alert(
+      "The browser blocked canvas access to the camera stream. " +
+      "Check that the ESP32 is sending CORS headers."
+    );
+    return;
+  }
+
+  const canvasStream = ui.canvas.captureStream(30);
+
+  state.chunks = [];
+
+  try {
+    state.recorder = new MediaRecorder(
+      canvasStream,
+      {
+        mimeType,
+        videoBitsPerSecond: 2500000
+      }
+    );
+  } catch (err) {
+    console.error(err);
+    alert("Could not create MediaRecorder: " + err.message);
+    return;
+  }
+
+  state.recorder.ondataavailable = event => {
+    if (event.data && event.data.size > 0) {
+      state.chunks.push(event.data);
+    }
+  };
+
+  state.recorder.onerror = event => {
+    console.error("MediaRecorder error:", event);
+    setStatus("RECORDER ERROR", "var(--red)");
+  };
+
+  state.recorder.onstop = saveRecording;
+
+  try {
+    state.recorder.start(1000);
+  } catch (err) {
+    alert("Could not start recorder: " + err.message);
+    state.recorder = null;
+    return;
+  }
+
+  state.recording = true;
+  state.paused = false;
+  state.startTime = performance.now();
+  state.pausedAt = 0;
+  state.totalPausedMs = 0;
+
+  ui.dot.classList.add("live");
+  setStatus("RECORDING", "var(--green)");
+  setMode("RECORDING");
+
+  await sendCameraCommand("/record/start");
+
+  if (state.timerId) clearInterval(state.timerId);
+  state.timerId = setInterval(updateTimer, 100);
+
+  setButtons();
+}
+
+// ---------------- Pause / resume ----------------
+
+async function togglePause() {
+  if (!state.recording || !state.recorder) return;
+
+  if (!state.paused) {
+    if (state.recorder.state === "recording") {
+      state.recorder.pause();
+    }
+
+    state.pausedAt = performance.now();
+    state.paused = true;
+
+    await sendCameraCommand("/record/pause");
+
+    ui.dot.classList.remove("live");
+    setStatus("PAUSED", "var(--yellow)");
+    setMode("PAUSED");
+  } else {
+    if (state.recorder.state === "paused") {
+      state.recorder.resume();
+    }
+
+    state.totalPausedMs += performance.now() - state.pausedAt;
+    state.pausedAt = 0;
+    state.paused = false;
+
+    await sendCameraCommand("/record/resume");
+
+    ui.dot.classList.add("live");
+    setStatus("RECORDING", "var(--green)");
+    setMode("RECORDING");
+  }
+
+  updateTimer();
+  setButtons();
+}
+
+// ---------------- Save recording ----------------
+
+function safeFilename(text) {
+  return String(text || "LOG")
+    .trim()
+    .replace(/[^a-zA-Z0-9._-]+/g, "_")
+    .slice(0, 80) || "LOG";
+}
+
+function saveRecording() {
+  if (!state.chunks.length) {
+    console.warn("No recorded chunks.");
+    return;
+  }
+
+  const mime =
+    state.recorder?.mimeType ||
+    "video/webm";
+
+  const blob = new Blob(state.chunks, {type:mime});
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+
+  const caseName = safeFilename(ui.caseId.value);
+  const timestamp = new Date()
+    .toISOString()
+    .replace(/[:.]/g, "-");
+
+  a.href = url;
+  a.download = `JUSTICE_LOG_${caseName}_${timestamp}.webm`;
+
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+  state.chunks = [];
+}
+
+// ---------------- Stop ----------------
+
+async function stopRecording() {
+  if (!state.recording) return;
+
+  state.recording = false;
+  state.paused = false;
+
+  if (state.timerId) {
+    clearInterval(state.timerId);
+    state.timerId = 0;
+  }
+
+  // Tell the XIAO that browser recording has ended.
+  await sendCameraCommand("/record/stop");
+
+  if (state.recorder) {
+    if (state.recorder.state !== "inactive") {
+      state.recorder.stop();
+    } else {
+      state.recorder = null;
+    }
+  }
+
+  ui.dot.classList.remove("live");
+  setStatus("SAVING", "var(--orange)");
+  setMode("SAVING");
+
+  // Do NOT disconnect the camera.
+  // Return to live preview after MediaRecorder's onstop.
+  setTimeout(() => {
+    if (!state.connected) return;
+
+    setStatus("CONNECTED", "var(--blue)");
+    setMode("PREVIEW");
+    ui.timer.textContent = "00:00:00";
+    setButtons();
+  }, 300);
+}
+
+// ---------------- Snapshot ----------------
+
+function snapshot() {
+  if (!state.connected || !state.hasFrame) {
+    alert("No camera frame available.");
+    return;
+  }
+
+  try {
+    const dataUrl = ui.canvas.toDataURL("image/jpeg", 0.92);
+
+    const a = document.createElement("a");
+    const caseName = safeFilename(ui.caseId.value);
+
+    a.href = dataUrl;
+    a.download =
+      `SNAP_${caseName}_${new Date().toISOString().replace(/[:.]/g,"-")}.jpg`;
+
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch (err) {
+    alert(
+      "Snapshot failed. The browser may have blocked canvas access " +
+      "because of CORS."
+    );
+    console.error(err);
+  }
+}
+
+// ---------------- Telemetry ----------------
+
+async function pollTelemetry() {
+  if (!state.connected) return;
+
+  const started = performance.now();
+
+  try {
+    const response = await fetch(
+      endpoint("/status") + "?t=" + Date.now(),
+      {
+        cache:"no-store"
+      }
+    );
+
+    if (!response.ok) throw new Error("HTTP " + response.status);
+
+    const data = await response.json();
+
+    ui.latency.textContent =
+      Math.round(performance.now() - started) + " ms";
+
+    if (typeof data.wifi_rssi === "number") {
+      ui.rssi.textContent = data.wifi_rssi + " dBm";
+    }
+
+    ui.streamState.textContent =
+      state.streamReady ? "LIVE" : "STALLED";
+
+    // This is a browser-side health indicator, not an
+    // actual camera buffer percentage.
+    if (state.lastCanvasFrameTime > 0) {
+      const age = performance.now() - state.lastCanvasFrameTime;
+      ui.buffer.textContent =
+        age < 500 ? "GOOD" :
+        age < 1500 ? "WARN" :
+        "STALE";
+    }
+  } catch (err) {
+    ui.streamState.textContent = "STATUS ERROR";
+  }
+}
+
+// ---------------- Visibility handling ----------------
+
+document.addEventListener("visibilitychange", () => {
+  /*
+    Do not destroy the MJPEG src here.
+
+    Destroying src while recording was one of the major
+    problems in the previous implementation.
+  */
+
+  if (document.hidden && state.recording) {
+    console.warn(
+      "Tab hidden while recording. Keep the tab active for best results."
+    );
+  }
+});
+
+// ---------------- Button events ----------------
+
+ui.connect.addEventListener("click", connectStream);
+ui.start.addEventListener("click", startRecording);
+ui.pause.addEventListener("click", togglePause);
+ui.stop.addEventListener("click", stopRecording);
+ui.snap.addEventListener("click", snapshot);
+
+// ---------------- Initial state ----------------
+
+setStatus("IDLE");
+setMode("DISCONNECTED");
+setButtons();
+
+state.telemetryId = setInterval(pollTelemetry, 2000);
+</script>
 </body>
 </html>
