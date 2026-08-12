@@ -10,23 +10,46 @@
   content="width=device-width, initial-scale=1.0"
 >
 
-<title>Mr. Justice Logger</title>
+<title>MR. JUSTICE // EVIDENCE NODE</title>
 
 <style>
 
+/* =========================================================
+   THEME
+   ========================================================= */
+
 :root{
-  --bg:#0b0e12;
-  --panel:#121820;
-  --panel2:#18212b;
-  --line:#2a3542;
-  --text:#eaf0f6;
-  --muted:#91a0af;
-  --green:#35e27a;
-  --red:#ff5263;
-  --yellow:#ffd45a;
-  --blue:#4da3ff;
-  --cyan:#44e6ff;
+
+  --bg:#030609;
+  --bg2:#070b10;
+
+  --panel:#080e15;
+  --panel2:#0c141d;
+
+  --line:#1c2b39;
+  --line2:#263c4d;
+
+  --text:#e8f4ff;
+  --muted:#718596;
+
+  --cyan:#35e7ff;
+  --blue:#409cff;
+
+  --green:#39f58a;
+  --red:#ff3655;
+  --yellow:#ffd34d;
+
+  --legal:#f2c94c;
+
+  --shadow:
+    0 0 30px rgba(0,0,0,.5);
+
 }
+
+
+/* =========================================================
+   GLOBAL
+   ========================================================= */
 
 *{
   box-sizing:border-box;
@@ -35,299 +58,1022 @@
 html,
 body{
   margin:0;
-  padding:0;
-  background:var(--bg);
+  min-height:100%;
+}
+
+body{
+
+  background:
+    radial-gradient(
+      circle at 20% 10%,
+      rgba(32,110,145,.12),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 90% 90%,
+      rgba(255,40,70,.08),
+      transparent 30%
+    ),
+    var(--bg);
+
   color:var(--text);
+
   font-family:
     Inter,
+    ui-sans-serif,
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+
+  overflow-x:hidden;
 }
 
-body{
-  min-height:100vh;
+
+/* =========================================================
+   CYBER GRID
+   ========================================================= */
+
+body::before{
+
+  content:"";
+
+  position:fixed;
+
+  inset:0;
+
+  pointer-events:none;
+
+  background-image:
+    linear-gradient(
+      rgba(53,231,255,.035) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(53,231,255,.035) 1px,
+      transparent 1px
+    );
+
+  background-size:
+    32px 32px;
+
+  mask-image:
+    linear-gradient(
+      to bottom,
+      black,
+      transparent
+    );
+
+  z-index:-2;
 }
+
+
+/* =========================================================
+   SCANLINE
+   ========================================================= */
+
+body::after{
+
+  content:"";
+
+  position:fixed;
+
+  inset:0;
+
+  pointer-events:none;
+
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 3px,
+      rgba(255,255,255,.012) 4px
+    );
+
+  z-index:100;
+
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
 
 header{
-  padding:18px 22px;
-  border-bottom:1px solid var(--line);
-  background:#0e1319;
+
+  height:72px;
+
+  border-bottom:
+    1px solid var(--line);
+
+  background:
+    rgba(4,8,12,.88);
+
+  backdrop-filter:
+    blur(14px);
+
+  display:flex;
+
+  align-items:center;
+
+  position:sticky;
+
+  top:0;
+
+  z-index:50;
 }
 
-h1{
-  margin:0;
-  font-size:20px;
-  letter-spacing:1.5px;
+
+.headerInner{
+
+  width:
+    min(1450px,94vw);
+
+  margin:auto;
+
+  display:flex;
+
+  justify-content:
+    space-between;
+
+  align-items:center;
+
+  gap:20px;
 }
+
+
+.brand{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:13px;
+}
+
+
+.logo{
+
+  width:40px;
+  height:40px;
+
+  border:
+    1px solid var(--cyan);
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  color:var(--cyan);
+
+  font-size:21px;
+
+  box-shadow:
+    0 0 18px rgba(53,231,255,.16);
+}
+
+
+.brandTitle{
+
+  font-size:15px;
+
+  font-weight:900;
+
+  letter-spacing:2px;
+}
+
+
+.brandSub{
+
+  margin-top:3px;
+
+  font-size:9px;
+
+  letter-spacing:2px;
+
+  color:var(--muted);
+}
+
+
+.headerRight{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:10px;
+
+  font-family:monospace;
+
+  font-size:11px;
+}
+
+
+.headerTag{
+
+  border:
+    1px solid var(--line2);
+
+  padding:
+    7px 10px;
+
+  color:var(--muted);
+
+  background:#070c12;
+}
+
+
+.headerTag strong{
+
+  color:var(--cyan);
+
+}
+
+
+/* =========================================================
+   LAYOUT
+   ========================================================= */
 
 .wrap{
-  max-width:1200px;
+
+  width:
+    min(1450px,94vw);
+
   margin:auto;
-  padding:18px;
+
+  padding:
+    25px 0 40px;
 }
 
+
 .grid{
+
   display:grid;
+
   grid-template-columns:
-    minmax(0,2fr)
-    minmax(280px,1fr);
+    minmax(0,1fr)
+    340px;
+
   gap:18px;
 }
 
-.panel{
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:12px;
-  padding:16px;
-}
 
-.streamBox{
-  width:100%;
-  background:#000;
-  border-radius:8px;
-  overflow:hidden;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  position:relative;
-  aspect-ratio:4 / 3;
-}
-
-#streamImage{
-  width:100%;
-  height:100%;
-  display:none;
-  object-fit:contain;
-  background:#000;
-
-  /*
-     Native MJPEG decoding.
-
-     No canvas.
-     No JavaScript JPEG parser.
-     No createImageBitmap loop.
-  */
-
-  image-rendering:auto;
-}
-
-.placeholder{
-  position:absolute;
-  inset:0;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  color:var(--muted);
-  background:#050608;
-
-  text-align:center;
-  padding:20px;
-
-  line-height:1.6;
-}
-
-.row{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  flex-wrap:wrap;
-}
-
-label{
-  font-size:12px;
-  color:var(--muted);
-}
-
-input{
-  flex:1;
-  min-width:180px;
-
-  padding:11px 12px;
-
-  border:1px solid var(--line);
-  border-radius:7px;
-
-  background:#0b1015;
-  color:var(--text);
-
-  font:inherit;
-}
-
-button{
-  border:1px solid var(--line);
-  border-radius:7px;
-
-  padding:10px 15px;
-
-  background:var(--panel2);
-  color:var(--text);
-
-  cursor:pointer;
-
-  font-weight:700;
-}
-
-button:hover{
-  filter:brightness(1.15);
-}
-
-button:disabled{
-  opacity:.4;
-  cursor:not-allowed;
-}
-
-.primary{
-  background:#164f31;
-  border-color:#287e4b;
-}
-
-.danger{
-  background:#5c1d28;
-  border-color:#8e3040;
-}
-
-.warn{
-  background:#5a4718;
-  border-color:#866b27;
-}
-
-.blue{
-  background:#173e64;
-  border-color:#2867a3;
-}
-
-.status{
-  display:inline-flex;
-  align-items:center;
-
-  gap:8px;
-
-  padding:6px 10px;
-
-  border-radius:999px;
-
-  background:#0b1015;
-
-  font-size:12px;
-  color:var(--muted);
-}
-
-.dot{
-  width:9px;
-  height:9px;
-
-  border-radius:50%;
-
-  background:#687482;
-}
-
-.dot.green{
-  background:var(--green);
-}
-
-.dot.red{
-  background:var(--red);
-}
-
-.dot.yellow{
-  background:var(--yellow);
-}
-
-.kv{
-  display:grid;
-
-  grid-template-columns:1fr auto;
-
-  gap:8px;
-
-  font-size:13px;
-
-  padding:7px 0;
-
-  border-bottom:1px solid #202a34;
-}
-
-.kv:last-child{
-  border-bottom:0;
-}
-
-.kv span:first-child{
-  color:var(--muted);
-}
-
-.big{
-  font-size:28px;
-
-  font-variant-numeric:tabular-nums;
-
-  margin:4px 0 12px;
-}
-
-#message{
-  min-height:22px;
-
-  color:var(--muted);
-
-  font-size:13px;
-
-  margin-top:10px;
-}
-
-#recordState{
-  font-weight:800;
-
-  letter-spacing:1px;
-}
-
-.footer{
-  margin-top:18px;
-
-  color:var(--muted);
-
-  font-size:12px;
-
-  text-align:center;
-}
-
-.small{
-  color:var(--muted);
-
-  font-size:12px;
-
-  margin-top:8px;
-}
-
-.streamInfo{
-  position:absolute;
-
-  left:10px;
-  bottom:10px;
-
-  padding:5px 8px;
-
-  border-radius:5px;
-
-  background:rgba(0,0,0,.65);
-
-  color:#fff;
-
-  font-size:11px;
-
-  pointer-events:none;
-}
-
-@media(max-width:800px){
+@media(max-width:1000px){
 
   .grid{
     grid-template-columns:1fr;
   }
 
 }
+
+
+/* =========================================================
+   PANEL
+   ========================================================= */
+
+.panel{
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(11,20,29,.97),
+      rgba(4,8,13,.97)
+    );
+
+  border:
+    1px solid var(--line);
+
+  box-shadow:
+    var(--shadow);
+
+  position:relative;
+
+  overflow:hidden;
+}
+
+
+.panel::before{
+
+  content:"";
+
+  position:absolute;
+
+  top:0;
+  left:0;
+  right:0;
+
+  height:1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--cyan),
+      transparent
+    );
+
+  opacity:.7;
+}
+
+
+.panelHead{
+
+  min-height:56px;
+
+  padding:
+    12px 16px;
+
+  border-bottom:
+    1px solid var(--line);
+
+  display:flex;
+
+  justify-content:
+    space-between;
+
+  align-items:center;
+}
+
+
+.panelTitle{
+
+  font-family:monospace;
+
+  font-size:11px;
+
+  font-weight:800;
+
+  letter-spacing:1.5px;
+
+  color:var(--cyan);
+}
+
+
+.panelMeta{
+
+  font-family:monospace;
+
+  font-size:9px;
+
+  color:var(--muted);
+
+}
+
+
+/* =========================================================
+   CAMERA
+   ========================================================= */
+
+.cameraPanel{
+
+  padding-bottom:16px;
+}
+
+
+.streamBox{
+
+  margin:16px;
+
+  position:relative;
+
+  background:#000;
+
+  border:
+    1px solid #172530;
+
+  overflow:hidden;
+
+  aspect-ratio:
+    4 / 3;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+}
+
+
+.streamBox::before{
+
+  content:"";
+
+  position:absolute;
+
+  inset:0;
+
+  pointer-events:none;
+
+  z-index:3;
+
+  border:
+    1px solid rgba(53,231,255,.12);
+
+}
+
+
+.streamBox::after{
+
+  content:"";
+
+  position:absolute;
+
+  left:0;
+  right:0;
+
+  height:2px;
+
+  top:-2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(53,231,255,.5),
+      transparent
+    );
+
+  animation:
+    scan 4s linear infinite;
+
+  pointer-events:none;
+
+  z-index:4;
+}
+
+
+@keyframes scan{
+
+  from{
+    top:-2px;
+  }
+
+  to{
+    top:100%;
+  }
+
+}
+
+
+#streamCanvas{
+
+  width:100%;
+
+  height:100%;
+
+  object-fit:contain;
+
+  display:block;
+
+  background:#000;
+}
+
+
+.placeholder{
+
+  position:absolute;
+
+  inset:0;
+
+  display:flex;
+
+  flex-direction:column;
+
+  align-items:center;
+
+  justify-content:center;
+
+  color:var(--muted);
+
+  font-family:monospace;
+
+  font-size:11px;
+
+  letter-spacing:1px;
+
+  text-align:center;
+
+  gap:9px;
+}
+
+
+.placeholderIcon{
+
+  font-size:32px;
+
+  color:var(--cyan);
+
+}
+
+
+/* =========================================================
+   CAMERA HUD
+   ========================================================= */
+
+.hud{
+
+  position:absolute;
+
+  inset:0;
+
+  pointer-events:none;
+
+  z-index:5;
+
+  font-family:monospace;
+
+  font-size:9px;
+
+  color:rgba(220,245,255,.8);
+}
+
+
+.hudTop{
+
+  position:absolute;
+
+  top:10px;
+  left:12px;
+  right:12px;
+
+  display:flex;
+
+  justify-content:space-between;
+}
+
+
+.hudBottom{
+
+  position:absolute;
+
+  bottom:10px;
+  left:12px;
+  right:12px;
+
+  display:flex;
+
+  justify-content:space-between;
+}
+
+
+.hudRed{
+
+  color:var(--red);
+
+}
+
+
+.hudGreen{
+
+  color:var(--green);
+
+}
+
+
+.hudCyan{
+
+  color:var(--cyan);
+
+}
+
+
+/* =========================================================
+   CONNECTION BAR
+   ========================================================= */
+
+.connectionBar{
+
+  margin:
+    0 16px 16px;
+
+  padding:
+    11px;
+
+  border:
+    1px solid var(--line);
+
+  background:#050a0f;
+
+  display:flex;
+
+  gap:9px;
+
+  align-items:center;
+
+}
+
+
+input{
+
+  min-width:0;
+
+  flex:1;
+
+  padding:
+    10px 12px;
+
+  background:#03070b;
+
+  border:
+    1px solid var(--line2);
+
+  color:var(--text);
+
+  outline:none;
+
+  font-family:monospace;
+
+}
+
+
+input:focus{
+
+  border-color:
+    var(--cyan);
+
+  box-shadow:
+    0 0 10px
+    rgba(53,231,255,.12);
+}
+
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+button{
+
+  border:
+    1px solid var(--line2);
+
+  background:
+    #0a1118;
+
+  color:var(--text);
+
+  padding:
+    10px 13px;
+
+  font-weight:800;
+
+  font-family:
+    inherit;
+
+  font-size:11px;
+
+  letter-spacing:.5px;
+
+  cursor:pointer;
+
+  transition:
+    .15s ease;
+
+}
+
+
+button:hover{
+
+  border-color:
+    var(--cyan);
+
+  box-shadow:
+    0 0 15px
+    rgba(53,231,255,.1);
+
+  transform:
+    translateY(-1px);
+}
+
+
+button:disabled{
+
+  opacity:.28;
+
+  cursor:not-allowed;
+
+  transform:none;
+
+  box-shadow:none;
+}
+
+
+.btnBlue{
+
+  border-color:
+    #235c91;
+
+  color:#7fc5ff;
+}
+
+
+.btnGreen{
+
+  border-color:
+    #1f7348;
+
+  color:var(--green);
+}
+
+
+.btnRed{
+
+  border-color:
+    #7d2635;
+
+  color:#ff7386;
+}
+
+
+.btnYellow{
+
+  border-color:
+    #806720;
+
+  color:var(--yellow);
+}
+
+
+/* =========================================================
+   CONTROLS
+   ========================================================= */
+
+.controls{
+
+  display:flex;
+
+  gap:8px;
+
+  flex-wrap:wrap;
+
+  padding:
+    0 16px;
+}
+
+
+.message{
+
+  margin:
+    11px 16px 0;
+
+  min-height:17px;
+
+  font-family:monospace;
+
+  font-size:10px;
+
+  color:var(--muted);
+}
+
+
+/* =========================================================
+   RECORDING TIMER
+   ========================================================= */
+
+.recordPanel{
+
+  margin:
+    16px;
+
+  padding:
+    15px;
+
+  border:
+    1px solid var(--line);
+
+  background:
+    linear-gradient(
+      90deg,
+      #070c11,
+      #0a1017
+    );
+
+  display:flex;
+
+  justify-content:
+    space-between;
+
+  align-items:center;
+}
+
+
+.recordLabel{
+
+  font-family:monospace;
+
+  font-size:9px;
+
+  color:var(--muted);
+
+  letter-spacing:1.5px;
+}
+
+
+.timer{
+
+  font-family:monospace;
+
+  font-size:25px;
+
+  font-weight:900;
+
+  letter-spacing:2px;
+
+  color:var(--cyan);
+}
+
+
+.recordState{
+
+  font-family:monospace;
+
+  font-size:10px;
+
+  font-weight:900;
+
+  color:var(--green);
+}
+
+
+/* =========================================================
+   STATUS SIDEBAR
+   ========================================================= */
+
+.statusRows{
+
+  padding:10px 16px 16px;
+}
+
+
+.kv{
+
+  display:grid;
+
+  grid-template-columns:
+    1fr auto;
+
+  gap:10px;
+
+  padding:
+    11px 0;
+
+  border-bottom:
+    1px solid #111e28;
+
+  font-family:monospace;
+
+  font-size:10px;
+}
+
+
+.kv:last-child{
+  border-bottom:0;
+}
+
+
+.kv span{
+
+  color:var(--muted);
+}
+
+
+.kv strong{
+
+  color:var(--text);
+
+  font-weight:700;
+
+  text-align:right;
+}
+
+
+/* =========================================================
+   STATUS LIGHT
+   ========================================================= */
+
+.liveStatus{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:8px;
+
+  padding:
+    8px 12px;
+
+  border:
+    1px solid var(--line);
+
+  background:#050a0e;
+
+  font-family:monospace;
+
+  font-size:10px;
+}
+
+
+.dot{
+
+  width:7px;
+  height:7px;
+
+  border-radius:50%;
+
+  background:#52616e;
+}
+
+
+.dot.green{
+
+  background:var(--green);
+
+  box-shadow:
+    0 0 9px var(--green);
+}
+
+
+.dot.red{
+
+  background:var(--red);
+
+  box-shadow:
+    0 0 9px var(--red);
+}
+
+
+/* =========================================================
+   LEGAL DOSSIER
+   ========================================================= */
+
+.dossier{
+
+  margin:
+    0 16px 16px;
+
+  padding:
+    13px;
+
+  border:
+    1px solid #3a3420;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(242,201,76,.045),
+      transparent
+    );
+}
+
+
+.dossierTitle{
+
+  color:
+    var(--legal);
+
+  font-family:monospace;
+
+  font-size:9px;
+
+  letter-spacing:1.5px;
+
+  margin-bottom:8px;
+}
+
+
+.dossierText{
+
+  color:var(--muted);
+
+  font-size:10px;
+
+  line-height:1.7;
+
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.footer{
+
+  padding:
+    20px 0;
+
+  text-align:center;
+
+  color:#445563;
+
+  font-family:monospace;
+
+  font-size:9px;
+
+  letter-spacing:1px;
+}
+
 
 </style>
 
@@ -337,42 +1083,89 @@ button:disabled{
 <body>
 
 
+<!-- =======================================================
+     HEADER
+     ======================================================= -->
+
 <header>
 
-<div
-  class="wrap"
-  style="padding:0"
->
+<div class="headerInner">
 
-<h1>
+<div class="brand">
+
+<div class="logo">
+⚖
+</div>
+
+<div>
+
+<div class="brandTitle">
 MR. JUSTICE LOGGER
-</h1>
+</div>
+
+<div class="brandSub">
+DIGITAL EVIDENCE // SECURE FIELD NODE
+</div>
+
+</div>
+
+</div>
+
+
+<div class="headerRight">
+
+<div class="headerTag">
+JURISDICTION:
+<strong>SZ</strong>
+</div>
+
+<div class="headerTag">
+NODE:
+<strong>XIAO-S3</strong>
+</div>
+
+</div>
 
 </div>
 
 </header>
 
 
+<!-- =======================================================
+     MAIN
+     ======================================================= -->
+
 <div class="wrap">
 
 <div class="grid">
 
 
-<!-- ====================================================== -->
-<!-- CAMERA -->
-<!-- ====================================================== -->
+<!-- =====================================================
+     CAMERA PANEL
+     ===================================================== -->
 
-<main class="panel">
+<main class="panel cameraPanel">
+
+
+<div class="panelHead">
+
+<div>
+
+<div class="panelTitle">
+LIVE EVIDENCE FEED
+</div>
+
+<div class="panelMeta">
+CASE CHANNEL // CAMERA-01
+</div>
+
+</div>
+
 
 <div
-  class="row"
-  style="
-    justify-content:space-between;
-    margin-bottom:12px
-  "
+  id="connectionStatus"
+  class="liveStatus"
 >
-
-<div class="status">
 
 <span
   id="connDot"
@@ -380,22 +1173,15 @@ MR. JUSTICE LOGGER
 ></span>
 
 <span id="connText">
-DISCONNECTED
+OFFLINE
 </span>
 
 </div>
 
-
-<div id="recordState">
-PREVIEW
-</div>
-
 </div>
 
 
-<!-- ==================================================== -->
-<!-- NATIVE MJPEG -->
-<!-- ==================================================== -->
+<!-- CAMERA -->
 
 <div class="streamBox">
 
@@ -404,226 +1190,349 @@ PREVIEW
   class="placeholder"
 >
 
-Enter the XIAO IP address<br>
-then click Connect.
+<div class="placeholderIcon">
+⚖
+</div>
+
+<div>
+NO EVIDENCE CHANNEL
+</div>
+
+<div>
+ENTER XIAO NODE ADDRESS
+</div>
 
 </div>
 
 
-<img
-  id="streamImage"
-  alt="XIAO camera stream"
-  draggable="false"
->
-
-
-<div
-  id="streamInfo"
-  class="streamInfo"
+<canvas
+  id="streamCanvas"
+  width="320"
+  height="240"
   style="display:none"
+></canvas>
+
+
+<div class="hud">
+
+<div class="hudTop">
+
+<span class="hudCyan">
+CAM-01 // QVGA
+</span>
+
+<span
+  id="hudLive"
+  class="hudRed"
 >
-LIVE
-</div>
+● OFFLINE
+</span>
 
 </div>
 
 
-<div style="height:14px"></div>
+<div class="hudBottom">
+
+<span>
+EVIDENCE NODE
+</span>
+
+<span>
+SHENZHEN // CN
+</span>
+
+</div>
+
+</div>
+
+</div>
 
 
-<!-- ==================================================== -->
 <!-- CONNECTION -->
-<!-- ==================================================== -->
 
-<div class="row">
+<div class="connectionBar">
 
 <input
   id="ip"
   value="192.168.1.8"
-  placeholder="192.168.1.8"
->
+  placeholder="XIAO IP ADDRESS"
+/>
 
 <button
   id="connectBtn"
-  class="blue"
+  class="btnBlue"
 >
-Connect
+CONNECT NODE
 </button>
 
 <button
   id="disconnectBtn"
-  disabled
 >
-Disconnect
+DISCONNECT
 </button>
 
 </div>
 
 
-<div id="message"></div>
+<!-- CONTROLS -->
 
-
-<div class="small">
-Camera: QVGA 320×240 · Native MJPEG · Low latency
-</div>
-
-
-<div style="height:14px"></div>
-
-
-<!-- ==================================================== -->
-<!-- RECORD CONTROLS -->
-<!-- ==================================================== -->
-
-<div class="row">
+<div class="controls">
 
 <button
   id="captureBtn"
-  class="blue"
+  class="btnBlue"
   disabled
 >
-Capture JPEG
+CAPTURE EVIDENCE
 </button>
 
 
 <button
   id="startBtn"
-  class="primary"
+  class="btnGreen"
   disabled
 >
-Start Record
+● START RECORD
 </button>
 
 
 <button
   id="pauseBtn"
-  class="warn"
+  class="btnYellow"
   disabled
 >
-Pause
+Ⅱ PAUSE
 </button>
 
 
 <button
   id="resumeBtn"
-  class="blue"
+  class="btnBlue"
   disabled
 >
-Resume
+▶ RESUME
 </button>
 
 
 <button
   id="stopBtn"
-  class="danger"
+  class="btnRed"
   disabled
 >
-Stop & Save
+■ STOP & SAVE
 </button>
 
 </div>
 
 
 <div
-  class="big"
+  id="message"
+  class="message"
+>
+SYSTEM READY // AWAITING NODE
+</div>
+
+
+<!-- RECORDING STATUS -->
+
+<div class="recordPanel">
+
+<div>
+
+<div class="recordLabel">
+CASE EVIDENCE STATUS
+</div>
+
+<div
+  id="recordState"
+  class="recordState"
+>
+PREVIEW
+</div>
+
+</div>
+
+
+<div
   id="timer"
+  class="timer"
 >
 00:00:00
 </div>
 
-
-<div class="footer">
-The XIAO supplies the camera stream.
-The browser saves the recording.
 </div>
+
+
+<!-- DOSSIER -->
+
+<div class="dossier">
+
+<div class="dossierTitle">
+⚖ EVIDENCE HANDLING PROTOCOL
+</div>
+
+<div class="dossierText">
+Live video is supplied directly by the XIAO ESP32-S3
+evidence node. Browser recording remains local to this
+device. No cloud upload is performed by this interface.
+</div>
+
+</div>
+
 
 </main>
 
 
-<!-- ====================================================== -->
-<!-- STATUS -->
-<!-- ====================================================== -->
+<!-- =====================================================
+     STATUS PANEL
+     ===================================================== -->
 
 <aside class="panel">
 
-<h3 style="margin-top:0">
-XIAO STATUS
-</h3>
+
+<div class="panelHead">
+
+<div>
+
+<div class="panelTitle">
+NODE TELEMETRY
+</div>
+
+<div class="panelMeta">
+SYSTEM DIAGNOSTICS
+</div>
+
+</div>
+
+<div
+  id="nodeIndicator"
+  class="panelMeta"
+>
+STANDBY
+</div>
+
+</div>
+
+
+<div class="statusRows">
 
 
 <div class="kv">
-<span>Connection</span>
-<strong id="sConnection">
-OFFLINE
-</strong>
+<span>NODE STATUS</span>
+<strong id="sConnection">OFFLINE</strong>
 </div>
 
 
 <div class="kv">
 <span>Wi-Fi</span>
-<strong id="sWifi">
-—
-</strong>
+<strong id="sWifi">—</strong>
 </div>
 
 
 <div class="kv">
 <span>RSSI</span>
-<strong id="sRssi">
-—
-</strong>
+<strong id="sRssi">—</strong>
 </div>
 
 
 <div class="kv">
-<span>Free heap</span>
-<strong id="sHeap">
-—
-</strong>
+<span>FREE HEAP</span>
+<strong id="sHeap">—</strong>
 </div>
 
 
 <div class="kv">
-<span>Free PSRAM</span>
-<strong id="sPsram">
-—
-</strong>
+<span>FREE PSRAM</span>
+<strong id="sPsram">—</strong>
 </div>
 
 
 <div class="kv">
-<span>PSRAM size</span>
-<strong id="sPsramSize">
-—
-</strong>
+<span>PSRAM SIZE</span>
+<strong id="sPsramSize">—</strong>
 </div>
 
 
 <div class="kv">
-<span>Resolution</span>
-<strong id="sResolution">
-—
-</strong>
+<span>CAMERA</span>
+<strong id="sResolution">—</strong>
 </div>
 
 
 <div class="kv">
-<span>Recording</span>
-<strong id="sRecording">
-—
-</strong>
+<span>RECORDING</span>
+<strong id="sRecording">—</strong>
 </div>
 
 
 <div class="kv">
-<span>Paused</span>
-<strong id="sPaused">
-—
+<span>PAUSED</span>
+<strong id="sPaused">—</strong>
+</div>
+
+</div>
+
+
+<!-- SYSTEM -->
+
+<div class="panelHead">
+
+<div class="panelTitle">
+CASE CHANNEL
+</div>
+
+</div>
+
+
+<div class="statusRows">
+
+
+<div class="kv">
+<span>PROTOCOL</span>
+<strong>MJPEG</strong>
+</div>
+
+
+<div class="kv">
+<span>TRANSPORT</span>
+<strong>TCP</strong>
+</div>
+
+
+<div class="kv">
+<span>FRAME</span>
+<strong>320×240</strong>
+</div>
+
+
+<div class="kv">
+<span>REGION</span>
+<strong>SHENZHEN</strong>
+</div>
+
+
+<div class="kv">
+<span>SECURITY</span>
+<strong style="color:var(--green)">
+LOCAL
 </strong>
 </div>
+
+
+</div>
+
 
 </aside>
 
+
+</div>
+
+
+<div class="footer">
+
+MR. JUSTICE LOGGER //
+DIGITAL EVIDENCE MANAGEMENT SYSTEM //
+XIAO ESP32-S3 SENSE
 
 </div>
 
@@ -635,166 +1544,158 @@ OFFLINE
 "use strict";
 
 
-// ==========================================================
-// ELEMENTS
-// ==========================================================
+/* ==========================================================
+   ELEMENTS
+   ========================================================== */
 
 const $ =
-  id =>
-    document.getElementById(id);
+  id => document.getElementById(id);
 
 
 const el = {
 
-  ip:
-    $("ip"),
+  ip:$("ip"),
 
-  connect:
-    $("connectBtn"),
+  connect:$("connectBtn"),
 
-  disconnect:
-    $("disconnectBtn"),
+  disconnect:$("disconnectBtn"),
 
-  capture:
-    $("captureBtn"),
+  capture:$("captureBtn"),
 
-  start:
-    $("startBtn"),
+  start:$("startBtn"),
 
-  pause:
-    $("pauseBtn"),
+  pause:$("pauseBtn"),
 
-  resume:
-    $("resumeBtn"),
+  resume:$("resumeBtn"),
 
-  stop:
-    $("stopBtn"),
+  stop:$("stopBtn"),
 
-  stream:
-    $("streamImage"),
+  canvas:$("streamCanvas"),
 
-  placeholder:
-    $("placeholder"),
+  placeholder:$("placeholder"),
 
-  streamInfo:
-    $("streamInfo"),
+  message:$("message"),
 
-  message:
-    $("message"),
+  connDot:$("connDot"),
 
-  connDot:
-    $("connDot"),
+  connText:$("connText"),
 
-  connText:
-    $("connText"),
+  recordState:$("recordState"),
 
-  recordState:
-    $("recordState"),
+  timer:$("timer"),
 
-  timer:
-    $("timer"),
+  hudLive:$("hudLive"),
 
-  sConnection:
-    $("sConnection"),
+  nodeIndicator:$("nodeIndicator"),
 
-  sWifi:
-    $("sWifi"),
+  sConnection:$("sConnection"),
 
-  sRssi:
-    $("sRssi"),
+  sWifi:$("sWifi"),
 
-  sHeap:
-    $("sHeap"),
+  sRssi:$("sRssi"),
 
-  sPsram:
-    $("sPsram"),
+  sHeap:$("sHeap"),
 
-  sPsramSize:
-    $("sPsramSize"),
+  sPsram:$("sPsram"),
 
-  sResolution:
-    $("sResolution"),
+  sPsramSize:$("sPsramSize"),
 
-  sRecording:
-    $("sRecording"),
+  sResolution:$("sResolution"),
 
-  sPaused:
-    $("sPaused")
+  sRecording:$("sRecording"),
+
+  sPaused:$("sPaused")
 
 };
 
 
-// ==========================================================
-// STATE
-// ==========================================================
+/* ==========================================================
+   STATE
+   ========================================================== */
 
-let baseUrl =
-  "";
+let baseUrl = "";
 
-let streamUrl =
-  "";
+let streamUrl = "";
 
-let connected =
-  false;
+let connected = false;
 
-let streamRunning =
-  false;
+let recording = false;
 
-let recording =
-  false;
+let paused = false;
 
-let paused =
-  false;
+let recordStartedAt = 0;
 
-let timerHandle =
-  null;
+let pausedAt = 0;
 
-let statusHandle =
-  null;
+let accumulatedPause = 0;
 
-let recordStartedAt =
-  0;
+let timerHandle = null;
 
-let pausedAt =
-  0;
-
-let accumulatedPause =
-  0;
+let statusHandle = null;
 
 
-// ==========================================================
-// RECORDING
-// ==========================================================
+/* ==========================================================
+   MJPEG
+   ========================================================== */
 
-let recorder =
-  null;
+let streamController = null;
 
-let chunks =
-  [];
+let streamReader = null;
 
-let captureStream =
-  null;
+let streamRunning = false;
 
-let recordingCanvas =
-  null;
+let streamBuffer =
+  new Uint8Array(0);
 
-let recordingContext =
-  null;
+let newestJPEG = null;
 
-let recordingLoop =
-  null;
+let decoding = false;
 
-let recordingActive =
-  false;
+let lastFrameTime = 0;
+
+let currentFPS = 0;
 
 
-// ==========================================================
-// MESSAGE
-// ==========================================================
+/* ==========================================================
+   CANVAS
+   ========================================================== */
+
+const ctx =
+  el.canvas.getContext(
+    "2d",
+    {
+      alpha:false,
+      desynchronized:true
+    }
+  );
+
+
+/* ==========================================================
+   RECORDING
+   ========================================================== */
+
+let recorder = null;
+
+let chunks = [];
+
+let captureStream = null;
+
+let recordingCanvas = null;
+
+let recordingContext = null;
+
+let drawing = false;
+
+let drawTimer = null;
+
+
+/* ==========================================================
+   MESSAGE
+   ========================================================== */
 
 function message(
   text,
-  color = ""
+  color=""
 ){
 
   el.message.textContent =
@@ -806,9 +1707,9 @@ function message(
 }
 
 
-// ==========================================================
-// CONNECTION STATE
-// ==========================================================
+/* ==========================================================
+   CONNECTION
+   ========================================================== */
 
 function setConnection(
   ok,
@@ -818,16 +1719,13 @@ function setConnection(
   connected =
     ok;
 
-
   el.connText.textContent =
     text;
-
 
   el.sConnection.textContent =
     ok
       ? "ONLINE"
       : "OFFLINE";
-
 
   el.connDot.className =
     "dot " +
@@ -838,13 +1736,32 @@ function setConnection(
     );
 
 
+  el.hudLive.textContent =
+    ok
+      ? "● LIVE"
+      : "● OFFLINE";
+
+
+  el.hudLive.className =
+    ok
+      ? "hudGreen"
+      : "hudRed";
+
+
+  el.nodeIndicator.textContent =
+    ok
+      ? "ONLINE"
+      : "STANDBY";
+
+
   updateButtons();
+
 }
 
 
-// ==========================================================
-// NORMALIZE IP
-// ==========================================================
+/* ==========================================================
+   URL
+   ========================================================== */
 
 function normalizeUrl(
   value
@@ -880,21 +1797,16 @@ function normalizeUrl(
     );
 
 
-  const u =
-    new URL(v);
+  return new URL(v).origin;
 
-
-  return u.origin;
 }
 
 
-// ==========================================================
-// TIMER
-// ==========================================================
+/* ==========================================================
+   TIMER
+   ========================================================== */
 
-function formatTime(
-  ms
-){
+function formatTime(ms){
 
   const sec =
     Math.max(
@@ -1005,26 +1917,18 @@ function stopTimer(){
 }
 
 
-// ==========================================================
-// BUTTONS
-// ==========================================================
+/* ==========================================================
+   BUTTONS
+   ========================================================== */
 
 function updateButtons(){
 
-  el.connect.disabled =
-    connected;
-
-
-  el.disconnect.disabled =
-    !connected;
-
-
-  el.capture.disabled =
+  el.start.disabled =
     !connected ||
     recording;
 
 
-  el.start.disabled =
+  el.capture.disabled =
     !connected ||
     recording;
 
@@ -1042,12 +1946,16 @@ function updateButtons(){
   el.stop.disabled =
     !recording;
 
+
+  el.disconnect.disabled =
+    !connected;
+
 }
 
 
-// ==========================================================
-// STATUS REQUEST
-// ==========================================================
+/* ==========================================================
+   STATUS
+   ========================================================== */
 
 async function getStatus(){
 
@@ -1057,7 +1965,6 @@ async function getStatus(){
       "/status?t=" +
       Date.now(),
       {
-        method:"GET",
         cache:"no-store"
       }
     );
@@ -1078,13 +1985,7 @@ async function getStatus(){
 }
 
 
-// ==========================================================
-// UPDATE STATUS UI
-// ==========================================================
-
-function updateStatus(
-  s
-){
+function updateStatus(s){
 
   el.sWifi.textContent =
     s.wifi
@@ -1096,8 +1997,7 @@ function updateStatus(
     Number.isFinite(
       s.wifi_rssi
     )
-      ? s.wifi_rssi +
-        " dBm"
+      ? s.wifi_rssi + " dBm"
       : "—";
 
 
@@ -1107,8 +2007,7 @@ function updateStatus(
     )
       ? Math.round(
           s.free_heap / 1024
-        ) +
-        " KB"
+        ) + " KB"
       : "—";
 
 
@@ -1118,8 +2017,7 @@ function updateStatus(
     )
       ? Math.round(
           s.free_psram / 1024
-        ) +
-        " KB"
+        ) + " KB"
       : "—";
 
 
@@ -1129,8 +2027,7 @@ function updateStatus(
     )
       ? Math.round(
           s.psram_size / 1024
-        ) +
-        " KB"
+        ) + " KB"
       : "—";
 
 
@@ -1145,7 +2042,7 @@ function updateStatus(
 
   el.sRecording.textContent =
     s.recording
-      ? "ON"
+      ? "ACTIVE"
       : "OFF";
 
 
@@ -1165,13 +2062,31 @@ function updateStatus(
       : "PREVIEW";
 
 
+  if(s.recording){
+
+    el.recordState.style.color =
+      s.paused
+        ? "var(--yellow)"
+        : "var(--red)";
+
+  }
+
+  else{
+
+    el.recordState.style.color =
+      "var(--green)";
+
+  }
+
+
   updateButtons();
+
 }
 
 
-// ==========================================================
-// STATUS POLLING
-// ==========================================================
+/* ==========================================================
+   STATUS POLLING
+   ========================================================== */
 
 async function pollStatus(){
 
@@ -1189,11 +2104,11 @@ async function pollStatus(){
 
   }
 
-  catch(error){
+  catch(e){
 
     console.warn(
-      "Status error:",
-      error
+      "Status:",
+      e
     );
 
   }
@@ -1201,9 +2116,9 @@ async function pollStatus(){
 }
 
 
-// ==========================================================
-// XIAO COMMAND
-// ==========================================================
+/* ==========================================================
+   COMMAND
+   ========================================================== */
 
 async function xiaoCommand(
   path
@@ -1225,7 +2140,6 @@ async function xiaoCommand(
       "?t=" +
       Date.now(),
       {
-        method:"GET",
         cache:"no-store"
       }
     );
@@ -1242,139 +2156,334 @@ async function xiaoCommand(
 
 
   return response.text();
+
 }
 
 
-// ==========================================================
-// SHOW STREAM
-// ==========================================================
+/* ==========================================================
+   PREVIEW
+   ========================================================== */
 
-function showStream(){
+function showPreview(){
 
   el.placeholder.style.display =
     "none";
 
-
-  el.stream.style.display =
+  el.canvas.style.display =
     "block";
 
-
-  el.streamInfo.style.display =
-    "block";
 }
 
 
-// ==========================================================
-// HIDE STREAM
-// ==========================================================
+function hidePreview(){
 
-function hideStream(){
-
-  el.stream.style.display =
+  el.canvas.style.display =
     "none";
-
 
   el.placeholder.style.display =
     "flex";
 
+}
 
-  el.streamInfo.style.display =
-    "none";
+
+/* ==========================================================
+   FAST BUFFER APPEND
+   ========================================================== */
+
+function appendBytes(
+  oldBuffer,
+  newBytes
+){
+
+  /*
+     Avoid enormous allocation when possible.
+  */
+
+  const combined =
+    new Uint8Array(
+      oldBuffer.length +
+      newBytes.length
+    );
+
+
+  combined.set(
+    oldBuffer
+  );
+
+
+  combined.set(
+    newBytes,
+    oldBuffer.length
+  );
+
+
+  return combined;
 
 }
 
 
-// ==========================================================
-// STREAM ERROR
-// ==========================================================
+/* ==========================================================
+   JPEG EXTRACTION
+   ========================================================== */
 
-el.stream.addEventListener(
-  "error",
-  () => {
+function extractJPEG(){
 
-    if(!streamRunning)
-      return;
+  let start = -1;
 
 
-    /*
-       Do NOT immediately report an error while the browser
-       is still establishing the native MJPEG connection.
+  for(
+    let i = 0;
+    i < streamBuffer.length - 1;
+    i++
+  ){
 
-       If the stream really dies, reconnect automatically.
-    */
+    if(
+      streamBuffer[i] === 0xff &&
+      streamBuffer[i + 1] === 0xd8
+    ){
 
-    message(
-      "Camera stream interrupted — reconnecting...",
-      "var(--yellow)"
+      start = i;
+
+      break;
+
+    }
+
+  }
+
+
+  if(start < 0){
+
+    if(
+      streamBuffer.length > 1
+    ){
+
+      streamBuffer =
+        streamBuffer.slice(-1);
+
+    }
+
+    return null;
+
+  }
+
+
+  let end = -1;
+
+
+  for(
+    let i = start + 2;
+    i < streamBuffer.length - 1;
+    i++
+  ){
+
+    if(
+      streamBuffer[i] === 0xff &&
+      streamBuffer[i + 1] === 0xd9
+    ){
+
+      end =
+        i + 2;
+
+      break;
+
+    }
+
+  }
+
+
+  if(end < 0)
+    return null;
+
+
+  const jpeg =
+    streamBuffer.slice(
+      start,
+      end
     );
 
 
-    setTimeout(
-      () => {
+  streamBuffer =
+    streamBuffer.slice(
+      end
+    );
 
-        if(
-          connected &&
-          streamRunning
-        ){
 
-          restartMJPEG();
+  return jpeg;
+
+}
+
+
+/* ==========================================================
+   NEWEST FRAME ONLY
+   ========================================================== */
+
+function queueJPEG(
+  jpeg
+){
+
+  /*
+     This is important.
+
+     We NEVER queue 20 old frames.
+
+     If decoding is busy and five new frames arrive,
+     only the newest one survives.
+  */
+
+  newestJPEG =
+    jpeg;
+
+
+  decodeNewest();
+
+}
+
+
+/* ==========================================================
+   JPEG DECODER
+   ========================================================== */
+
+async function decodeNewest(){
+
+  if(decoding)
+    return;
+
+
+  if(!newestJPEG)
+    return;
+
+
+  decoding =
+    true;
+
+
+  while(
+    newestJPEG &&
+    streamRunning
+  ){
+
+    const jpeg =
+      newestJPEG;
+
+
+    newestJPEG =
+      null;
+
+
+    try{
+
+      const bitmap =
+        await createImageBitmap(
+          new Blob(
+            [jpeg],
+            {
+              type:"image/jpeg"
+            }
+          )
+        );
+
+
+      /*
+         If a newer JPEG arrived while the old one
+         was decoding, the old frame is already stale.
+
+         We still draw this frame because decoding is
+         already complete, then immediately move to
+         newestJPEG.
+      */
+
+      if(
+        el.canvas.width !==
+        bitmap.width
+      ){
+
+        el.canvas.width =
+          bitmap.width;
+
+      }
+
+
+      if(
+        el.canvas.height !==
+        bitmap.height
+      ){
+
+        el.canvas.height =
+          bitmap.height;
+
+      }
+
+
+      ctx.drawImage(
+        bitmap,
+        0,
+        0,
+        el.canvas.width,
+        el.canvas.height
+      );
+
+
+      bitmap.close();
+
+
+      /*
+         FPS smoothing.
+      */
+
+      const now =
+        performance.now();
+
+
+      if(lastFrameTime){
+
+        const dt =
+          now -
+          lastFrameTime;
+
+
+        if(dt > 0){
+
+          const fps =
+            1000 / dt;
+
+
+          currentFPS =
+            currentFPS * .85 +
+            fps * .15;
 
         }
 
-      },
-      500
-    );
+      }
+
+
+      lastFrameTime =
+        now;
+
+    }
+
+    catch(e){
+
+      console.warn(
+        "JPEG decode:",
+        e
+      );
+
+    }
 
   }
-);
 
 
-// ==========================================================
-// STREAM LOAD
-// ==========================================================
+  decoding =
+    false;
 
-el.stream.addEventListener(
-  "load",
-  () => {
-
-    if(!streamRunning)
-      return;
+}
 
 
-    showStream();
+/* ==========================================================
+   START MJPEG
+   ========================================================== */
 
-
-    setConnection(
-      true,
-      "CONNECTED"
-    );
-
-
-    message(
-      "Camera stream connected.",
-      "var(--green)"
-    );
-
-  }
-);
-
-
-// ==========================================================
-// START MJPEG
-//
-// THIS IS THE BIG CHANGE.
-//
-// We use the browser's native MJPEG support:
-//
-//     <img src="http://XIAO:81/stream">
-//
-// No ReadableStream.
-// No manual JPEG extraction.
-// No createImageBitmap.
-// No JavaScript frame queue.
-// ==========================================================
-
-function startMJPEG(){
+async function startMJPEG(){
 
   stopMJPEG();
 
@@ -1383,43 +2492,203 @@ function startMJPEG(){
     return;
 
 
+  streamController =
+    new AbortController();
+
+
   streamRunning =
     true;
 
 
-  showStream();
+  streamBuffer =
+    new Uint8Array(0);
 
 
-  setConnection(
-    true,
-    "CONNECTING..."
-  );
+  newestJPEG =
+    null;
 
 
-  message(
-    "Connecting to camera..."
-  );
+  decoding =
+    false;
 
 
-  /*
-     Cache busting ensures the browser opens a fresh
-     MJPEG connection.
+  lastFrameTime =
+    0;
 
-     The browser then continuously decodes the multipart
-     JPEG stream itself.
-  */
 
-  el.stream.src =
-    streamUrl +
-    "?t=" +
-    Date.now();
+  currentFPS =
+    0;
+
+
+  try{
+
+    const response =
+      await fetch(
+        streamUrl +
+        "?t=" +
+        Date.now(),
+        {
+          method:"GET",
+          cache:"no-store",
+          signal:
+            streamController.signal
+        }
+      );
+
+
+    if(!response.ok){
+
+      throw new Error(
+        "Stream HTTP " +
+        response.status
+      );
+
+    }
+
+
+    if(!response.body){
+
+      throw new Error(
+        "ReadableStream unsupported."
+      );
+
+    }
+
+
+    streamReader =
+      response.body.getReader();
+
+
+    setConnection(
+      true,
+      "ONLINE"
+    );
+
+
+    showPreview();
+
+
+    message(
+      "SECURE EVIDENCE CHANNEL ESTABLISHED.",
+      "var(--green)"
+    );
+
+
+    while(
+      streamRunning
+    ){
+
+      const {
+        value,
+        done
+      } =
+        await streamReader.read();
+
+
+      if(done)
+        break;
+
+
+      if(!value)
+        continue;
+
+
+      streamBuffer =
+        appendBytes(
+          streamBuffer,
+          value
+        );
+
+
+      /*
+         Drain all complete JPEGs.
+
+         Only the newest gets decoded.
+      */
+
+      while(true){
+
+        const jpeg =
+          extractJPEG();
+
+
+        if(!jpeg)
+          break;
+
+
+        queueJPEG(
+          jpeg
+        );
+
+      }
+
+
+      /*
+         Safety cap.
+      */
+
+      if(
+        streamBuffer.length >
+        1024 * 1024
+      ){
+
+        streamBuffer =
+          streamBuffer.slice(
+            -65536
+          );
+
+      }
+
+    }
+
+  }
+
+  catch(e){
+
+    if(
+      e.name !==
+      "AbortError"
+    ){
+
+      console.error(
+        "MJPEG:",
+        e
+      );
+
+
+      if(streamRunning){
+
+        setConnection(
+          false,
+          "STREAM ERROR"
+        );
+
+
+        message(
+          "EVIDENCE CHANNEL LOST.",
+          "var(--red)"
+        );
+
+      }
+
+    }
+
+  }
+
+
+  streamRunning =
+    false;
+
+
+  streamReader =
+    null;
 
 }
 
 
-// ==========================================================
-// STOP MJPEG
-// ==========================================================
+/* ==========================================================
+   STOP MJPEG
+   ========================================================== */
 
 function stopMJPEG(){
 
@@ -1427,50 +2696,55 @@ function stopMJPEG(){
     false;
 
 
-  /*
-     Removing src closes the existing HTTP connection.
-  */
+  if(streamController){
 
-  el.stream.src =
-    "";
+    try{
+
+      streamController.abort();
+
+    }
+
+    catch(_){}
+
+  }
 
 
-  hideStream();
+  streamController =
+    null;
+
+
+  if(streamReader){
+
+    try{
+
+      streamReader.cancel();
+
+    }
+
+    catch(_){}
+
+  }
+
+
+  streamReader =
+    null;
+
+
+  streamBuffer =
+    new Uint8Array(0);
+
+
+  newestJPEG =
+    null;
 
 }
 
 
-// ==========================================================
-// RESTART MJPEG
-// ==========================================================
+/* ==========================================================
+   CONNECT
+   ========================================================== */
 
-function restartMJPEG(){
-
-  if(!connected)
-    return;
-
-
-  stopMJPEG();
-
-
-  setTimeout(
-    () => {
-
-      if(connected)
-        startMJPEG();
-
-    },
-    150
-  );
-
-}
-
-
-// ==========================================================
-// CONNECT
-// ==========================================================
-
-async function connectPreview(){
+function connectPreview(){
 
   let url;
 
@@ -1484,10 +2758,10 @@ async function connectPreview(){
 
   }
 
-  catch(error){
+  catch(e){
 
     message(
-      error.message,
+      e.message,
       "var(--red)"
     );
 
@@ -1495,10 +2769,6 @@ async function connectPreview(){
 
   }
 
-
-  /*
-     Stop anything from a previous connection.
-  */
 
   stopMJPEG();
 
@@ -1514,111 +2784,38 @@ async function connectPreview(){
 
   setConnection(
     false,
-    "CONNECTING..."
+    "CONNECTING"
   );
 
 
   message(
-    "Checking XIAO..."
+    "CONTACTING EVIDENCE NODE..."
   );
 
 
-  try{
+  setTimeout(
+    () => {
 
-    /*
-       Check the control server first.
+      if(baseUrl)
+        startMJPEG();
 
-       This catches incorrect IP addresses immediately.
-    */
-
-    const response =
-      await fetch(
-        baseUrl +
-        "/status?t=" +
-        Date.now(),
-        {
-          method:"GET",
-          cache:"no-store"
-        }
-      );
-
-
-    if(!response.ok){
-
-      throw new Error(
-        "XIAO returned HTTP " +
-        response.status
-      );
-
-    }
-
-
-    const status =
-      await response.json();
-
-
-    updateStatus(
-      status
-    );
-
-
-    setConnection(
-      true,
-      "CONNECTING..."
-    );
-
-
-    /*
-       Start native MJPEG.
-    */
-
-    startMJPEG();
-
-
-  }
-
-  catch(error){
-
-    console.error(
-      error
-    );
-
-
-    baseUrl =
-      "";
-
-
-    streamUrl =
-      "";
-
-
-    setConnection(
-      false,
-      "CONNECTION FAILED"
-    );
-
-
-    message(
-      "Could not connect to XIAO: " +
-      error.message,
-      "var(--red)"
-    );
-
-  }
+    },
+    50
+  );
 
 }
 
 
-// ==========================================================
-// DISCONNECT
-// ==========================================================
+/* ==========================================================
+   DISCONNECT
+   ========================================================== */
 
 function disconnect(){
 
   if(recording){
 
     message(
-      "Stop the recording before disconnecting.",
+      "STOP RECORDING BEFORE DISCONNECTING.",
       "var(--yellow)"
     );
 
@@ -1633,27 +2830,29 @@ function disconnect(){
   baseUrl =
     "";
 
-
   streamUrl =
     "";
 
 
+  hidePreview();
+
+
   setConnection(
     false,
-    "DISCONNECTED"
+    "OFFLINE"
   );
 
 
   message(
-    "Disconnected."
+    "EVIDENCE CHANNEL CLOSED."
   );
 
 }
 
 
-// ==========================================================
-// CAPTURE JPEG
-// ==========================================================
+/* ==========================================================
+   CAPTURE
+   ========================================================== */
 
 async function captureJPEG(){
 
@@ -1664,7 +2863,7 @@ async function captureJPEG(){
   try{
 
     message(
-      "Capturing JPEG..."
+      "CAPTURING EVIDENCE..."
     );
 
 
@@ -1674,7 +2873,6 @@ async function captureJPEG(){
         "/capture?t=" +
         Date.now(),
         {
-          method:"GET",
           cache:"no-store"
         }
       );
@@ -1707,7 +2905,7 @@ async function captureJPEG(){
     const stamp =
       now.getFullYear() +
       String(
-        now.getMonth() + 1
+        now.getMonth()+1
       ).padStart(2,"0") +
       String(
         now.getDate()
@@ -1735,16 +2933,14 @@ async function captureJPEG(){
 
 
     a.download =
-      "justice_logger_" +
+      "justice_evidence_" +
       stamp +
       ".jpg";
 
 
     document.body.appendChild(a);
 
-
     a.click();
-
 
     a.remove();
 
@@ -1757,22 +2953,20 @@ async function captureJPEG(){
 
 
     message(
-      "JPEG captured and saved.",
+      "EVIDENCE CAPTURED.",
       "var(--green)"
     );
 
   }
 
-  catch(error){
+  catch(e){
 
-    console.error(
-      error
-    );
+    console.error(e);
 
 
     message(
-      "Capture failed: " +
-      error.message,
+      "CAPTURE FAILED: " +
+      e.message,
       "var(--red)"
     );
 
@@ -1781,22 +2975,19 @@ async function captureJPEG(){
 }
 
 
-// ==========================================================
-// RECORDING CANVAS
-//
-// The native MJPEG <img> cannot directly be sent to
-// MediaRecorder, so recording uses a canvas.
-//
-// This does NOT affect the live stream.
-// ==========================================================
+/* ==========================================================
+   RECORDING CANVAS
+   ========================================================== */
 
-function buildCaptureStream(){
+async function buildCaptureStream(){
 
   const width =
+    el.canvas.width ||
     320;
 
 
   const height =
+    el.canvas.height ||
     240;
 
 
@@ -1808,7 +2999,6 @@ function buildCaptureStream(){
 
   recordingCanvas.width =
     width;
-
 
   recordingCanvas.height =
     height;
@@ -1832,12 +3022,8 @@ function buildCaptureStream(){
   }
 
 
-  /*
-     Start with the current frame.
-  */
-
   recordingContext.drawImage(
-    el.stream,
+    el.canvas,
     0,
     0,
     width,
@@ -1845,68 +3031,48 @@ function buildCaptureStream(){
   );
 
 
+  /*
+     20 FPS recording stream.
+
+     The actual camera can deliver more/less.
+     The browser records the rendered feed.
+  */
+
   captureStream =
     recordingCanvas.captureStream(
-      30
+      20
     );
 
 
-  recordingActive =
+  drawing =
     true;
 
 
-  /*
-     Draw the native MJPEG image to the recording
-     canvas at 30 FPS.
+  function drawLoop(){
 
-     The live preview itself remains native and
-     completely independent from this.
-  */
-
-  function drawRecordingFrame(){
-
-    if(!recordingActive)
+    if(!drawing)
       return;
 
 
-    try{
-
-      if(
-        el.stream.complete &&
-        el.stream.naturalWidth > 0
-      ){
-
-        recordingContext.drawImage(
-          el.stream,
-          0,
-          0,
-          width,
-          height
-        );
-
-      }
-
-    }
-
-    catch(error){
-
-      console.warn(
-        "Recording frame:",
-        error
-      );
-
-    }
+    recordingContext.drawImage(
+      el.canvas,
+      0,
+      0,
+      width,
+      height
+    );
 
 
-    recordingLoop =
-      requestAnimationFrame(
-        drawRecordingFrame
+    drawTimer =
+      setTimeout(
+        drawLoop,
+        50
       );
 
   }
 
 
-  drawRecordingFrame();
+  drawLoop();
 
 
   return captureStream;
@@ -1914,58 +3080,9 @@ function buildCaptureStream(){
 }
 
 
-// ==========================================================
-// STOP RECORDING CANVAS
-// ==========================================================
-
-function stopRecordingCanvas(){
-
-  recordingActive =
-    false;
-
-
-  if(recordingLoop){
-
-    cancelAnimationFrame(
-      recordingLoop
-    );
-
-
-    recordingLoop =
-      null;
-
-  }
-
-
-  if(captureStream){
-
-    captureStream
-      .getTracks()
-      .forEach(
-        track =>
-          track.stop()
-      );
-
-
-    captureStream =
-      null;
-
-  }
-
-
-  recordingCanvas =
-    null;
-
-
-  recordingContext =
-    null;
-
-}
-
-
-// ==========================================================
-// START RECORDING
-// ==========================================================
+/* ==========================================================
+   START RECORDING
+   ========================================================== */
 
 async function startRecording(){
 
@@ -1977,18 +3094,17 @@ async function startRecording(){
 
 
   message(
-    "Starting browser recording..."
+    "INITIALIZING EVIDENCE RECORDER..."
   );
 
 
   try{
 
     const mediaStream =
-      buildCaptureStream();
+      await buildCaptureStream();
 
 
-    let mime =
-      "";
+    let mime = "";
 
 
     if(
@@ -2027,7 +3143,7 @@ async function startRecording(){
     else{
 
       throw new Error(
-        "WebM recording is unsupported."
+        "WebM unsupported."
       );
 
     }
@@ -2037,17 +3153,13 @@ async function startRecording(){
       new MediaRecorder(
         mediaStream,
         {
-          mimeType:
-            mime,
-
-          videoBitsPerSecond:
-            1500000
+          mimeType:mime,
+          videoBitsPerSecond:1200000
         }
       );
 
 
-    chunks =
-      [];
+    chunks = [];
 
 
     recorder.ondataavailable =
@@ -2075,25 +3187,10 @@ async function startRecording(){
       };
 
 
-    recorder.onerror =
-      event => {
-
-        console.error(
-          "Recorder error:",
-          event
-        );
-
-      };
-
-
     recorder.start(
       1000
     );
 
-
-    /*
-       Tell the XIAO.
-    */
 
     await xiaoCommand(
       "/record/start"
@@ -2124,15 +3221,18 @@ async function startRecording(){
       "RECORDING";
 
 
-    startTimer();
+    el.recordState.style.color =
+      "var(--red)";
 
+
+    startTimer();
 
     updateButtons();
 
 
     message(
-      "Recording started.",
-      "var(--green)"
+      "EVIDENCE RECORDING ACTIVE.",
+      "var(--red)"
     );
 
 
@@ -2140,28 +3240,41 @@ async function startRecording(){
 
   }
 
-  catch(error){
+  catch(e){
 
-    console.error(
-      error
-    );
+    console.error(e);
 
 
-    stopRecordingCanvas();
+    drawing =
+      false;
 
 
-    if(
-      recorder &&
-      recorder.state !==
-      "inactive"
-    ){
+    if(drawTimer){
 
-      try{
-        recorder.stop();
-      }
-      catch(_){}
+      clearTimeout(
+        drawTimer
+      );
+
+      drawTimer =
+        null;
 
     }
+
+
+    if(captureStream){
+
+      captureStream
+        .getTracks()
+        .forEach(
+          track =>
+            track.stop()
+        );
+
+    }
+
+
+    captureStream =
+      null;
 
 
     recorder =
@@ -2171,7 +3284,6 @@ async function startRecording(){
     recording =
       false;
 
-
     paused =
       false;
 
@@ -2180,8 +3292,8 @@ async function startRecording(){
 
 
     message(
-      "Record start failed: " +
-      error.message,
+      "RECORD START FAILED: " +
+      e.message,
       "var(--red)"
     );
 
@@ -2190,9 +3302,9 @@ async function startRecording(){
 }
 
 
-// ==========================================================
-// PAUSE
-// ==========================================================
+/* ==========================================================
+   PAUSE
+   ========================================================== */
 
 async function pauseRecording(){
 
@@ -2233,11 +3345,15 @@ async function pauseRecording(){
       "PAUSED";
 
 
+    el.recordState.style.color =
+      "var(--yellow)";
+
+
     updateButtons();
 
 
     message(
-      "Recording paused.",
+      "EVIDENCE RECORDING PAUSED.",
       "var(--yellow)"
     );
 
@@ -2246,11 +3362,11 @@ async function pauseRecording(){
 
   }
 
-  catch(error){
+  catch(e){
 
     message(
-      "Pause failed: " +
-      error.message,
+      "PAUSE FAILED: " +
+      e.message,
       "var(--red)"
     );
 
@@ -2259,9 +3375,9 @@ async function pauseRecording(){
 }
 
 
-// ==========================================================
-// RESUME
-// ==========================================================
+/* ==========================================================
+   RESUME
+   ========================================================== */
 
 async function resumeRecording(){
 
@@ -2307,11 +3423,15 @@ async function resumeRecording(){
       "RECORDING";
 
 
+    el.recordState.style.color =
+      "var(--red)";
+
+
     updateButtons();
 
 
     message(
-      "Recording resumed.",
+      "EVIDENCE RECORDING RESUMED.",
       "var(--green)"
     );
 
@@ -2320,11 +3440,11 @@ async function resumeRecording(){
 
   }
 
-  catch(error){
+  catch(e){
 
     message(
-      "Resume failed: " +
-      error.message,
+      "RESUME FAILED: " +
+      e.message,
       "var(--red)"
     );
 
@@ -2333,9 +3453,9 @@ async function resumeRecording(){
 }
 
 
-// ==========================================================
-// STOP RECORDING
-// ==========================================================
+/* ==========================================================
+   STOP
+   ========================================================== */
 
 async function stopRecording(){
 
@@ -2344,7 +3464,7 @@ async function stopRecording(){
 
 
   message(
-    "Stopping recording..."
+    "FINALIZING EVIDENCE..."
   );
 
 
@@ -2356,21 +3476,29 @@ async function stopRecording(){
 
   }
 
-  catch(error){
+  catch(e){
 
     console.warn(
-      "XIAO stop:",
-      error
+      e
     );
 
   }
 
 
-  /*
-     Stop recording canvas after the XIAO command.
-  */
+  drawing =
+    false;
 
-  stopRecordingCanvas();
+
+  if(drawTimer){
+
+    clearTimeout(
+      drawTimer
+    );
+
+    drawTimer =
+      null;
+
+  }
 
 
   if(
@@ -2405,7 +3533,27 @@ async function stopRecording(){
     "PREVIEW";
 
 
+  el.recordState.style.color =
+    "var(--green)";
+
+
   updateButtons();
+
+
+  if(captureStream){
+
+    captureStream
+      .getTracks()
+      .forEach(
+        track =>
+          track.stop()
+      );
+
+  }
+
+
+  captureStream =
+    null;
 
 
   pollStatus();
@@ -2413,16 +3561,16 @@ async function stopRecording(){
 }
 
 
-// ==========================================================
-// SAVE RECORDING
-// ==========================================================
+/* ==========================================================
+   SAVE
+   ========================================================== */
 
 function saveRecording(){
 
   if(!chunks.length){
 
     message(
-      "No recording data was produced.",
+      "NO EVIDENCE DATA WAS PRODUCED.",
       "var(--red)"
     );
 
@@ -2458,7 +3606,7 @@ function saveRecording(){
   const stamp =
     now.getFullYear() +
     String(
-      now.getMonth() + 1
+      now.getMonth()+1
     ).padStart(2,"0") +
     String(
       now.getDate()
@@ -2486,16 +3634,14 @@ function saveRecording(){
 
 
   a.download =
-    "justice_logger_" +
+    "justice_evidence_" +
     stamp +
     ".webm";
 
 
   document.body.appendChild(a);
 
-
   a.click();
-
 
   a.remove();
 
@@ -2507,25 +3653,23 @@ function saveRecording(){
   );
 
 
-  chunks =
-    [];
-
+  chunks = [];
 
   recorder =
     null;
 
 
   message(
-    "Recording saved.",
+    "EVIDENCE FILE SAVED LOCALLY.",
     "var(--green)"
   );
 
 }
 
 
-// ==========================================================
-// EVENT LISTENERS
-// ==========================================================
+/* ==========================================================
+   EVENTS
+   ========================================================== */
 
 el.connect.addEventListener(
   "click",
@@ -2569,9 +3713,9 @@ el.stop.addEventListener(
 );
 
 
-// ==========================================================
-// ENTER KEY IN IP BOX
-// ==========================================================
+/*
+   Allow Enter in IP box.
+*/
 
 el.ip.addEventListener(
   "keydown",
@@ -2590,9 +3734,9 @@ el.ip.addEventListener(
 );
 
 
-// ==========================================================
-// STATUS POLLING
-// ==========================================================
+/* ==========================================================
+   STATUS
+   ========================================================== */
 
 statusHandle =
   setInterval(
@@ -2606,9 +3750,9 @@ statusHandle =
   );
 
 
-// ==========================================================
-// INITIAL STATE
-// ==========================================================
+/* ==========================================================
+   INITIAL
+   ========================================================== */
 
 updateButtons();
 
