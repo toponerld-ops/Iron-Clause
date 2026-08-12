@@ -32,10 +32,18 @@
   box-sizing:border-box;
 }
 
+html,
 body{
   margin:0;
+  padding:0;
+  width:100%;
+  min-height:100%;
+}
+
+body{
   background:var(--bg);
   color:var(--text);
+
   font-family:
     Inter,
     system-ui,
@@ -47,150 +55,252 @@ body{
 
 header{
   padding:18px 22px;
-  border-bottom:1px solid var(--line);
+
+  border-bottom:
+    1px solid var(--line);
+
   background:#0e1319;
 }
 
 h1{
   margin:0;
+
   font-size:20px;
+
   letter-spacing:1.5px;
 }
 
 .wrap{
   max-width:1200px;
+
   margin:auto;
+
   padding:18px;
 }
 
 .grid{
   display:grid;
+
   grid-template-columns:
     minmax(0,2fr)
     minmax(280px,1fr);
+
   gap:18px;
 }
 
 .panel{
   background:var(--panel);
-  border:1px solid var(--line);
+
+  border:
+    1px solid var(--line);
+
   border-radius:12px;
+
   padding:16px;
 }
 
 .streamBox{
   width:100%;
+
   min-height:240px;
+
   background:#000;
+
   border-radius:8px;
+
   display:flex;
+
   align-items:center;
+
   justify-content:center;
+
   overflow:hidden;
+
+  position:relative;
 }
 
-#streamCanvas{
+
+/*
+  ==========================================================
+  NATIVE MJPEG IMAGE
+  ==========================================================
+
+  This is the major performance improvement.
+
+  The browser itself handles the MJPEG decoding.
+
+  There is NO JavaScript JPEG parser.
+*/
+
+#streamImage{
+
   width:100%;
+
   height:auto;
+
   display:block;
+
   background:#000;
 
   /*
-    Prevent browser image interpolation from adding
-    unnecessary visual softness.
+    Prevent selection/dragging.
   */
+
+  user-select:none;
+
+  -webkit-user-drag:none;
+
+  /*
+    Keep normal browser interpolation.
+  */
+
   image-rendering:auto;
 }
 
+
 .placeholder{
   min-height:240px;
+
+  width:100%;
+
   display:flex;
+
   align-items:center;
+
   justify-content:center;
+
   color:var(--muted);
+
   background:#050608;
+
   border-radius:8px;
+
   text-align:center;
+
   padding:20px;
+
+  line-height:1.6;
 }
 
 .row{
   display:flex;
+
   gap:10px;
+
   align-items:center;
+
   flex-wrap:wrap;
 }
 
 label{
   font-size:12px;
+
   color:var(--muted);
 }
 
 input{
   flex:1;
+
   min-width:180px;
+
   padding:11px 12px;
-  border:1px solid var(--line);
+
+  border:
+    1px solid var(--line);
+
   border-radius:7px;
+
   background:#0b1015;
+
   color:var(--text);
+
   font:inherit;
 }
 
 button{
-  border:1px solid var(--line);
+  border:
+    1px solid var(--line);
+
   border-radius:7px;
+
   padding:10px 15px;
+
   background:var(--panel2);
+
   color:var(--text);
+
   cursor:pointer;
+
   font-weight:700;
+
+  transition:
+    filter .12s ease,
+    transform .05s ease;
 }
 
 button:hover{
   filter:brightness(1.15);
 }
 
+button:active{
+  transform:translateY(1px);
+}
+
 button:disabled{
   opacity:.4;
+
   cursor:not-allowed;
 }
 
 .primary{
   background:#164f31;
+
   border-color:#287e4b;
 }
 
 .danger{
   background:#5c1d28;
+
   border-color:#8e3040;
 }
 
 .warn{
   background:#5a4718;
+
   border-color:#866b27;
 }
 
 .blue{
   background:#173e64;
+
   border-color:#2867a3;
 }
 
 .status{
   display:inline-flex;
+
   align-items:center;
+
   gap:8px;
+
   padding:6px 10px;
+
   border-radius:999px;
+
   background:#0b1015;
+
   font-size:12px;
+
   color:var(--muted);
 }
 
 .dot{
   width:9px;
+
   height:9px;
+
   border-radius:50%;
+
   background:#687482;
 }
 
@@ -208,11 +318,17 @@ button:disabled{
 
 .kv{
   display:grid;
+
   grid-template-columns:1fr auto;
+
   gap:8px;
+
   font-size:13px;
+
   padding:7px 0;
-  border-bottom:1px solid #202a34;
+
+  border-bottom:
+    1px solid #202a34;
 }
 
 .kv:last-child{
@@ -225,33 +341,72 @@ button:disabled{
 
 .big{
   font-size:28px;
-  font-variant-numeric:tabular-nums;
-  margin:4px 0 12px;
+
+  font-variant-numeric:
+    tabular-nums;
+
+  margin:
+    4px 0 12px;
 }
 
 #message{
   min-height:22px;
+
   color:var(--muted);
+
   font-size:13px;
+
   margin-top:10px;
 }
 
 #recordState{
   font-weight:800;
+
   letter-spacing:1px;
 }
 
 .footer{
   margin-top:18px;
+
   color:var(--muted);
+
   font-size:12px;
+
   text-align:center;
 }
 
 .small{
   color:var(--muted);
+
   font-size:12px;
+
   margin-top:8px;
+}
+
+.streamInfo{
+  position:absolute;
+
+  left:10px;
+
+  bottom:10px;
+
+  padding:5px 8px;
+
+  background:
+    rgba(0,0,0,.65);
+
+  border:
+    1px solid rgba(255,255,255,.1);
+
+  border-radius:6px;
+
+  color:#dce5ee;
+
+  font-size:11px;
+
+  pointer-events:none;
+
+  opacity:.7;
 }
 
 @media(max-width:800px){
@@ -266,7 +421,9 @@ button:disabled{
 
 </head>
 
+
 <body>
+
 
 <header>
 
@@ -275,7 +432,9 @@ button:disabled{
   style="padding:0"
 >
 
-<h1>MR. JUSTICE LOGGER</h1>
+<h1>
+MR. JUSTICE LOGGER
+</h1>
 
 </div>
 
@@ -287,7 +446,12 @@ button:disabled{
 <div class="grid">
 
 
+<!-- ========================================================
+     MAIN
+     ======================================================== -->
+
 <main class="panel">
+
 
 <div
   class="row"
@@ -310,6 +474,7 @@ DISCONNECTED
 
 </div>
 
+
 <div id="recordState">
 PREVIEW
 </div>
@@ -317,28 +482,54 @@ PREVIEW
 </div>
 
 
-<!-- ===================================================== -->
-<!-- LOW-LATENCY CANVAS STREAM -->
-<!-- ===================================================== -->
+<!-- ========================================================
+     STREAM
+     ======================================================== -->
 
 <div class="streamBox">
+
 
 <div
   id="placeholder"
   class="placeholder"
 >
 
-Enter the XIAO IP address<br>
+Enter the XIAO IP address
+<br>
 then click Connect.
 
 </div>
 
-<canvas
-  id="streamCanvas"
-  width="320"
-  height="240"
+
+<!-- ======================================================
+     NATIVE MJPEG STREAM
+
+     IMPORTANT:
+
+     crossOrigin must be assigned BEFORE src.
+
+     This allows the image to be drawn onto the
+     recording canvas because the ESP32 sends
+     Access-Control-Allow-Origin: *
+     ====================================================== -->
+
+<img
+  id="streamImage"
+  crossorigin="anonymous"
+  decoding="async"
+  alt="XIAO camera stream"
   style="display:none"
-></canvas>
+>
+
+
+<div
+  id="streamInfo"
+  class="streamInfo"
+  style="display:none"
+>
+LIVE
+</div>
+
 
 </div>
 
@@ -346,7 +537,9 @@ then click Connect.
 <div style="height:14px"></div>
 
 
-<!-- CONNECTION -->
+<!-- ========================================================
+     CONNECTION
+     ======================================================== -->
 
 <div class="row">
 
@@ -376,14 +569,16 @@ Disconnect
 
 
 <div class="small">
-Camera: QVGA 320×240 · Low-latency MJPEG
+Camera: QVGA 320×240 · Native MJPEG decoder · Low latency
 </div>
 
 
 <div style="height:14px"></div>
 
 
-<!-- RECORD CONTROLS -->
+<!-- ========================================================
+     RECORD CONTROLS
+     ======================================================== -->
 
 <div class="row">
 
@@ -443,10 +638,13 @@ The XIAO supplies the camera stream.
 The browser saves the recording.
 </div>
 
+
 </main>
 
 
-<!-- STATUS -->
+<!-- ========================================================
+     STATUS
+     ======================================================== -->
 
 <aside class="panel">
 
@@ -454,52 +652,97 @@ The browser saves the recording.
 XIAO STATUS
 </h3>
 
+
 <div class="kv">
 <span>Connection</span>
-<strong id="sConnection">OFFLINE</strong>
+<strong id="sConnection">
+OFFLINE
+</strong>
 </div>
+
 
 <div class="kv">
 <span>Wi-Fi</span>
-<strong id="sWifi">—</strong>
+<strong id="sWifi">
+—
+</strong>
 </div>
+
 
 <div class="kv">
 <span>RSSI</span>
-<strong id="sRssi">—</strong>
+<strong id="sRssi">
+—
+</strong>
 </div>
+
 
 <div class="kv">
 <span>Free heap</span>
-<strong id="sHeap">—</strong>
+<strong id="sHeap">
+—
+</strong>
 </div>
+
 
 <div class="kv">
 <span>Free PSRAM</span>
-<strong id="sPsram">—</strong>
+<strong id="sPsram">
+—
+</strong>
 </div>
+
 
 <div class="kv">
 <span>PSRAM size</span>
-<strong id="sPsramSize">—</strong>
+<strong id="sPsramSize">
+—
+</strong>
 </div>
+
 
 <div class="kv">
 <span>Resolution</span>
-<strong id="sResolution">—</strong>
+<strong id="sResolution">
+—
+</strong>
 </div>
+
+
+<div class="kv">
+<span>JPEG quality</span>
+<strong id="sQuality">
+—
+</strong>
+</div>
+
+
+<div class="kv">
+<span>Stream clients</span>
+<strong id="sClients">
+—
+</strong>
+</div>
+
 
 <div class="kv">
 <span>Recording</span>
-<strong id="sRecording">—</strong>
+<strong id="sRecording">
+—
+</strong>
 </div>
+
 
 <div class="kv">
 <span>Paused</span>
-<strong id="sPaused">—</strong>
+<strong id="sPaused">
+—
+</strong>
 </div>
 
+
 </aside>
+
 
 </div>
 
@@ -515,59 +758,93 @@ XIAO STATUS
    ELEMENTS
    ========================================================== */
 
-const $ = id =>
-  document.getElementById(id);
+const $ =
+  id =>
+    document.getElementById(id);
 
 
 const el = {
 
-  ip: $("ip"),
+  ip:
+    $("ip"),
 
-  connect: $("connectBtn"),
+  connect:
+    $("connectBtn"),
 
-  disconnect: $("disconnectBtn"),
+  disconnect:
+    $("disconnectBtn"),
 
-  capture: $("captureBtn"),
+  capture:
+    $("captureBtn"),
 
-  start: $("startBtn"),
+  start:
+    $("startBtn"),
 
-  pause: $("pauseBtn"),
+  pause:
+    $("pauseBtn"),
 
-  resume: $("resumeBtn"),
+  resume:
+    $("resumeBtn"),
 
-  stop: $("stopBtn"),
+  stop:
+    $("stopBtn"),
 
-  canvas: $("streamCanvas"),
+  stream:
+    $("streamImage"),
 
-  placeholder: $("placeholder"),
+  placeholder:
+    $("placeholder"),
 
-  message: $("message"),
+  streamInfo:
+    $("streamInfo"),
 
-  connDot: $("connDot"),
+  message:
+    $("message"),
 
-  connText: $("connText"),
+  connDot:
+    $("connDot"),
 
-  recordState: $("recordState"),
+  connText:
+    $("connText"),
 
-  timer: $("timer"),
+  recordState:
+    $("recordState"),
 
-  sConnection: $("sConnection"),
+  timer:
+    $("timer"),
 
-  sWifi: $("sWifi"),
+  sConnection:
+    $("sConnection"),
 
-  sRssi: $("sRssi"),
+  sWifi:
+    $("sWifi"),
 
-  sHeap: $("sHeap"),
+  sRssi:
+    $("sRssi"),
 
-  sPsram: $("sPsram"),
+  sHeap:
+    $("sHeap"),
 
-  sPsramSize: $("sPsramSize"),
+  sPsram:
+    $("sPsram"),
 
-  sResolution: $("sResolution"),
+  sPsramSize:
+    $("sPsramSize"),
 
-  sRecording: $("sRecording"),
+  sResolution:
+    $("sResolution"),
 
-  sPaused: $("sPaused")
+  sQuality:
+    $("sQuality"),
+
+  sClients:
+    $("sClients"),
+
+  sRecording:
+    $("sRecording"),
+
+  sPaused:
+    $("sPaused")
 
 };
 
@@ -576,81 +853,74 @@ const el = {
    STATE
    ========================================================== */
 
-let baseUrl = "";
+let baseUrl =
+  "";
 
-let streamUrl = "";
+let streamUrl =
+  "";
 
-let connected = false;
+let connected =
+  false;
 
-let recording = false;
+let streamRunning =
+  false;
 
-let paused = false;
+let recording =
+  false;
 
-let recordStartedAt = 0;
-
-let pausedAt = 0;
-
-let accumulatedPause = 0;
-
-let timerHandle = null;
-
-let statusHandle = null;
+let paused =
+  false;
 
 
 /* ==========================================================
-   LOW-LATENCY STREAM STATE
+   TIMER
    ========================================================== */
 
-let streamController = null;
+let recordStartedAt =
+  0;
 
-let streamReader = null;
+let pausedAt =
+  0;
 
-let streamRunning = false;
+let accumulatedPause =
+  0;
 
-let streamBuffer = new Uint8Array(0);
-
-let newestJPEG = null;
-
-let decoding = false;
-
-let frameCounter = 0;
-
-let lastFrameTime = 0;
-
-let currentFPS = 0;
+let timerHandle =
+  null;
 
 
 /* ==========================================================
-   CANVAS
+   STATUS
    ========================================================== */
 
-const ctx =
-  el.canvas.getContext(
-    "2d",
-    {
-      alpha:false,
-      desynchronized:true
-    }
-  );
+let statusHandle =
+  null;
 
 
 /* ==========================================================
    RECORDING
    ========================================================== */
 
-let recorder = null;
+let recorder =
+  null;
 
-let chunks = [];
+let chunks =
+  [];
 
-let captureStream = null;
+let captureStream =
+  null;
 
-let recordingCanvas = null;
+let recordingCanvas =
+  null;
 
-let recordingContext = null;
+let recordingContext =
+  null;
 
-let drawing = false;
+let recordingAnimation =
+  null;
 
-let drawTimer = null;
+let drawing =
+  false;
 
 
 /* ==========================================================
@@ -672,7 +942,7 @@ function message(
 
 
 /* ==========================================================
-   CONNECTION
+   CONNECTION UI
    ========================================================== */
 
 function setConnection(
@@ -680,7 +950,8 @@ function setConnection(
   text
 ){
 
-  connected = ok;
+  connected =
+    ok;
 
   el.connText.textContent =
     text;
@@ -704,7 +975,7 @@ function setConnection(
 
 
 /* ==========================================================
-   URL
+   URL NORMALIZATION
    ========================================================== */
 
 function normalizeUrl(
@@ -729,7 +1000,8 @@ function normalizeUrl(
   ){
 
     v =
-      "http://" + v;
+      "http://" +
+      v;
 
   }
 
@@ -751,6 +1023,42 @@ function normalizeUrl(
 
 
 /* ==========================================================
+   SHOW STREAM
+   ========================================================== */
+
+function showPreview(){
+
+  el.placeholder.style.display =
+    "none";
+
+  el.stream.style.display =
+    "block";
+
+  el.streamInfo.style.display =
+    "block";
+
+}
+
+
+/* ==========================================================
+   HIDE STREAM
+   ========================================================== */
+
+function hidePreview(){
+
+  el.stream.style.display =
+    "none";
+
+  el.placeholder.style.display =
+    "flex";
+
+  el.streamInfo.style.display =
+    "none";
+
+}
+
+
+/* ==========================================================
    TIMER
    ========================================================== */
 
@@ -759,7 +1067,9 @@ function formatTime(ms){
   const sec =
     Math.max(
       0,
-      Math.floor(ms / 1000)
+      Math.floor(
+        ms / 1000
+      )
     );
 
 
@@ -780,15 +1090,19 @@ function formatTime(ms){
 
 
   return [
+
     h,
     m,
     s
+
   ]
+
   .map(
-    v =>
-      String(v)
+    value =>
+      String(value)
         .padStart(2,"0")
   )
+
   .join(":");
 
 }
@@ -817,7 +1131,8 @@ function updateTimer(){
   if(paused){
 
     pausedTotal +=
-      now - pausedAt;
+      now -
+      pausedAt;
 
   }
 
@@ -866,7 +1181,7 @@ function stopTimer(){
 
 
 /* ==========================================================
-   BUTTONS
+   BUTTON STATE
    ========================================================== */
 
 function updateButtons(){
@@ -902,7 +1217,7 @@ function updateButtons(){
 
 
 /* ==========================================================
-   STATUS
+   STATUS REQUEST
    ========================================================== */
 
 async function getStatus(){
@@ -934,6 +1249,10 @@ async function getStatus(){
 }
 
 
+/* ==========================================================
+   UPDATE STATUS
+   ========================================================== */
+
 function updateStatus(s){
 
   el.sWifi.textContent =
@@ -946,7 +1265,8 @@ function updateStatus(s){
     Number.isFinite(
       s.wifi_rssi
     )
-      ? s.wifi_rssi + " dBm"
+      ? s.wifi_rssi +
+        " dBm"
       : "—";
 
 
@@ -955,8 +1275,10 @@ function updateStatus(s){
       s.free_heap
     )
       ? Math.round(
-          s.free_heap / 1024
-        ) + " KB"
+          s.free_heap /
+          1024
+        ) +
+        " KB"
       : "—";
 
 
@@ -965,8 +1287,10 @@ function updateStatus(s){
       s.free_psram
     )
       ? Math.round(
-          s.free_psram / 1024
-        ) + " KB"
+          s.free_psram /
+          1024
+        ) +
+        " KB"
       : "—";
 
 
@@ -975,17 +1299,39 @@ function updateStatus(s){
       s.psram_size
     )
       ? Math.round(
-          s.psram_size / 1024
-        ) + " KB"
+          s.psram_size /
+          1024
+        ) +
+        " KB"
       : "—";
 
 
   el.sResolution.textContent =
-    Number.isFinite(s.width) &&
-    Number.isFinite(s.height)
+    Number.isFinite(
+      s.width
+    ) &&
+    Number.isFinite(
+      s.height
+    )
       ? s.width +
         " × " +
         s.height
+      : "—";
+
+
+  el.sQuality.textContent =
+    Number.isFinite(
+      s.jpeg_quality
+    )
+      ? s.jpeg_quality
+      : "—";
+
+
+  el.sClients.textContent =
+    Number.isFinite(
+      s.stream_clients
+    )
+      ? s.stream_clients
       : "—";
 
 
@@ -1028,19 +1374,21 @@ async function pollStatus(){
 
   try{
 
-    const s =
+    const status =
       await getStatus();
 
 
-    updateStatus(s);
+    updateStatus(
+      status
+    );
 
   }
 
-  catch(e){
+  catch(error){
 
     console.warn(
       "Status:",
-      e
+      error
     );
 
   }
@@ -1094,359 +1442,73 @@ async function xiaoCommand(
 
 
 /* ==========================================================
-   SHOW / HIDE STREAM
+   STREAM ERROR
    ========================================================== */
 
-function showPreview(){
+function streamError(){
 
-  el.placeholder.style.display =
-    "none";
-
-  el.canvas.style.display =
-    "block";
-
-}
-
-
-function hidePreview(){
-
-  el.canvas.style.display =
-    "none";
-
-  el.placeholder.style.display =
-    "flex";
-
-}
-
-
-/* ==========================================================
-   UINT8 ARRAY APPEND
-   ========================================================== */
-
-function appendBytes(
-  oldBuffer,
-  newBytes
-){
-
-  const combined =
-    new Uint8Array(
-      oldBuffer.length +
-      newBytes.length
-    );
-
-
-  combined.set(
-    oldBuffer,
-    0
-  );
-
-
-  combined.set(
-    newBytes,
-    oldBuffer.length
-  );
-
-
-  return combined;
-
-}
-
-
-/* ==========================================================
-   FIND JPEG
-   ========================================================== */
-
-function extractJPEG(){
-
-  /*
-    JPEG starts:
-
-      FF D8
-
-    JPEG ends:
-
-      FF D9
-  */
-
-  let start = -1;
-
-
-  for(
-    let i = 0;
-    i < streamBuffer.length - 1;
-    i++
-  ){
-
-    if(
-      streamBuffer[i] === 0xFF &&
-      streamBuffer[i + 1] === 0xD8
-    ){
-
-      start = i;
-      break;
-
-    }
-
-  }
-
-
-  if(start < 0){
-
-    /*
-      Keep only the last byte in case
-      the FF arrives in the next chunk.
-    */
-
-    if(streamBuffer.length > 1){
-
-      streamBuffer =
-        streamBuffer.slice(
-          -1
-        );
-
-    }
-
-    return null;
-
-  }
-
-
-  let end = -1;
-
-
-  for(
-    let i = start + 2;
-    i < streamBuffer.length - 1;
-    i++
-  ){
-
-    if(
-      streamBuffer[i] === 0xFF &&
-      streamBuffer[i + 1] === 0xD9
-    ){
-
-      end = i + 2;
-      break;
-
-    }
-
-  }
-
-
-  if(end < 0){
-
-    /*
-      JPEG isn't complete yet.
-    */
-
-    return null;
-
-  }
-
-
-  const jpeg =
-    streamBuffer.slice(
-      start,
-      end
-    );
-
-
-  streamBuffer =
-    streamBuffer.slice(
-      end
-    );
-
-
-  return jpeg;
-
-}
-
-
-/* ==========================================================
-   QUEUE NEWEST FRAME
-   ========================================================== */
-
-function queueJPEG(
-  jpeg
-){
-
-  /*
-    CRITICAL:
-
-    Do not create a giant queue.
-
-    Only keep the newest JPEG.
-  */
-
-  newestJPEG =
-    jpeg;
-
-
-  decodeNewest();
-
-}
-
-
-/* ==========================================================
-   DECODE NEWEST JPEG
-   ========================================================== */
-
-async function decodeNewest(){
-
-  if(decoding)
+  if(!streamRunning)
     return;
 
 
-  if(!newestJPEG)
-    return;
-
-
-  decoding =
-    true;
-
-
-  while(
-    newestJPEG &&
-    streamRunning
-  ){
-
-    const jpeg =
-      newestJPEG;
-
-
-    newestJPEG =
-      null;
-
-
-    try{
-
-      const blob =
-        new Blob(
-          [jpeg],
-          {
-            type:"image/jpeg"
-          }
-        );
-
-
-      /*
-        createImageBitmap is much faster than
-        creating an HTMLImageElement for every frame.
-      */
-
-      const bitmap =
-        await createImageBitmap(
-          blob
-        );
-
-
-      /*
-        If another frame arrived while decoding,
-        this frame is already old.
-
-        Draw it anyway because it is the frame
-        we just decoded, then immediately decode
-        the newest one.
-      */
-
-      if(
-        el.canvas.width !==
-        bitmap.width
-      ){
-
-        el.canvas.width =
-          bitmap.width;
-
-      }
-
-
-      if(
-        el.canvas.height !==
-        bitmap.height
-      ){
-
-        el.canvas.height =
-          bitmap.height;
-
-      }
-
-
-      ctx.drawImage(
-        bitmap,
-        0,
-        0,
-        el.canvas.width,
-        el.canvas.height
-      );
-
-
-      bitmap.close();
-
-
-      frameCounter++;
-
-
-      const now =
-        performance.now();
-
-
-      if(lastFrameTime){
-
-        const dt =
-          now -
-          lastFrameTime;
-
-
-        if(dt > 0){
-
-          const instantFPS =
-            1000 / dt;
-
-
-          currentFPS =
-            currentFPS * 0.8 +
-            instantFPS * 0.2;
-
-        }
-
-      }
-
-
-      lastFrameTime =
-        now;
-
-
-      /*
-        Do NOT put the FPS text into the
-        stream canvas. That would cause
-        unnecessary rendering.
-      */
-
-    }
-
-    catch(e){
-
-      console.warn(
-        "JPEG decode:",
-        e
-      );
-
-    }
-
-  }
-
-
-  decoding =
+  streamRunning =
     false;
 
+
+  setConnection(
+    false,
+    "STREAM ERROR"
+  );
+
+
+  message(
+    "Camera stream disconnected.",
+    "var(--red)"
+  );
+
+
+  el.streamInfo.textContent =
+    "STREAM ERROR";
+
 }
 
 
 /* ==========================================================
-   MJPEG STREAM READER
+   STREAM LOADED
    ========================================================== */
 
-async function startMJPEG(){
+function streamLoaded(){
+
+  if(!streamRunning)
+    return;
+
+
+  showPreview();
+
+
+  setConnection(
+    true,
+    "CONNECTED"
+  );
+
+
+  el.streamInfo.textContent =
+    "LIVE";
+
+
+  message(
+    "Camera connected.",
+    "var(--green)"
+  );
+
+}
+
+
+/* ==========================================================
+   START MJPEG
+   ========================================================== */
+
+function startMJPEG(){
 
   stopMJPEG();
 
@@ -1455,207 +1517,46 @@ async function startMJPEG(){
     return;
 
 
-  streamController =
-    new AbortController();
-
-
   streamRunning =
     true;
 
 
-  streamBuffer =
-    new Uint8Array(0);
+  /*
+    IMPORTANT:
 
+    Do not use fetch().
 
-  newestJPEG =
-    null;
+    Do not use ReadableStream.
 
+    Do not parse JPEGs.
 
-  decoding =
-    false;
+    Do not create ImageBitmaps.
 
+    The browser's native <img> element receives
+    the multipart MJPEG stream directly.
+  */
 
-  frameCounter =
-    0;
+  const url =
+    streamUrl +
+    "?t=" +
+    Date.now();
 
 
-  lastFrameTime =
-    0;
+  el.stream.src =
+    url;
 
 
-  currentFPS =
-    0;
+  showPreview();
 
 
-  try{
+  el.streamInfo.textContent =
+    "CONNECTING...";
 
-    const response =
-      await fetch(
-        streamUrl +
-        "?t=" +
-        Date.now(),
-        {
-          method:"GET",
-          cache:"no-store",
-          mode:"cors",
-          signal:
-            streamController.signal
-        }
-      );
 
-
-    if(!response.ok){
-
-      throw new Error(
-        "Stream HTTP " +
-        response.status
-      );
-
-    }
-
-
-    if(!response.body){
-
-      throw new Error(
-        "ReadableStream not supported."
-      );
-
-    }
-
-
-    streamReader =
-      response.body.getReader();
-
-
-    setConnection(
-      true,
-      "CONNECTED"
-    );
-
-
-    showPreview();
-
-
-    message(
-      "Low-latency camera connected.",
-      "var(--green)"
-    );
-
-
-    while(
-      streamRunning
-    ){
-
-      const {
-        value,
-        done
-      } =
-        await streamReader.read();
-
-
-      if(done)
-        break;
-
-
-      if(!value)
-        continue;
-
-
-      streamBuffer =
-        appendBytes(
-          streamBuffer,
-          value
-        );
-
-
-      /*
-        Extract as many JPEGs as are currently
-        available.
-
-        IMPORTANT:
-        queueJPEG() overwrites the previous frame.
-        This prevents latency buildup.
-      */
-
-      while(true){
-
-        const jpeg =
-          extractJPEG();
-
-
-        if(!jpeg)
-          break;
-
-
-        queueJPEG(
-          jpeg
-        );
-
-      }
-
-
-      /*
-        Emergency protection.
-
-        If something goes wrong with the parser,
-        never allow the buffer to grow forever.
-      */
-
-      if(
-        streamBuffer.length >
-        1024 * 1024
-      ){
-
-        streamBuffer =
-          streamBuffer.slice(
-            -65536
-          );
-
-      }
-
-    }
-
-  }
-
-  catch(e){
-
-    if(
-      e.name !==
-      "AbortError"
-    ){
-
-      console.error(
-        "MJPEG:",
-        e
-      );
-
-
-      if(streamRunning){
-
-        setConnection(
-          false,
-          "STREAM ERROR"
-        );
-
-
-        message(
-          "Camera stream disconnected.",
-          "var(--red)"
-        );
-
-      }
-
-    }
-
-  }
-
-
-  streamRunning =
-    false;
-
-
-  streamReader =
-    null;
+  /*
+    The image element remains alive for the
+    entire duration of the MJPEG stream.
+  */
 
 }
 
@@ -1670,46 +1571,15 @@ function stopMJPEG(){
     false;
 
 
-  if(streamController){
+  /*
+    Clearing src closes the HTTP connection.
+  */
 
-    try{
-
-      streamController.abort();
-
-    }
-
-    catch(_){}
-
-  }
+  el.stream.src =
+    "";
 
 
-  streamController =
-    null;
-
-
-  if(streamReader){
-
-    try{
-
-      streamReader.cancel();
-
-    }
-
-    catch(_){}
-
-  }
-
-
-  streamReader =
-    null;
-
-
-  streamBuffer =
-    new Uint8Array(0);
-
-
-  newestJPEG =
-    null;
+  hidePreview();
 
 }
 
@@ -1732,10 +1602,10 @@ function connectPreview(){
 
   }
 
-  catch(e){
+  catch(error){
 
     message(
-      e.message,
+      error.message,
       "var(--red)"
     );
 
@@ -1767,14 +1637,22 @@ function connectPreview(){
   );
 
 
+  startMJPEG();
+
+
+  /*
+    Give the browser a moment to start the
+    MJPEG request, then ask for status.
+  */
+
   setTimeout(
     () => {
 
       if(baseUrl)
-        startMJPEG();
+        pollStatus();
 
     },
-    50
+    300
   );
 
 }
@@ -1806,9 +1684,6 @@ function disconnect(){
 
   streamUrl =
     "";
-
-
-  hidePreview();
 
 
   setConnection(
@@ -1877,20 +1752,27 @@ async function captureJPEG(){
 
 
     const stamp =
+
       now.getFullYear() +
+
       String(
-        now.getMonth()+1
+        now.getMonth() + 1
       ).padStart(2,"0") +
+
       String(
         now.getDate()
       ).padStart(2,"0") +
+
       "_" +
+
       String(
         now.getHours()
       ).padStart(2,"0") +
+
       String(
         now.getMinutes()
       ).padStart(2,"0") +
+
       String(
         now.getSeconds()
       ).padStart(2,"0");
@@ -1914,7 +1796,9 @@ async function captureJPEG(){
 
     document.body.appendChild(a);
 
+
     a.click();
+
 
     a.remove();
 
@@ -1933,13 +1817,14 @@ async function captureJPEG(){
 
   }
 
-  catch(e){
+  catch(error){
 
-    console.error(e);
+    console.error(error);
+
 
     message(
       "Capture failed: " +
-      e.message,
+      error.message,
       "var(--red)"
     );
 
@@ -1949,18 +1834,18 @@ async function captureJPEG(){
 
 
 /* ==========================================================
-   RECORDING STREAM
+   RECORDING CANVAS
    ========================================================== */
 
-async function buildCaptureStream(){
+function createRecordingCanvas(){
 
   const width =
-    el.canvas.width ||
+    el.stream.naturalWidth ||
     320;
 
 
   const height =
-    el.canvas.height ||
+    el.stream.naturalHeight ||
     240;
 
 
@@ -1972,6 +1857,7 @@ async function buildCaptureStream(){
 
   recordingCanvas.width =
     width;
+
 
   recordingCanvas.height =
     height;
@@ -1996,11 +1882,11 @@ async function buildCaptureStream(){
 
 
   /*
-    Start with the current image.
+    Draw the current frame first.
   */
 
   recordingContext.drawImage(
-    el.canvas,
+    el.stream,
     0,
     0,
     width,
@@ -2008,9 +1894,18 @@ async function buildCaptureStream(){
   );
 
 
+  /*
+    30 FPS capture stream.
+
+    The camera may produce fewer frames.
+
+    The canvas simply captures the latest
+    image available.
+  */
+
   captureStream =
     recordingCanvas.captureStream(
-      20
+      30
     );
 
 
@@ -2018,34 +1913,101 @@ async function buildCaptureStream(){
     true;
 
 
-  function drawLoop(){
+  function drawFrame(){
 
     if(!drawing)
       return;
 
 
-    recordingContext.drawImage(
-      el.canvas,
-      0,
-      0,
-      width,
-      height
-    );
+    if(
+      el.stream.complete &&
+      el.stream.naturalWidth > 0
+    ){
+
+      try{
+
+        recordingContext.drawImage(
+          el.stream,
+          0,
+          0,
+          width,
+          height
+        );
+
+      }
+
+      catch(error){
+
+        console.warn(
+          "Recording draw:",
+          error
+        );
+
+      }
+
+    }
 
 
-    drawTimer =
-      setTimeout(
-        drawLoop,
-        50
+    recordingAnimation =
+      requestAnimationFrame(
+        drawFrame
       );
 
   }
 
 
-  drawLoop();
+  drawFrame();
 
 
   return captureStream;
+
+}
+
+
+/* ==========================================================
+   DESTROY RECORDING CANVAS
+   ========================================================== */
+
+function destroyRecordingCanvas(){
+
+  drawing =
+    false;
+
+
+  if(recordingAnimation){
+
+    cancelAnimationFrame(
+      recordingAnimation
+    );
+
+    recordingAnimation =
+      null;
+
+  }
+
+
+  if(captureStream){
+
+    captureStream
+      .getTracks()
+      .forEach(
+        track =>
+          track.stop()
+      );
+
+  }
+
+
+  captureStream =
+    null;
+
+
+  recordingCanvas =
+    null;
+
+
+  recordingContext =
+    null;
 
 }
 
@@ -2071,11 +2033,16 @@ async function startRecording(){
   try{
 
     const mediaStream =
-      await buildCaptureStream();
+      createRecordingCanvas();
 
 
-    let mime = "";
+    let mime =
+      "";
 
+
+    /*
+      Prefer VP9 if available.
+    */
 
     if(
       MediaRecorder.isTypeSupported(
@@ -2119,17 +2086,25 @@ async function startRecording(){
     }
 
 
+    /*
+      1.5 Mbps is plenty for 320x240.
+
+      Higher bitrate does not make the source
+      camera better.
+    */
+
     recorder =
       new MediaRecorder(
         mediaStream,
         {
           mimeType:mime,
-          videoBitsPerSecond:1200000
+          videoBitsPerSecond:1500000
         }
       );
 
 
-    chunks = [];
+    chunks =
+      [];
 
 
     recorder.ondataavailable =
@@ -2149,6 +2124,17 @@ async function startRecording(){
       };
 
 
+    recorder.onerror =
+      event => {
+
+        console.error(
+          "MediaRecorder:",
+          event
+        );
+
+      };
+
+
     recorder.onstop =
       () => {
 
@@ -2162,6 +2148,10 @@ async function startRecording(){
     );
 
 
+    /*
+      Tell XIAO about browser recording state.
+    */
+
     await xiaoCommand(
       "/record/start"
     );
@@ -2169,6 +2159,7 @@ async function startRecording(){
 
     recording =
       true;
+
 
     paused =
       false;
@@ -2192,6 +2183,7 @@ async function startRecording(){
 
     startTimer();
 
+
     updateButtons();
 
 
@@ -2205,49 +2197,41 @@ async function startRecording(){
 
   }
 
-  catch(e){
+  catch(error){
 
-    console.error(e);
-
-
-    drawing =
-      false;
+    console.error(
+      error
+    );
 
 
-    if(drawTimer){
-
-      clearTimeout(
-        drawTimer
-      );
-
-      drawTimer =
-        null;
-
-    }
+    destroyRecordingCanvas();
 
 
-    if(captureStream){
+    if(
+      recorder &&
+      recorder.state !==
+      "inactive"
+    ){
 
-      captureStream
-        .getTracks()
-        .forEach(
-          track =>
-            track.stop()
-        );
+      try{
+        recorder.stop();
+      }
+      catch(_){}
 
     }
-
-
-    captureStream =
-      null;
 
 
     recorder =
       null;
 
 
+    chunks =
+      [];
+
+
     recording =
       false;
+
 
     paused =
       false;
@@ -2258,7 +2242,7 @@ async function startRecording(){
 
     message(
       "Record start failed: " +
-      e.message,
+      error.message,
       "var(--red)"
     );
 
@@ -2323,11 +2307,11 @@ async function pauseRecording(){
 
   }
 
-  catch(e){
+  catch(error){
 
     message(
       "Pause failed: " +
-      e.message,
+      error.message,
       "var(--red)"
     );
 
@@ -2397,11 +2381,11 @@ async function resumeRecording(){
 
   }
 
-  catch(e){
+  catch(error){
 
     message(
       "Resume failed: " +
-      e.message,
+      error.message,
       "var(--red)"
     );
 
@@ -2433,31 +2417,41 @@ async function stopRecording(){
 
   }
 
-  catch(e){
+  catch(error){
 
     console.warn(
       "XIAO stop:",
-      e
+      error
     );
 
   }
 
+
+  /*
+    Stop drawing first.
+  */
 
   drawing =
     false;
 
 
-  if(drawTimer){
+  if(recordingAnimation){
 
-    clearTimeout(
-      drawTimer
+    cancelAnimationFrame(
+      recordingAnimation
     );
 
-    drawTimer =
+    recordingAnimation =
       null;
 
   }
 
+
+  /*
+    Stop MediaRecorder.
+
+    Its onstop callback will save the file.
+  */
 
   if(
     recorder &&
@@ -2479,6 +2473,7 @@ async function stopRecording(){
   recording =
     false;
 
+
   paused =
     false;
 
@@ -2493,20 +2488,7 @@ async function stopRecording(){
   updateButtons();
 
 
-  if(captureStream){
-
-    captureStream
-      .getTracks()
-      .forEach(
-        track =>
-          track.stop()
-      );
-
-  }
-
-
-  captureStream =
-    null;
+  destroyRecordingCanvas();
 
 
   pollStatus();
@@ -2557,20 +2539,27 @@ function saveRecording(){
 
 
   const stamp =
+
     now.getFullYear() +
+
     String(
-      now.getMonth()+1
+      now.getMonth() + 1
     ).padStart(2,"0") +
+
     String(
       now.getDate()
     ).padStart(2,"0") +
+
     "_" +
+
     String(
       now.getHours()
     ).padStart(2,"0") +
+
     String(
       now.getMinutes()
     ).padStart(2,"0") +
+
     String(
       now.getSeconds()
     ).padStart(2,"0");
@@ -2594,7 +2583,9 @@ function saveRecording(){
 
   document.body.appendChild(a);
 
+
   a.click();
+
 
   a.remove();
 
@@ -2606,7 +2597,9 @@ function saveRecording(){
   );
 
 
-  chunks = [];
+  chunks =
+    [];
+
 
   recorder =
     null;
@@ -2621,7 +2614,23 @@ function saveRecording(){
 
 
 /* ==========================================================
-   EVENTS
+   STREAM EVENTS
+   ========================================================== */
+
+el.stream.addEventListener(
+  "load",
+  streamLoaded
+);
+
+
+el.stream.addEventListener(
+  "error",
+  streamError
+);
+
+
+/* ==========================================================
+   BUTTON EVENTS
    ========================================================== */
 
 el.connect.addEventListener(
@@ -2667,6 +2676,27 @@ el.stop.addEventListener(
 
 
 /* ==========================================================
+   ENTER KEY ON IP FIELD
+   ========================================================== */
+
+el.ip.addEventListener(
+  "keydown",
+  event => {
+
+    if(
+      event.key ===
+      "Enter"
+    ){
+
+      connectPreview();
+
+    }
+
+  }
+);
+
+
+/* ==========================================================
    STATUS POLLING
    ========================================================== */
 
@@ -2683,10 +2713,12 @@ statusHandle =
 
 
 /* ==========================================================
-   INITIAL
+   INITIAL STATE
    ========================================================== */
 
 updateButtons();
+
+hidePreview();
 
 </script>
 
