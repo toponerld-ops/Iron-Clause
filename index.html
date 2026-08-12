@@ -36,14 +36,8 @@ html,
 body{
   margin:0;
   padding:0;
-  width:100%;
-  min-height:100%;
-}
-
-body{
   background:var(--bg);
   color:var(--text);
-
   font-family:
     Inter,
     system-ui,
@@ -53,130 +47,85 @@ body{
     sans-serif;
 }
 
+body{
+  min-height:100vh;
+}
+
 header{
   padding:18px 22px;
-
-  border-bottom:
-    1px solid var(--line);
-
+  border-bottom:1px solid var(--line);
   background:#0e1319;
 }
 
 h1{
   margin:0;
-
   font-size:20px;
-
   letter-spacing:1.5px;
 }
 
 .wrap{
   max-width:1200px;
-
   margin:auto;
-
   padding:18px;
 }
 
 .grid{
   display:grid;
-
   grid-template-columns:
     minmax(0,2fr)
     minmax(280px,1fr);
-
   gap:18px;
 }
 
 .panel{
   background:var(--panel);
-
-  border:
-    1px solid var(--line);
-
+  border:1px solid var(--line);
   border-radius:12px;
-
   padding:16px;
 }
 
 .streamBox{
   width:100%;
-
-  min-height:240px;
-
   background:#000;
-
   border-radius:8px;
-
-  display:flex;
-
-  align-items:center;
-
-  justify-content:center;
-
   overflow:hidden;
-
+  display:flex;
+  align-items:center;
+  justify-content:center;
   position:relative;
+  aspect-ratio:4 / 3;
 }
 
-
-/*
-  ==========================================================
-  NATIVE MJPEG IMAGE
-  ==========================================================
-
-  This is the major performance improvement.
-
-  The browser itself handles the MJPEG decoding.
-
-  There is NO JavaScript JPEG parser.
-*/
-
 #streamImage{
-
   width:100%;
-
-  height:auto;
-
-  display:block;
-
+  height:100%;
+  display:none;
+  object-fit:contain;
   background:#000;
 
   /*
-    Prevent selection/dragging.
-  */
+     Native MJPEG decoding.
 
-  user-select:none;
-
-  -webkit-user-drag:none;
-
-  /*
-    Keep normal browser interpolation.
+     No canvas.
+     No JavaScript JPEG parser.
+     No createImageBitmap loop.
   */
 
   image-rendering:auto;
 }
 
-
 .placeholder{
-  min-height:240px;
-
-  width:100%;
+  position:absolute;
+  inset:0;
 
   display:flex;
-
   align-items:center;
-
   justify-content:center;
 
   color:var(--muted);
-
   background:#050608;
 
-  border-radius:8px;
-
   text-align:center;
-
   padding:20px;
 
   line-height:1.6;
@@ -184,101 +133,76 @@ h1{
 
 .row{
   display:flex;
-
   gap:10px;
-
   align-items:center;
-
   flex-wrap:wrap;
 }
 
 label{
   font-size:12px;
-
   color:var(--muted);
 }
 
 input{
   flex:1;
-
   min-width:180px;
 
   padding:11px 12px;
 
-  border:
-    1px solid var(--line);
-
+  border:1px solid var(--line);
   border-radius:7px;
 
   background:#0b1015;
-
   color:var(--text);
 
   font:inherit;
 }
 
 button{
-  border:
-    1px solid var(--line);
-
+  border:1px solid var(--line);
   border-radius:7px;
 
   padding:10px 15px;
 
   background:var(--panel2);
-
   color:var(--text);
 
   cursor:pointer;
 
   font-weight:700;
-
-  transition:
-    filter .12s ease,
-    transform .05s ease;
 }
 
 button:hover{
   filter:brightness(1.15);
 }
 
-button:active{
-  transform:translateY(1px);
-}
-
 button:disabled{
   opacity:.4;
-
   cursor:not-allowed;
 }
 
 .primary{
   background:#164f31;
-
   border-color:#287e4b;
 }
 
 .danger{
   background:#5c1d28;
-
   border-color:#8e3040;
 }
 
 .warn{
   background:#5a4718;
-
   border-color:#866b27;
 }
 
 .blue{
   background:#173e64;
-
   border-color:#2867a3;
 }
 
 .status{
   display:inline-flex;
-
   align-items:center;
 
   gap:8px;
@@ -290,13 +214,11 @@ button:disabled{
   background:#0b1015;
 
   font-size:12px;
-
   color:var(--muted);
 }
 
 .dot{
   width:9px;
-
   height:9px;
 
   border-radius:50%;
@@ -327,8 +249,7 @@ button:disabled{
 
   padding:7px 0;
 
-  border-bottom:
-    1px solid #202a34;
+  border-bottom:1px solid #202a34;
 }
 
 .kv:last-child{
@@ -342,11 +263,9 @@ button:disabled{
 .big{
   font-size:28px;
 
-  font-variant-numeric:
-    tabular-nums;
+  font-variant-numeric:tabular-nums;
 
-  margin:
-    4px 0 12px;
+  margin:4px 0 12px;
 }
 
 #message{
@@ -387,26 +306,19 @@ button:disabled{
   position:absolute;
 
   left:10px;
-
   bottom:10px;
 
   padding:5px 8px;
 
-  background:
-    rgba(0,0,0,.65);
+  border-radius:5px;
 
-  border:
-    1px solid rgba(255,255,255,.1);
+  background:rgba(0,0,0,.65);
 
-  border-radius:6px;
-
-  color:#dce5ee;
+  color:#fff;
 
   font-size:11px;
 
   pointer-events:none;
-
-  opacity:.7;
 }
 
 @media(max-width:800px){
@@ -446,12 +358,11 @@ MR. JUSTICE LOGGER
 <div class="grid">
 
 
-<!-- ========================================================
-     MAIN
-     ======================================================== -->
+<!-- ====================================================== -->
+<!-- CAMERA -->
+<!-- ====================================================== -->
 
 <main class="panel">
-
 
 <div
   class="row"
@@ -482,43 +393,27 @@ PREVIEW
 </div>
 
 
-<!-- ========================================================
-     STREAM
-     ======================================================== -->
+<!-- ==================================================== -->
+<!-- NATIVE MJPEG -->
+<!-- ==================================================== -->
 
 <div class="streamBox">
-
 
 <div
   id="placeholder"
   class="placeholder"
 >
 
-Enter the XIAO IP address
-<br>
+Enter the XIAO IP address<br>
 then click Connect.
 
 </div>
 
 
-<!-- ======================================================
-     NATIVE MJPEG STREAM
-
-     IMPORTANT:
-
-     crossOrigin must be assigned BEFORE src.
-
-     This allows the image to be drawn onto the
-     recording canvas because the ESP32 sends
-     Access-Control-Allow-Origin: *
-     ====================================================== -->
-
 <img
   id="streamImage"
-  crossorigin="anonymous"
-  decoding="async"
   alt="XIAO camera stream"
-  style="display:none"
+  draggable="false"
 >
 
 
@@ -530,16 +425,15 @@ then click Connect.
 LIVE
 </div>
 
-
 </div>
 
 
 <div style="height:14px"></div>
 
 
-<!-- ========================================================
-     CONNECTION
-     ======================================================== -->
+<!-- ==================================================== -->
+<!-- CONNECTION -->
+<!-- ==================================================== -->
 
 <div class="row">
 
@@ -558,6 +452,7 @@ Connect
 
 <button
   id="disconnectBtn"
+  disabled
 >
 Disconnect
 </button>
@@ -569,16 +464,16 @@ Disconnect
 
 
 <div class="small">
-Camera: QVGA 320×240 · Native MJPEG decoder · Low latency
+Camera: QVGA 320×240 · Native MJPEG · Low latency
 </div>
 
 
 <div style="height:14px"></div>
 
 
-<!-- ========================================================
-     RECORD CONTROLS
-     ======================================================== -->
+<!-- ==================================================== -->
+<!-- RECORD CONTROLS -->
+<!-- ==================================================== -->
 
 <div class="row">
 
@@ -590,6 +485,7 @@ Camera: QVGA 320×240 · Native MJPEG decoder · Low latency
 Capture JPEG
 </button>
 
+
 <button
   id="startBtn"
   class="primary"
@@ -597,6 +493,7 @@ Capture JPEG
 >
 Start Record
 </button>
+
 
 <button
   id="pauseBtn"
@@ -606,6 +503,7 @@ Start Record
 Pause
 </button>
 
+
 <button
   id="resumeBtn"
   class="blue"
@@ -613,6 +511,7 @@ Pause
 >
 Resume
 </button>
+
 
 <button
   id="stopBtn"
@@ -638,13 +537,12 @@ The XIAO supplies the camera stream.
 The browser saves the recording.
 </div>
 
-
 </main>
 
 
-<!-- ========================================================
-     STATUS
-     ======================================================== -->
+<!-- ====================================================== -->
+<!-- STATUS -->
+<!-- ====================================================== -->
 
 <aside class="panel">
 
@@ -710,22 +608,6 @@ OFFLINE
 
 
 <div class="kv">
-<span>JPEG quality</span>
-<strong id="sQuality">
-—
-</strong>
-</div>
-
-
-<div class="kv">
-<span>Stream clients</span>
-<strong id="sClients">
-—
-</strong>
-</div>
-
-
-<div class="kv">
 <span>Recording</span>
 <strong id="sRecording">
 —
@@ -740,7 +622,6 @@ OFFLINE
 </strong>
 </div>
 
-
 </aside>
 
 
@@ -754,9 +635,9 @@ OFFLINE
 "use strict";
 
 
-/* ==========================================================
-   ELEMENTS
-   ========================================================== */
+// ==========================================================
+// ELEMENTS
+// ==========================================================
 
 const $ =
   id =>
@@ -834,12 +715,6 @@ const el = {
   sResolution:
     $("sResolution"),
 
-  sQuality:
-    $("sQuality"),
-
-  sClients:
-    $("sClients"),
-
   sRecording:
     $("sRecording"),
 
@@ -849,9 +724,9 @@ const el = {
 };
 
 
-/* ==========================================================
-   STATE
-   ========================================================== */
+// ==========================================================
+// STATE
+// ==========================================================
 
 let baseUrl =
   "";
@@ -871,10 +746,11 @@ let recording =
 let paused =
   false;
 
+let timerHandle =
+  null;
 
-/* ==========================================================
-   TIMER
-   ========================================================== */
+let statusHandle =
+  null;
 
 let recordStartedAt =
   0;
@@ -885,21 +761,10 @@ let pausedAt =
 let accumulatedPause =
   0;
 
-let timerHandle =
-  null;
 
-
-/* ==========================================================
-   STATUS
-   ========================================================== */
-
-let statusHandle =
-  null;
-
-
-/* ==========================================================
-   RECORDING
-   ========================================================== */
+// ==========================================================
+// RECORDING
+// ==========================================================
 
 let recorder =
   null;
@@ -916,16 +781,16 @@ let recordingCanvas =
 let recordingContext =
   null;
 
-let recordingAnimation =
+let recordingLoop =
   null;
 
-let drawing =
+let recordingActive =
   false;
 
 
-/* ==========================================================
-   MESSAGE
-   ========================================================== */
+// ==========================================================
+// MESSAGE
+// ==========================================================
 
 function message(
   text,
@@ -941,9 +806,9 @@ function message(
 }
 
 
-/* ==========================================================
-   CONNECTION UI
-   ========================================================== */
+// ==========================================================
+// CONNECTION STATE
+// ==========================================================
 
 function setConnection(
   ok,
@@ -953,13 +818,16 @@ function setConnection(
   connected =
     ok;
 
+
   el.connText.textContent =
     text;
+
 
   el.sConnection.textContent =
     ok
       ? "ONLINE"
       : "OFFLINE";
+
 
   el.connDot.className =
     "dot " +
@@ -969,14 +837,14 @@ function setConnection(
         : "red"
     );
 
-  updateButtons();
 
+  updateButtons();
 }
 
 
-/* ==========================================================
-   URL NORMALIZATION
-   ========================================================== */
+// ==========================================================
+// NORMALIZE IP
+// ==========================================================
 
 function normalizeUrl(
   value
@@ -1000,8 +868,7 @@ function normalizeUrl(
   ){
 
     v =
-      "http://" +
-      v;
+      "http://" + v;
 
   }
 
@@ -1018,58 +885,21 @@ function normalizeUrl(
 
 
   return u.origin;
-
 }
 
 
-/* ==========================================================
-   SHOW STREAM
-   ========================================================== */
+// ==========================================================
+// TIMER
+// ==========================================================
 
-function showPreview(){
-
-  el.placeholder.style.display =
-    "none";
-
-  el.stream.style.display =
-    "block";
-
-  el.streamInfo.style.display =
-    "block";
-
-}
-
-
-/* ==========================================================
-   HIDE STREAM
-   ========================================================== */
-
-function hidePreview(){
-
-  el.stream.style.display =
-    "none";
-
-  el.placeholder.style.display =
-    "flex";
-
-  el.streamInfo.style.display =
-    "none";
-
-}
-
-
-/* ==========================================================
-   TIMER
-   ========================================================== */
-
-function formatTime(ms){
+function formatTime(
+  ms
+){
 
   const sec =
     Math.max(
       0,
-      Math.floor(
-        ms / 1000
-      )
+      Math.floor(ms / 1000)
     );
 
 
@@ -1090,19 +920,15 @@ function formatTime(ms){
 
 
   return [
-
     h,
     m,
     s
-
   ]
-
   .map(
-    value =>
-      String(value)
+    v =>
+      String(v)
         .padStart(2,"0")
   )
-
   .join(":");
 
 }
@@ -1131,8 +957,7 @@ function updateTimer(){
   if(paused){
 
     pausedTotal +=
-      now -
-      pausedAt;
+      now - pausedAt;
 
   }
 
@@ -1180,18 +1005,26 @@ function stopTimer(){
 }
 
 
-/* ==========================================================
-   BUTTON STATE
-   ========================================================== */
+// ==========================================================
+// BUTTONS
+// ==========================================================
 
 function updateButtons(){
 
-  el.start.disabled =
+  el.connect.disabled =
+    connected;
+
+
+  el.disconnect.disabled =
+    !connected;
+
+
+  el.capture.disabled =
     !connected ||
     recording;
 
 
-  el.capture.disabled =
+  el.start.disabled =
     !connected ||
     recording;
 
@@ -1209,16 +1042,12 @@ function updateButtons(){
   el.stop.disabled =
     !recording;
 
-
-  el.disconnect.disabled =
-    !connected;
-
 }
 
 
-/* ==========================================================
-   STATUS REQUEST
-   ========================================================== */
+// ==========================================================
+// STATUS REQUEST
+// ==========================================================
 
 async function getStatus(){
 
@@ -1249,11 +1078,13 @@ async function getStatus(){
 }
 
 
-/* ==========================================================
-   UPDATE STATUS
-   ========================================================== */
+// ==========================================================
+// UPDATE STATUS UI
+// ==========================================================
 
-function updateStatus(s){
+function updateStatus(
+  s
+){
 
   el.sWifi.textContent =
     s.wifi
@@ -1275,8 +1106,7 @@ function updateStatus(s){
       s.free_heap
     )
       ? Math.round(
-          s.free_heap /
-          1024
+          s.free_heap / 1024
         ) +
         " KB"
       : "—";
@@ -1287,8 +1117,7 @@ function updateStatus(s){
       s.free_psram
     )
       ? Math.round(
-          s.free_psram /
-          1024
+          s.free_psram / 1024
         ) +
         " KB"
       : "—";
@@ -1299,39 +1128,18 @@ function updateStatus(s){
       s.psram_size
     )
       ? Math.round(
-          s.psram_size /
-          1024
+          s.psram_size / 1024
         ) +
         " KB"
       : "—";
 
 
   el.sResolution.textContent =
-    Number.isFinite(
-      s.width
-    ) &&
-    Number.isFinite(
-      s.height
-    )
+    Number.isFinite(s.width) &&
+    Number.isFinite(s.height)
       ? s.width +
         " × " +
         s.height
-      : "—";
-
-
-  el.sQuality.textContent =
-    Number.isFinite(
-      s.jpeg_quality
-    )
-      ? s.jpeg_quality
-      : "—";
-
-
-  el.sClients.textContent =
-    Number.isFinite(
-      s.stream_clients
-    )
-      ? s.stream_clients
       : "—";
 
 
@@ -1358,13 +1166,12 @@ function updateStatus(s){
 
 
   updateButtons();
-
 }
 
 
-/* ==========================================================
-   STATUS POLLING
-   ========================================================== */
+// ==========================================================
+// STATUS POLLING
+// ==========================================================
 
 async function pollStatus(){
 
@@ -1374,20 +1181,18 @@ async function pollStatus(){
 
   try{
 
-    const status =
+    const s =
       await getStatus();
 
 
-    updateStatus(
-      status
-    );
+    updateStatus(s);
 
   }
 
   catch(error){
 
     console.warn(
-      "Status:",
+      "Status error:",
       error
     );
 
@@ -1396,9 +1201,9 @@ async function pollStatus(){
 }
 
 
-/* ==========================================================
-   XIAO COMMAND
-   ========================================================== */
+// ==========================================================
+// XIAO COMMAND
+// ==========================================================
 
 async function xiaoCommand(
   path
@@ -1437,76 +1242,137 @@ async function xiaoCommand(
 
 
   return response.text();
+}
+
+
+// ==========================================================
+// SHOW STREAM
+// ==========================================================
+
+function showStream(){
+
+  el.placeholder.style.display =
+    "none";
+
+
+  el.stream.style.display =
+    "block";
+
+
+  el.streamInfo.style.display =
+    "block";
+}
+
+
+// ==========================================================
+// HIDE STREAM
+// ==========================================================
+
+function hideStream(){
+
+  el.stream.style.display =
+    "none";
+
+
+  el.placeholder.style.display =
+    "flex";
+
+
+  el.streamInfo.style.display =
+    "none";
 
 }
 
 
-/* ==========================================================
-   STREAM ERROR
-   ========================================================== */
+// ==========================================================
+// STREAM ERROR
+// ==========================================================
 
-function streamError(){
+el.stream.addEventListener(
+  "error",
+  () => {
 
-  if(!streamRunning)
-    return;
-
-
-  streamRunning =
-    false;
+    if(!streamRunning)
+      return;
 
 
-  setConnection(
-    false,
-    "STREAM ERROR"
-  );
+    /*
+       Do NOT immediately report an error while the browser
+       is still establishing the native MJPEG connection.
+
+       If the stream really dies, reconnect automatically.
+    */
+
+    message(
+      "Camera stream interrupted — reconnecting...",
+      "var(--yellow)"
+    );
 
 
-  message(
-    "Camera stream disconnected.",
-    "var(--red)"
-  );
+    setTimeout(
+      () => {
+
+        if(
+          connected &&
+          streamRunning
+        ){
+
+          restartMJPEG();
+
+        }
+
+      },
+      500
+    );
+
+  }
+);
 
 
-  el.streamInfo.textContent =
-    "STREAM ERROR";
+// ==========================================================
+// STREAM LOAD
+// ==========================================================
 
-}
+el.stream.addEventListener(
+  "load",
+  () => {
 
-
-/* ==========================================================
-   STREAM LOADED
-   ========================================================== */
-
-function streamLoaded(){
-
-  if(!streamRunning)
-    return;
+    if(!streamRunning)
+      return;
 
 
-  showPreview();
+    showStream();
 
 
-  setConnection(
-    true,
-    "CONNECTED"
-  );
+    setConnection(
+      true,
+      "CONNECTED"
+    );
 
 
-  el.streamInfo.textContent =
-    "LIVE";
+    message(
+      "Camera stream connected.",
+      "var(--green)"
+    );
+
+  }
+);
 
 
-  message(
-    "Camera connected.",
-    "var(--green)"
-  );
-
-}
-
-
-/* ==========================================================
-   START MJPEG
-   ========================================================== */
+// ==========================================================
+// START MJPEG
+//
+// THIS IS THE BIG CHANGE.
+//
+// We use the browser's native MJPEG support:
+//
+//     <img src="http://XIAO:81/stream">
+//
+// No ReadableStream.
+// No manual JPEG extraction.
+// No createImageBitmap.
+// No JavaScript frame queue.
+// ==========================================================
 
 function startMJPEG(){
 
@@ -1521,49 +1387,39 @@ function startMJPEG(){
     true;
 
 
+  showStream();
+
+
+  setConnection(
+    true,
+    "CONNECTING..."
+  );
+
+
+  message(
+    "Connecting to camera..."
+  );
+
+
   /*
-    IMPORTANT:
+     Cache busting ensures the browser opens a fresh
+     MJPEG connection.
 
-    Do not use fetch().
-
-    Do not use ReadableStream.
-
-    Do not parse JPEGs.
-
-    Do not create ImageBitmaps.
-
-    The browser's native <img> element receives
-    the multipart MJPEG stream directly.
+     The browser then continuously decodes the multipart
+     JPEG stream itself.
   */
 
-  const url =
+  el.stream.src =
     streamUrl +
     "?t=" +
     Date.now();
 
-
-  el.stream.src =
-    url;
-
-
-  showPreview();
-
-
-  el.streamInfo.textContent =
-    "CONNECTING...";
-
-
-  /*
-    The image element remains alive for the
-    entire duration of the MJPEG stream.
-  */
-
 }
 
 
-/* ==========================================================
-   STOP MJPEG
-   ========================================================== */
+// ==========================================================
+// STOP MJPEG
+// ==========================================================
 
 function stopMJPEG(){
 
@@ -1572,23 +1428,49 @@ function stopMJPEG(){
 
 
   /*
-    Clearing src closes the HTTP connection.
+     Removing src closes the existing HTTP connection.
   */
 
   el.stream.src =
     "";
 
 
-  hidePreview();
+  hideStream();
 
 }
 
 
-/* ==========================================================
-   CONNECT
-   ========================================================== */
+// ==========================================================
+// RESTART MJPEG
+// ==========================================================
 
-function connectPreview(){
+function restartMJPEG(){
+
+  if(!connected)
+    return;
+
+
+  stopMJPEG();
+
+
+  setTimeout(
+    () => {
+
+      if(connected)
+        startMJPEG();
+
+    },
+    150
+  );
+
+}
+
+
+// ==========================================================
+// CONNECT
+// ==========================================================
+
+async function connectPreview(){
 
   let url;
 
@@ -1614,6 +1496,10 @@ function connectPreview(){
   }
 
 
+  /*
+     Stop anything from a previous connection.
+  */
+
   stopMJPEG();
 
 
@@ -1633,34 +1519,99 @@ function connectPreview(){
 
 
   message(
-    "Connecting to XIAO..."
+    "Checking XIAO..."
   );
 
 
-  startMJPEG();
+  try{
+
+    /*
+       Check the control server first.
+
+       This catches incorrect IP addresses immediately.
+    */
+
+    const response =
+      await fetch(
+        baseUrl +
+        "/status?t=" +
+        Date.now(),
+        {
+          method:"GET",
+          cache:"no-store"
+        }
+      );
 
 
-  /*
-    Give the browser a moment to start the
-    MJPEG request, then ask for status.
-  */
+    if(!response.ok){
 
-  setTimeout(
-    () => {
+      throw new Error(
+        "XIAO returned HTTP " +
+        response.status
+      );
 
-      if(baseUrl)
-        pollStatus();
+    }
 
-    },
-    300
-  );
+
+    const status =
+      await response.json();
+
+
+    updateStatus(
+      status
+    );
+
+
+    setConnection(
+      true,
+      "CONNECTING..."
+    );
+
+
+    /*
+       Start native MJPEG.
+    */
+
+    startMJPEG();
+
+
+  }
+
+  catch(error){
+
+    console.error(
+      error
+    );
+
+
+    baseUrl =
+      "";
+
+
+    streamUrl =
+      "";
+
+
+    setConnection(
+      false,
+      "CONNECTION FAILED"
+    );
+
+
+    message(
+      "Could not connect to XIAO: " +
+      error.message,
+      "var(--red)"
+    );
+
+  }
 
 }
 
 
-/* ==========================================================
-   DISCONNECT
-   ========================================================== */
+// ==========================================================
+// DISCONNECT
+// ==========================================================
 
 function disconnect(){
 
@@ -1682,6 +1633,7 @@ function disconnect(){
   baseUrl =
     "";
 
+
   streamUrl =
     "";
 
@@ -1699,9 +1651,9 @@ function disconnect(){
 }
 
 
-/* ==========================================================
-   CAPTURE JPEG
-   ========================================================== */
+// ==========================================================
+// CAPTURE JPEG
+// ==========================================================
 
 async function captureJPEG(){
 
@@ -1722,6 +1674,7 @@ async function captureJPEG(){
         "/capture?t=" +
         Date.now(),
         {
+          method:"GET",
           cache:"no-store"
         }
       );
@@ -1752,27 +1705,20 @@ async function captureJPEG(){
 
 
     const stamp =
-
       now.getFullYear() +
-
       String(
         now.getMonth() + 1
       ).padStart(2,"0") +
-
       String(
         now.getDate()
       ).padStart(2,"0") +
-
       "_" +
-
       String(
         now.getHours()
       ).padStart(2,"0") +
-
       String(
         now.getMinutes()
       ).padStart(2,"0") +
-
       String(
         now.getSeconds()
       ).padStart(2,"0");
@@ -1819,7 +1765,9 @@ async function captureJPEG(){
 
   catch(error){
 
-    console.error(error);
+    console.error(
+      error
+    );
 
 
     message(
@@ -1833,19 +1781,22 @@ async function captureJPEG(){
 }
 
 
-/* ==========================================================
-   RECORDING CANVAS
-   ========================================================== */
+// ==========================================================
+// RECORDING CANVAS
+//
+// The native MJPEG <img> cannot directly be sent to
+// MediaRecorder, so recording uses a canvas.
+//
+// This does NOT affect the live stream.
+// ==========================================================
 
-function createRecordingCanvas(){
+function buildCaptureStream(){
 
   const width =
-    el.stream.naturalWidth ||
     320;
 
 
   const height =
-    el.stream.naturalHeight ||
     240;
 
 
@@ -1882,7 +1833,7 @@ function createRecordingCanvas(){
 
 
   /*
-    Draw the current frame first.
+     Start with the current frame.
   */
 
   recordingContext.drawImage(
@@ -1894,37 +1845,36 @@ function createRecordingCanvas(){
   );
 
 
-  /*
-    30 FPS capture stream.
-
-    The camera may produce fewer frames.
-
-    The canvas simply captures the latest
-    image available.
-  */
-
   captureStream =
     recordingCanvas.captureStream(
       30
     );
 
 
-  drawing =
+  recordingActive =
     true;
 
 
-  function drawFrame(){
+  /*
+     Draw the native MJPEG image to the recording
+     canvas at 30 FPS.
 
-    if(!drawing)
+     The live preview itself remains native and
+     completely independent from this.
+  */
+
+  function drawRecordingFrame(){
+
+    if(!recordingActive)
       return;
 
 
-    if(
-      el.stream.complete &&
-      el.stream.naturalWidth > 0
-    ){
+    try{
 
-      try{
+      if(
+        el.stream.complete &&
+        el.stream.naturalWidth > 0
+      ){
 
         recordingContext.drawImage(
           el.stream,
@@ -1936,27 +1886,27 @@ function createRecordingCanvas(){
 
       }
 
-      catch(error){
+    }
 
-        console.warn(
-          "Recording draw:",
-          error
-        );
+    catch(error){
 
-      }
+      console.warn(
+        "Recording frame:",
+        error
+      );
 
     }
 
 
-    recordingAnimation =
+    recordingLoop =
       requestAnimationFrame(
-        drawFrame
+        drawRecordingFrame
       );
 
   }
 
 
-  drawFrame();
+  drawRecordingFrame();
 
 
   return captureStream;
@@ -1964,23 +1914,24 @@ function createRecordingCanvas(){
 }
 
 
-/* ==========================================================
-   DESTROY RECORDING CANVAS
-   ========================================================== */
+// ==========================================================
+// STOP RECORDING CANVAS
+// ==========================================================
 
-function destroyRecordingCanvas(){
+function stopRecordingCanvas(){
 
-  drawing =
+  recordingActive =
     false;
 
 
-  if(recordingAnimation){
+  if(recordingLoop){
 
     cancelAnimationFrame(
-      recordingAnimation
+      recordingLoop
     );
 
-    recordingAnimation =
+
+    recordingLoop =
       null;
 
   }
@@ -1995,11 +1946,11 @@ function destroyRecordingCanvas(){
           track.stop()
       );
 
+
+    captureStream =
+      null;
+
   }
-
-
-  captureStream =
-    null;
 
 
   recordingCanvas =
@@ -2012,9 +1963,9 @@ function destroyRecordingCanvas(){
 }
 
 
-/* ==========================================================
-   START RECORDING
-   ========================================================== */
+// ==========================================================
+// START RECORDING
+// ==========================================================
 
 async function startRecording(){
 
@@ -2033,16 +1984,12 @@ async function startRecording(){
   try{
 
     const mediaStream =
-      createRecordingCanvas();
+      buildCaptureStream();
 
 
     let mime =
       "";
 
-
-    /*
-      Prefer VP9 if available.
-    */
 
     if(
       MediaRecorder.isTypeSupported(
@@ -2086,19 +2033,15 @@ async function startRecording(){
     }
 
 
-    /*
-      1.5 Mbps is plenty for 320x240.
-
-      Higher bitrate does not make the source
-      camera better.
-    */
-
     recorder =
       new MediaRecorder(
         mediaStream,
         {
-          mimeType:mime,
-          videoBitsPerSecond:1500000
+          mimeType:
+            mime,
+
+          videoBitsPerSecond:
+            1500000
         }
       );
 
@@ -2124,21 +2067,21 @@ async function startRecording(){
       };
 
 
-    recorder.onerror =
-      event => {
-
-        console.error(
-          "MediaRecorder:",
-          event
-        );
-
-      };
-
-
     recorder.onstop =
       () => {
 
         saveRecording();
+
+      };
+
+
+    recorder.onerror =
+      event => {
+
+        console.error(
+          "Recorder error:",
+          event
+        );
 
       };
 
@@ -2149,7 +2092,7 @@ async function startRecording(){
 
 
     /*
-      Tell XIAO about browser recording state.
+       Tell the XIAO.
     */
 
     await xiaoCommand(
@@ -2204,7 +2147,7 @@ async function startRecording(){
     );
 
 
-    destroyRecordingCanvas();
+    stopRecordingCanvas();
 
 
     if(
@@ -2223,10 +2166,6 @@ async function startRecording(){
 
     recorder =
       null;
-
-
-    chunks =
-      [];
 
 
     recording =
@@ -2251,9 +2190,9 @@ async function startRecording(){
 }
 
 
-/* ==========================================================
-   PAUSE
-   ========================================================== */
+// ==========================================================
+// PAUSE
+// ==========================================================
 
 async function pauseRecording(){
 
@@ -2320,9 +2259,9 @@ async function pauseRecording(){
 }
 
 
-/* ==========================================================
-   RESUME
-   ========================================================== */
+// ==========================================================
+// RESUME
+// ==========================================================
 
 async function resumeRecording(){
 
@@ -2394,9 +2333,9 @@ async function resumeRecording(){
 }
 
 
-/* ==========================================================
-   STOP RECORDING
-   ========================================================== */
+// ==========================================================
+// STOP RECORDING
+// ==========================================================
 
 async function stopRecording(){
 
@@ -2428,30 +2367,11 @@ async function stopRecording(){
 
 
   /*
-    Stop drawing first.
+     Stop recording canvas after the XIAO command.
   */
 
-  drawing =
-    false;
+  stopRecordingCanvas();
 
-
-  if(recordingAnimation){
-
-    cancelAnimationFrame(
-      recordingAnimation
-    );
-
-    recordingAnimation =
-      null;
-
-  }
-
-
-  /*
-    Stop MediaRecorder.
-
-    Its onstop callback will save the file.
-  */
 
   if(
     recorder &&
@@ -2488,17 +2408,14 @@ async function stopRecording(){
   updateButtons();
 
 
-  destroyRecordingCanvas();
-
-
   pollStatus();
 
 }
 
 
-/* ==========================================================
-   SAVE RECORDING
-   ========================================================== */
+// ==========================================================
+// SAVE RECORDING
+// ==========================================================
 
 function saveRecording(){
 
@@ -2539,27 +2456,20 @@ function saveRecording(){
 
 
   const stamp =
-
     now.getFullYear() +
-
     String(
       now.getMonth() + 1
     ).padStart(2,"0") +
-
     String(
       now.getDate()
     ).padStart(2,"0") +
-
     "_" +
-
     String(
       now.getHours()
     ).padStart(2,"0") +
-
     String(
       now.getMinutes()
     ).padStart(2,"0") +
-
     String(
       now.getSeconds()
     ).padStart(2,"0");
@@ -2613,25 +2523,9 @@ function saveRecording(){
 }
 
 
-/* ==========================================================
-   STREAM EVENTS
-   ========================================================== */
-
-el.stream.addEventListener(
-  "load",
-  streamLoaded
-);
-
-
-el.stream.addEventListener(
-  "error",
-  streamError
-);
-
-
-/* ==========================================================
-   BUTTON EVENTS
-   ========================================================== */
+// ==========================================================
+// EVENT LISTENERS
+// ==========================================================
 
 el.connect.addEventListener(
   "click",
@@ -2675,9 +2569,9 @@ el.stop.addEventListener(
 );
 
 
-/* ==========================================================
-   ENTER KEY ON IP FIELD
-   ========================================================== */
+// ==========================================================
+// ENTER KEY IN IP BOX
+// ==========================================================
 
 el.ip.addEventListener(
   "keydown",
@@ -2696,9 +2590,9 @@ el.ip.addEventListener(
 );
 
 
-/* ==========================================================
-   STATUS POLLING
-   ========================================================== */
+// ==========================================================
+// STATUS POLLING
+// ==========================================================
 
 statusHandle =
   setInterval(
@@ -2712,13 +2606,11 @@ statusHandle =
   );
 
 
-/* ==========================================================
-   INITIAL STATE
-   ========================================================== */
+// ==========================================================
+// INITIAL STATE
+// ==========================================================
 
 updateButtons();
-
-hidePreview();
 
 </script>
 
