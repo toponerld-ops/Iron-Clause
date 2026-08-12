@@ -97,7 +97,6 @@ h1{
 }
 
 .placeholder{
-  width:100%;
   min-height:240px;
   display:flex;
   align-items:center;
@@ -351,7 +350,7 @@ then click Connect.
 <input
   id="ip"
   value="192.168.1.8"
-  placeholder="XIAO IP address"
+  placeholder="192.168.1.8"
 >
 
 <button
@@ -374,8 +373,7 @@ Disconnect
 
 
 <div class="small">
-Control: port 80 &nbsp; | &nbsp;
-Camera stream: port 81
+Camera: QVGA 320×240 · MJPEG stream: port 81
 </div>
 
 
@@ -435,10 +433,8 @@ Stop & Save
 
 
 <div class="footer">
-
-The XIAO supplies the camera stream.<br>
-The browser records and saves the video.
-
+The XIAO supplies the camera stream.
+The browser saves the recording.
 </div>
 
 </main>
@@ -538,9 +534,9 @@ OFFLINE
 "use strict";
 
 
-// ==========================================================
-// ELEMENTS
-// ==========================================================
+/* ==========================================================
+   ELEMENTS
+   ========================================================== */
 
 const $ = id =>
   document.getElementById(id);
@@ -548,83 +544,60 @@ const $ = id =>
 
 const el = {
 
-  ip:
-    $("ip"),
+  ip: $("ip"),
 
-  connect:
-    $("connectBtn"),
+  connect: $("connectBtn"),
 
-  disconnect:
-    $("disconnectBtn"),
+  disconnect: $("disconnectBtn"),
 
-  capture:
-    $("captureBtn"),
+  capture: $("captureBtn"),
 
-  start:
-    $("startBtn"),
+  start: $("startBtn"),
 
-  pause:
-    $("pauseBtn"),
+  pause: $("pauseBtn"),
 
-  resume:
-    $("resumeBtn"),
+  resume: $("resumeBtn"),
 
-  stop:
-    $("stopBtn"),
+  stop: $("stopBtn"),
 
-  stream:
-    $("stream"),
+  stream: $("stream"),
 
-  placeholder:
-    $("placeholder"),
+  placeholder: $("placeholder"),
 
-  message:
-    $("message"),
+  message: $("message"),
 
-  connDot:
-    $("connDot"),
+  connDot: $("connDot"),
 
-  connText:
-    $("connText"),
+  connText: $("connText"),
 
-  recordState:
-    $("recordState"),
+  recordState: $("recordState"),
 
-  timer:
-    $("timer"),
+  timer: $("timer"),
 
-  sConnection:
-    $("sConnection"),
+  sConnection: $("sConnection"),
 
-  sWifi:
-    $("sWifi"),
+  sWifi: $("sWifi"),
 
-  sRssi:
-    $("sRssi"),
+  sRssi: $("sRssi"),
 
-  sHeap:
-    $("sHeap"),
+  sHeap: $("sHeap"),
 
-  sPsram:
-    $("sPsram"),
+  sPsram: $("sPsram"),
 
-  sPsramSize:
-    $("sPsramSize"),
+  sPsramSize: $("sPsramSize"),
 
-  sResolution:
-    $("sResolution"),
+  sResolution: $("sResolution"),
 
-  sRecording:
-    $("sRecording"),
+  sRecording: $("sRecording"),
 
-  sPaused:
-    $("sPaused")
+  sPaused: $("sPaused")
+
 };
 
 
-// ==========================================================
-// STATE
-// ==========================================================
+/* ==========================================================
+   STATE
+   ========================================================== */
 
 let baseUrl = "";
 
@@ -632,13 +605,9 @@ let streamUrl = "";
 
 let connected = false;
 
-let connecting = false;
-
 let recording = false;
 
 let paused = false;
-
-let cameraFrameReady = false;
 
 let recordStartedAt = 0;
 
@@ -647,6 +616,8 @@ let pausedAt = 0;
 let accumulatedPause = 0;
 
 let timerHandle = null;
+
+let statusHandle = null;
 
 let recorder = null;
 
@@ -660,14 +631,12 @@ let recordingContext = null;
 
 let drawing = false;
 
-let drawAnimationId = null;
-
-let statusTimer = null;
+let drawTimer = null;
 
 
-// ==========================================================
-// MESSAGE
-// ==========================================================
+/* ==========================================================
+   MESSAGE
+   ========================================================== */
 
 function message(
   text,
@@ -683,17 +652,16 @@ function message(
 }
 
 
-// ==========================================================
-// CONNECTION STATE
-// ==========================================================
+/* ==========================================================
+   CONNECTION
+   ========================================================== */
 
 function setConnection(
   ok,
   text
 ){
 
-  connected =
-    ok;
+  connected = ok;
 
   el.connText.textContent =
     text;
@@ -712,12 +680,13 @@ function setConnection(
     );
 
   updateButtons();
+
 }
 
 
-// ==========================================================
-// URL
-// ==========================================================
+/* ==========================================================
+   URL
+   ========================================================== */
 
 function normalizeUrl(
   value
@@ -758,12 +727,13 @@ function normalizeUrl(
 
 
   return u.origin;
+
 }
 
 
-// ==========================================================
-// TIMER
-// ==========================================================
+/* ==========================================================
+   TIMER
+   ========================================================== */
 
 function formatTime(ms){
 
@@ -798,9 +768,10 @@ function formatTime(ms){
   .map(
     v =>
       String(v)
-      .padStart(2,"0")
+        .padStart(2,"0")
   )
   .join(":");
+
 }
 
 
@@ -838,6 +809,7 @@ function updateTimer(){
       recordStartedAt -
       pausedTotal
     );
+
 }
 
 
@@ -845,13 +817,16 @@ function startTimer(){
 
   stopTimer();
 
+
   timerHandle =
     setInterval(
       updateTimer,
       250
     );
 
+
   updateTimer();
+
 }
 
 
@@ -871,31 +846,19 @@ function stopTimer(){
 }
 
 
-// ==========================================================
-// BUTTONS
-// ==========================================================
+/* ==========================================================
+   BUTTONS
+   ========================================================== */
 
 function updateButtons(){
 
-  el.connect.disabled =
-    connecting ||
-    connected;
-
-
-  el.disconnect.disabled =
+  el.start.disabled =
     !connected ||
     recording;
 
 
   el.capture.disabled =
     !connected ||
-    !cameraFrameReady ||
-    recording;
-
-
-  el.start.disabled =
-    !connected ||
-    !cameraFrameReady ||
     recording;
 
 
@@ -912,77 +875,45 @@ function updateButtons(){
   el.stop.disabled =
     !recording;
 
+
+  el.disconnect.disabled =
+    !connected;
+
 }
 
 
-// ==========================================================
-// STATUS REQUEST
-// ==========================================================
+/* ==========================================================
+   STATUS
+   ========================================================== */
 
 async function getStatus(){
 
-  if(!baseUrl){
+  const response =
+    await fetch(
+      baseUrl +
+      "/status?t=" +
+      Date.now(),
+      {
+        method:"GET",
+        cache:"no-store"
+      }
+    );
+
+
+  if(!response.ok){
 
     throw new Error(
-      "Not connected."
+      "Status HTTP " +
+      response.status
     );
 
   }
 
 
-  const controller =
-    new AbortController();
-
-
-  const timeout =
-    setTimeout(
-      () =>
-        controller.abort(),
-      4000
-    );
-
-
-  try{
-
-    const response =
-      await fetch(
-        baseUrl +
-        "/status?t=" +
-        Date.now(),
-        {
-          method:"GET",
-          cache:"no-store",
-          signal:controller.signal
-        }
-      );
-
-
-    if(!response.ok){
-
-      throw new Error(
-        "Status HTTP " +
-        response.status
-      );
-
-    }
-
-
-    return await response.json();
-
-  }
-
-  finally{
-
-    clearTimeout(timeout);
-
-  }
+  return response.json();
 
 }
 
-
-// ==========================================================
-// UPDATE STATUS
-// ==========================================================
 
 function updateStatus(s){
 
@@ -994,7 +925,7 @@ function updateStatus(s){
 
   el.sRssi.textContent =
     Number.isFinite(
-      Number(s.wifi_rssi)
+      s.wifi_rssi
     )
       ? s.wifi_rssi + " dBm"
       : "—";
@@ -1002,51 +933,43 @@ function updateStatus(s){
 
   el.sHeap.textContent =
     Number.isFinite(
-      Number(s.free_heap)
+      s.free_heap
     )
       ? Math.round(
-          Number(s.free_heap) / 1024
+          s.free_heap / 1024
         ) + " KB"
       : "—";
 
 
   el.sPsram.textContent =
     Number.isFinite(
-      Number(s.free_psram)
+      s.free_psram
     )
       ? Math.round(
-          Number(s.free_psram) / 1024
+          s.free_psram / 1024
         ) + " KB"
       : "—";
 
 
   el.sPsramSize.textContent =
     Number.isFinite(
-      Number(s.psram_size)
+      s.psram_size
     )
       ? Math.round(
-          Number(s.psram_size) / 1024
+          s.psram_size / 1024
         ) + " KB"
       : "—";
 
 
-  if(
-    Number.isFinite(Number(s.width)) &&
-    Number.isFinite(Number(s.height))
-  ){
+  el.sResolution.textContent =
+    Number.isFinite(s.width) &&
+    Number.isFinite(s.height)
 
-    el.sResolution.textContent =
-      s.width +
-      " × " +
-      s.height;
+      ? s.width +
+        " × " +
+        s.height
 
-  }
-  else{
-
-    el.sResolution.textContent =
-      "—";
-
-  }
+      : "—";
 
 
   el.sRecording.textContent =
@@ -1061,23 +984,14 @@ function updateStatus(s){
       : "NO";
 
 
-  /*
-    Only update our local state when we
-    are NOT actively controlling a recording.
-  */
-
-  if(!recording){
-
-    el.recordState.textContent =
-      s.recording
-        ? (
-            s.paused
-              ? "PAUSED"
-              : "RECORDING"
-          )
-        : "PREVIEW";
-
-  }
+  el.recordState.textContent =
+    s.recording
+      ? (
+          s.paused
+            ? "PAUSED"
+            : "RECORDING"
+        )
+      : "PREVIEW";
 
 
   updateButtons();
@@ -1085,13 +999,13 @@ function updateStatus(s){
 }
 
 
-// ==========================================================
-// STATUS POLLING
-// ==========================================================
+/* ==========================================================
+   STATUS POLLING
+   ========================================================== */
 
 async function pollStatus(){
 
-  if(!baseUrl)
+  if(!connected)
     return;
 
 
@@ -1102,16 +1016,6 @@ async function pollStatus(){
 
 
     updateStatus(s);
-
-
-    if(!connected){
-
-      setConnection(
-        true,
-        "CONNECTED"
-      );
-
-    }
 
   }
 
@@ -1127,9 +1031,9 @@ async function pollStatus(){
 }
 
 
-// ==========================================================
-// XIAO COMMAND
-// ==========================================================
+/* ==========================================================
+   XIAO COMMAND
+   ========================================================== */
 
 async function xiaoCommand(
   path
@@ -1144,60 +1048,37 @@ async function xiaoCommand(
   }
 
 
-  const controller =
-    new AbortController();
-
-
-  const timeout =
-    setTimeout(
-      () =>
-        controller.abort(),
-      5000
+  const response =
+    await fetch(
+      baseUrl +
+      path +
+      "?t=" +
+      Date.now(),
+      {
+        method:"GET",
+        cache:"no-store"
+      }
     );
 
 
-  try{
+  if(!response.ok){
 
-    const response =
-      await fetch(
-        baseUrl +
-        path +
-        "?t=" +
-        Date.now(),
-        {
-          method:"GET",
-          cache:"no-store",
-          signal:controller.signal
-        }
-      );
-
-
-    if(!response.ok){
-
-      throw new Error(
-        "XIAO HTTP " +
-        response.status
-      );
-
-    }
-
-
-    return await response.text();
+    throw new Error(
+      "XIAO HTTP " +
+      response.status
+    );
 
   }
 
-  finally{
 
-    clearTimeout(timeout);
-
-  }
+  return response.text();
 
 }
 
 
-// ==========================================================
-// PREVIEW
-// ==========================================================
+/* ==========================================================
+   PREVIEW
+   ========================================================== */
 
 function showPreview(){
 
@@ -1222,72 +1103,14 @@ function hidePreview(){
   el.placeholder.style.display =
     "flex";
 
-  cameraFrameReady =
-    false;
-
-  updateButtons();
-
 }
 
 
-// ==========================================================
-// WAIT FOR CAMERA IMAGE
-// ==========================================================
+/* ==========================================================
+   CONNECT
+   ========================================================== */
 
-async function waitForCameraFrame(
-  timeoutMs = 10000
-){
-
-  const start =
-    performance.now();
-
-
-  while(
-    performance.now() -
-    start <
-    timeoutMs
-  ){
-
-    if(
-      el.stream.naturalWidth > 0 &&
-      el.stream.naturalHeight > 0
-    ){
-
-      cameraFrameReady =
-        true;
-
-      updateButtons();
-
-      return true;
-
-    }
-
-
-    await new Promise(
-      resolve =>
-        setTimeout(
-          resolve,
-          100
-        )
-    );
-
-  }
-
-
-  return false;
-
-}
-
-
-// ==========================================================
-// CONNECT
-// ==========================================================
-
-async function connectPreview(){
-
-  if(connecting || connected)
-    return;
-
+function connectPreview(){
 
   let url;
 
@@ -1313,13 +1136,6 @@ async function connectPreview(){
   }
 
 
-  connecting =
-    true;
-
-
-  updateButtons();
-
-
   baseUrl =
     url;
 
@@ -1329,10 +1145,6 @@ async function connectPreview(){
     ":81/stream";
 
 
-  cameraFrameReady =
-    false;
-
-
   setConnection(
     false,
     "CONNECTING..."
@@ -1340,64 +1152,61 @@ async function connectPreview(){
 
 
   message(
-    "Checking XIAO..."
+    "Connecting to XIAO..."
   );
 
 
   /*
-    First test port 80.
-    This is much more reliable than
-    waiting for MJPEG <img>.onload.
+    Remove the old stream first.
+    This prevents two MJPEG connections
+    from accidentally remaining open.
   */
 
-  try{
+  el.stream.onload =
+    () => {
 
-    const status =
-      await getStatus();
-
-
-    updateStatus(status);
-
-  }
-
-  catch(e){
-
-    connecting =
-      false;
-
-    baseUrl =
-      "";
-
-    streamUrl =
-      "";
-
-    setConnection(
-      false,
-      "CONNECTION FAILED"
-    );
+      setConnection(
+        true,
+        "CONNECTED"
+      );
 
 
-    message(
-      "Cannot reach XIAO: " +
-      e.message,
-      "var(--red)"
-    );
+      showPreview();
 
 
-    updateButtons();
+      message(
+        "Camera stream connected.",
+        "var(--green)"
+      );
 
-    return;
 
-  }
+      pollStatus();
+
+    };
 
 
-  /*
-    Now start MJPEG.
-  */
+  el.stream.onerror =
+    () => {
 
-  message(
-    "Connecting camera stream..."
-  );
+      if(!baseUrl)
+        return;
+
+
+      setConnection(
+        false,
+        "STREAM ERROR"
+      );
+
+
+      message(
+        "Camera stream disconnected.",
+        "var(--red)"
+      );
+
+
+      hidePreview();
+
+    };
 
 
   el.stream.crossOrigin =
@@ -1405,105 +1214,39 @@ async function connectPreview(){
 
 
   el.stream.src =
-    streamUrl +
-    "?t=" +
-    Date.now();
-
-
-  showPreview();
+    "";
 
 
   /*
-    Do NOT wait for img.onload.
-    MJPEG remains open forever.
+    Small delay guarantees browser
+    closes the previous connection.
   */
 
-  const ready =
-    await waitForCameraFrame(
-      10000
-    );
+  setTimeout(
+    () => {
+
+      if(!baseUrl)
+        return;
 
 
-  connecting =
-    false;
+      el.stream.src =
+        streamUrl +
+        "?t=" +
+        Date.now();
 
 
-  if(!ready){
+      showPreview();
 
-    setConnection(
-      false,
-      "STREAM FAILED"
-    );
-
-
-    message(
-      "XIAO responded, but no camera frame was received.",
-      "var(--red)"
-    );
-
-
-    hidePreview();
-
-    updateButtons();
-
-    return;
-
-  }
-
-
-  setConnection(
-    true,
-    "CONNECTED"
+    },
+    50
   );
-
-
-  message(
-    "Camera connected.",
-    "var(--green)"
-  );
-
-
-  updateButtons();
-
-
-  pollStatus();
 
 }
 
 
-// ==========================================================
-// STREAM ERROR
-// ==========================================================
-
-el.stream.addEventListener(
-  "error",
-  () => {
-
-    if(!recording){
-
-      cameraFrameReady =
-        false;
-
-      updateButtons();
-
-      if(connected){
-
-        message(
-          "Camera stream disconnected.",
-          "var(--red)"
-        );
-
-      }
-
-    }
-
-  }
-);
-
-
-// ==========================================================
-// DISCONNECT
-// ==========================================================
+/* ==========================================================
+   DISCONNECT
+   ========================================================== */
 
 function disconnect(){
 
@@ -1525,12 +1268,6 @@ function disconnect(){
   streamUrl =
     "";
 
-  connecting =
-    false;
-
-  cameraFrameReady =
-    false;
-
 
   hidePreview();
 
@@ -1545,22 +1282,16 @@ function disconnect(){
     "Disconnected."
   );
 
-
-  updateButtons();
-
 }
 
 
-// ==========================================================
-// CAPTURE JPEG
-// ==========================================================
+/* ==========================================================
+   CAPTURE JPEG
+   ========================================================== */
 
 async function captureJPEG(){
 
-  if(
-    !connected ||
-    !cameraFrameReady
-  )
+  if(!connected)
     return;
 
 
@@ -1609,7 +1340,7 @@ async function captureJPEG(){
     const stamp =
       now.getFullYear() +
       String(
-        now.getMonth() + 1
+        now.getMonth()+1
       ).padStart(2,"0") +
       String(
         now.getDate()
@@ -1642,13 +1373,9 @@ async function captureJPEG(){
       ".jpg";
 
 
-    document.body.appendChild(
-      a
-    );
-
+    document.body.appendChild(a);
 
     a.click();
-
 
     a.remove();
 
@@ -1671,7 +1398,6 @@ async function captureJPEG(){
 
     console.error(e);
 
-
     message(
       "Capture failed: " +
       e.message,
@@ -1683,27 +1409,20 @@ async function captureJPEG(){
 }
 
 
-// ==========================================================
-// BUILD RECORDING STREAM
-// ==========================================================
+/* ==========================================================
+   BUILD RECORDING STREAM
+   ========================================================== */
 
 async function buildCaptureStream(){
 
-  if(!cameraFrameReady){
-
-    throw new Error(
-      "Camera frame is not ready."
-    );
-
-  }
-
-
   const width =
-    el.stream.naturalWidth;
+    el.stream.naturalWidth ||
+    320;
 
 
   const height =
-    el.stream.naturalHeight;
+    el.stream.naturalHeight ||
+    240;
 
 
   if(
@@ -1712,7 +1431,7 @@ async function buildCaptureStream(){
   ){
 
     throw new Error(
-      "Camera image has invalid dimensions."
+      "Camera image has no valid dimensions."
     );
 
   }
@@ -1726,7 +1445,6 @@ async function buildCaptureStream(){
 
   canvas.width =
     width;
-
 
   canvas.height =
     height;
@@ -1751,19 +1469,19 @@ async function buildCaptureStream(){
 
 
   /*
-    Draw one frame and test CORS.
+    Test CORS access.
   */
 
-  ctx.drawImage(
-    el.stream,
-    0,
-    0,
-    width,
-    height
-  );
-
-
   try{
+
+    ctx.drawImage(
+      el.stream,
+      0,
+      0,
+      width,
+      height
+    );
+
 
     ctx.getImageData(
       0,
@@ -1777,9 +1495,7 @@ async function buildCaptureStream(){
   catch(e){
 
     throw new Error(
-      "Browser blocked camera access for recording. " +
-      "Open this website from a normal HTTP/HTTPS server " +
-      "and keep crossorigin enabled."
+      "Canvas access was blocked by CORS."
     );
 
   }
@@ -1793,9 +1509,14 @@ async function buildCaptureStream(){
     ctx;
 
 
+  /*
+    20 FPS is enough for the recording and
+    reduces CPU load compared with 60 FPS.
+  */
+
   const stream =
     canvas.captureStream(
-      15
+      20
     );
 
 
@@ -1806,6 +1527,12 @@ async function buildCaptureStream(){
   drawing =
     true;
 
+
+  /*
+    Draw at 20 FPS instead of requestAnimationFrame.
+    This avoids making the browser redraw at 60 FPS
+    when the XIAO is only producing around 20-25 FPS.
+  */
 
   function drawLoop(){
 
@@ -1835,9 +1562,10 @@ async function buildCaptureStream(){
     }
 
 
-    drawAnimationId =
-      requestAnimationFrame(
-        drawLoop
+    drawTimer =
+      setTimeout(
+        drawLoop,
+        50
       );
 
   }
@@ -1851,64 +1579,32 @@ async function buildCaptureStream(){
 }
 
 
-// ==========================================================
-// STOP DRAWING
-// ==========================================================
-
-function stopDrawing(){
-
-  drawing =
-    false;
-
-
-  if(drawAnimationId){
-
-    cancelAnimationFrame(
-      drawAnimationId
-    );
-
-    drawAnimationId =
-      null;
-
-  }
-
-}
-
-
-// ==========================================================
-// START RECORDING
-// ==========================================================
+/* ==========================================================
+   START RECORDING
+   ========================================================== */
 
 async function startRecording(){
 
   if(
     !connected ||
-    !cameraFrameReady ||
     recording
   )
     return;
 
 
   message(
-    "Preparing browser recording..."
+    "Starting browser recording..."
   );
 
 
   try{
 
-    /*
-      Build canvas stream first.
-    */
-
     const mediaStream =
       await buildCaptureStream();
 
 
-    /*
-      Select supported codec.
-    */
-
-    let mime = "";
+    let mime =
+      "";
 
 
     if(
@@ -1953,18 +1649,24 @@ async function startRecording(){
     }
 
 
-    chunks =
-      [];
-
-
     recorder =
       new MediaRecorder(
         mediaStream,
         {
           mimeType:mime,
-          videoBitsPerSecond:2000000
+
+          /*
+            Lower bitrate reduces browser load
+            while still being good for 320x240.
+          */
+
+          videoBitsPerSecond:
+            1500000
         }
       );
+
+
+    chunks = [];
 
 
     recorder.ondataavailable =
@@ -2003,12 +1705,8 @@ async function startRecording(){
       };
 
 
-    /*
-      Start browser recorder.
-    */
-
     recorder.start(
-      500
+      1000
     );
 
 
@@ -2023,7 +1721,6 @@ async function startRecording(){
 
     recording =
       true;
-
 
     paused =
       false;
@@ -2047,7 +1744,6 @@ async function startRecording(){
 
     startTimer();
 
-
     updateButtons();
 
 
@@ -2063,23 +1759,40 @@ async function startRecording(){
 
   catch(e){
 
-    console.error(
-      e
-    );
+    console.error(e);
 
 
-    stopDrawing();
+    drawing =
+      false;
 
 
-    if(
-      recorder &&
-      recorder.state !==
-      "inactive"
-    ){
+    if(drawTimer){
+
+      clearTimeout(
+        drawTimer
+      );
+
+      drawTimer =
+        null;
+
+    }
+
+
+    if(recorder){
 
       try{
-        recorder.stop();
+
+        if(
+          recorder.state !==
+          "inactive"
+        ){
+
+          recorder.stop();
+
+        }
+
       }
+
       catch(_){}
 
     }
@@ -2105,19 +1818,11 @@ async function startRecording(){
       null;
 
 
-    chunks =
-      [];
-
-
     recording =
       false;
 
-
     paused =
       false;
-
-
-    stopTimer();
 
 
     updateButtons();
@@ -2134,9 +1839,9 @@ async function startRecording(){
 }
 
 
-// ==========================================================
-// PAUSE
-// ==========================================================
+/* ==========================================================
+   PAUSE
+   ========================================================== */
 
 async function pauseRecording(){
 
@@ -2149,9 +1854,10 @@ async function pauseRecording(){
 
   try{
 
-    /*
-      Pause browser recorder first.
-    */
+    await xiaoCommand(
+      "/record/pause"
+    );
+
 
     if(
       recorder &&
@@ -2162,11 +1868,6 @@ async function pauseRecording(){
       recorder.pause();
 
     }
-
-
-    await xiaoCommand(
-      "/record/pause"
-    );
 
 
     paused =
@@ -2196,25 +1897,6 @@ async function pauseRecording(){
 
   catch(e){
 
-    /*
-      If XIAO command failed, resume
-      recorder so states stay consistent.
-    */
-
-    if(
-      recorder &&
-      recorder.state ===
-      "paused"
-    ){
-
-      try{
-        recorder.resume();
-      }
-      catch(_){}
-
-    }
-
-
     message(
       "Pause failed: " +
       e.message,
@@ -2226,9 +1908,9 @@ async function pauseRecording(){
 }
 
 
-// ==========================================================
-// RESUME
-// ==========================================================
+/* ==========================================================
+   RESUME
+   ========================================================== */
 
 async function resumeRecording(){
 
@@ -2300,9 +1982,9 @@ async function resumeRecording(){
 }
 
 
-// ==========================================================
-// STOP
-// ==========================================================
+/* ==========================================================
+   STOP
+   ========================================================== */
 
 async function stopRecording(){
 
@@ -2315,10 +1997,6 @@ async function stopRecording(){
   );
 
 
-  /*
-    Always stop XIAO state.
-  */
-
   try{
 
     await xiaoCommand(
@@ -2330,7 +2008,7 @@ async function stopRecording(){
   catch(e){
 
     console.warn(
-      "XIAO stop failed:",
+      "XIAO stop:",
       e
     );
 
@@ -2338,15 +2016,27 @@ async function stopRecording(){
 
 
   /*
-    Stop canvas rendering.
+    Stop canvas drawing.
   */
 
-  stopDrawing();
+  drawing =
+    false;
+
+
+  if(drawTimer){
+
+    clearTimeout(
+      drawTimer
+    );
+
+    drawTimer =
+      null;
+
+  }
 
 
   /*
-    Save through MediaRecorder.
-    onstop() will call saveRecording().
+    Stop MediaRecorder.
   */
 
   if(
@@ -2355,22 +2045,7 @@ async function stopRecording(){
     "inactive"
   ){
 
-    try{
-
-      recorder.stop();
-
-    }
-
-    catch(e){
-
-      console.warn(
-        "Recorder stop:",
-        e
-      );
-
-      saveRecording();
-
-    }
+    recorder.stop();
 
   }
 
@@ -2383,7 +2058,6 @@ async function stopRecording(){
 
   recording =
     false;
-
 
   paused =
     false;
@@ -2400,7 +2074,7 @@ async function stopRecording(){
 
 
   /*
-    Stop canvas tracks.
+    Stop canvas stream.
   */
 
   if(captureStream){
@@ -2424,9 +2098,9 @@ async function stopRecording(){
 }
 
 
-// ==========================================================
-// SAVE RECORDING
-// ==========================================================
+/* ==========================================================
+   SAVE RECORDING
+   ========================================================== */
 
 function saveRecording(){
 
@@ -2469,7 +2143,7 @@ function saveRecording(){
   const stamp =
     now.getFullYear() +
     String(
-      now.getMonth() + 1
+      now.getMonth()+1
     ).padStart(2,"0") +
     String(
       now.getDate()
@@ -2502,13 +2176,9 @@ function saveRecording(){
     ".webm";
 
 
-  document.body.appendChild(
-    a
-  );
-
+  document.body.appendChild(a);
 
   a.click();
-
 
   a.remove();
 
@@ -2520,9 +2190,7 @@ function saveRecording(){
   );
 
 
-  chunks =
-    [];
-
+  chunks = [];
 
   recorder =
     null;
@@ -2536,109 +2204,57 @@ function saveRecording(){
 }
 
 
-// ==========================================================
-// CONNECT BUTTON
-// ==========================================================
+/* ==========================================================
+   EVENTS
+   ========================================================== */
 
 el.connect.addEventListener(
   "click",
-  () => {
-
-    connectPreview();
-
-  }
+  connectPreview
 );
 
-
-// ==========================================================
-// DISCONNECT
-// ==========================================================
 
 el.disconnect.addEventListener(
   "click",
-  () => {
-
-    disconnect();
-
-  }
+  disconnect
 );
 
-
-// ==========================================================
-// CAPTURE
-// ==========================================================
 
 el.capture.addEventListener(
   "click",
-  () => {
-
-    captureJPEG();
-
-  }
+  captureJPEG
 );
 
-
-// ==========================================================
-// START
-// ==========================================================
 
 el.start.addEventListener(
   "click",
-  () => {
-
-    startRecording();
-
-  }
+  startRecording
 );
 
-
-// ==========================================================
-// PAUSE
-// ==========================================================
 
 el.pause.addEventListener(
   "click",
-  () => {
-
-    pauseRecording();
-
-  }
+  pauseRecording
 );
 
-
-// ==========================================================
-// RESUME
-// ==========================================================
 
 el.resume.addEventListener(
   "click",
-  () => {
-
-    resumeRecording();
-
-  }
+  resumeRecording
 );
 
-
-// ==========================================================
-// STOP
-// ==========================================================
 
 el.stop.addEventListener(
   "click",
-  () => {
-
-    stopRecording();
-
-  }
+  stopRecording
 );
 
 
-// ==========================================================
-// STATUS POLLING
-// ==========================================================
+/* ==========================================================
+   STATUS POLLING
+   ========================================================== */
 
-statusTimer =
+statusHandle =
   setInterval(
     () => {
 
@@ -2649,13 +2265,13 @@ statusTimer =
       }
 
     },
-    2000
+    3000
   );
 
 
-// ==========================================================
-// INITIAL STATE
-// ==========================================================
+/* ==========================================================
+   INITIAL
+   ========================================================== */
 
 updateButtons();
 
