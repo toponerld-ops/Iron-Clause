@@ -2,37 +2,39 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Mr. Justice — Digital Evidence Logger</title>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
 
 :root{
-  --paper:#f2eee7;
-  --paper2:#e9e3da;
+  --paper:#eee9e1;
+  --paper2:#e5ded3;
   --ink:#171715;
   --muted:#77736c;
   --line:#cbc4b9;
-  --dark:#191918;
-  --dark2:#252523;
+  --dark:#11110f;
+  --dark2:#1b1b19;
   --cream:#f7f4ee;
   --accent:#a28b65;
   --green:#526b50;
   --red:#9b514c;
-  --yellow:#a17c38;
 }
 
 *{
   box-sizing:border-box;
 }
 
-html{
-  scroll-behavior:smooth;
+html,
+body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
 }
 
 body{
-  margin:0;
   background:var(--paper);
   color:var(--ink);
   font-family:"DM Sans",sans-serif;
@@ -48,128 +50,179 @@ button{
   cursor:pointer;
 }
 
-a{
-  color:inherit;
-  text-decoration:none;
+button:disabled{
+  cursor:not-allowed;
+}
+
+#app{
+  width:100vw;
+  height:100vh;
+  overflow:hidden;
+  position:relative;
 }
 
 /* =========================================================
-   NAVIGATION
+   PAGES
 ========================================================= */
 
-.nav{
-  height:82px;
+.page{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+
+  transform:translateX(35px);
+
+  transition:
+    opacity .45s ease,
+    transform .55s cubic-bezier(.22,1,.36,1),
+    visibility .45s;
+}
+
+.page.active{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+  transform:none;
+}
+
+/* =========================================================
+   TOP BAR
+========================================================= */
+
+.topbar{
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  height:76px;
+
   padding:0 5vw;
+
   display:flex;
   align-items:center;
   justify-content:space-between;
-  border-bottom:1px solid var(--line);
-  position:sticky;
-  top:0;
-  z-index:50;
-  background:rgba(242,238,231,.94);
-  backdrop-filter:blur(14px);
+
+  z-index:30;
+
+  border-bottom:1px solid rgba(23,23,21,.14);
+
+  background:rgba(238,233,225,.68);
+
+  backdrop-filter:blur(22px);
+  -webkit-backdrop-filter:blur(22px);
+}
+
+.darkPage .topbar{
+  color:white;
+  border-color:rgba(255,255,255,.12);
+  background:rgba(17,17,15,.65);
 }
 
 .logo{
   display:flex;
   align-items:center;
-  gap:12px;
+  gap:11px;
+
   font-weight:700;
-  letter-spacing:-.03em;
+  letter-spacing:.08em;
+  font-size:12px;
 }
 
 .logoMark{
   width:34px;
   height:34px;
-  border:1px solid var(--ink);
+
+  border:1px solid currentColor;
   border-radius:50%;
+
   display:grid;
   place-items:center;
+
   font-family:"Playfair Display",serif;
   font-size:15px;
 }
 
-.logoText{
-  font-size:14px;
-  letter-spacing:.08em;
-}
-
-.navLinks{
+.status{
   display:flex;
   align-items:center;
-  gap:36px;
-  font-size:12px;
-  text-transform:uppercase;
-  letter-spacing:.12em;
-}
+  gap:8px;
 
-.navLinks a{
-  position:relative;
-  color:#4e4b46;
-}
-
-.navLinks a::after{
-  content:"";
-  position:absolute;
-  left:0;
-  bottom:-7px;
-  width:0;
-  height:1px;
-  background:var(--ink);
-  transition:.3s ease;
-}
-
-.navLinks a:hover::after{
-  width:100%;
-}
-
-.navStatus{
-  display:flex;
-  align-items:center;
-  gap:9px;
   font-family:"DM Mono",monospace;
-  font-size:10px;
-  letter-spacing:.08em;
+  font-size:9px;
+  letter-spacing:.1em;
 }
 
 .statusDot{
   width:7px;
   height:7px;
   border-radius:50%;
-  background:#858078;
+  background:#777;
 }
 
 .statusDot.online{
   background:var(--green);
-  box-shadow:0 0 0 4px rgba(82,107,80,.10);
+  box-shadow:0 0 0 4px rgba(82,107,80,.12);
 }
 
 .statusDot.recording{
   background:var(--red);
-  box-shadow:0 0 0 4px rgba(155,81,76,.12);
+  box-shadow:0 0 0 4px rgba(155,81,76,.15);
 }
 
 /* =========================================================
-   HERO
+   PAGE 1
 ========================================================= */
 
-.hero{
-  min-height:calc(100vh - 82px);
-  padding:7vh 5vw 6vh;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
+#pageIntro{
+  background:
+    radial-gradient(
+      circle at 70% 42%,
+      rgba(162,139,101,.13),
+      transparent 32%
+    ),
+    var(--paper);
+}
+
+.introContent{
+  width:100%;
+  height:100%;
+
+  padding:
+    100px
+    7vw
+    100px;
+
+  display:grid;
+  grid-template-columns:
+    minmax(0,1fr)
+    minmax(320px,.85fr);
+
+  align-items:center;
+
+  gap:4vw;
+}
+
+.introCopy{
+  position:relative;
+  z-index:5;
 }
 
 .eyebrow{
   display:flex;
   align-items:center;
   gap:12px;
+
   font-family:"DM Mono",monospace;
-  font-size:10px;
-  letter-spacing:.14em;
+  font-size:9px;
+  letter-spacing:.15em;
   text-transform:uppercase;
+
   color:var(--muted);
 }
 
@@ -179,118 +232,207 @@ a{
   background:var(--accent);
 }
 
-.heroTitle{
-  max-width:1100px;
-  margin:7vh 0 5vh;
-}
+.introTitle{
+  margin:35px 0 25px;
 
-.heroTitle h1{
-  margin:0;
   font-family:"Playfair Display",serif;
-  font-size:clamp(64px,10vw,155px);
-  line-height:.84;
   font-weight:500;
+
+  font-size:
+    clamp(65px,9vw,145px);
+
+  line-height:.8;
   letter-spacing:-.065em;
 }
 
-.heroTitle h1 span{
+.introTitle span{
   display:block;
 }
 
-.heroTitle h1 .italic{
+.introTitle .italic{
   font-style:italic;
-  padding-left:12vw;
+  margin-left:8vw;
 }
 
-.heroBottom{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:60px;
-  align-items:end;
+.introDescription{
+  max-width:480px;
+
+  font-size:14px;
+  line-height:1.8;
+
+  color:#666159;
 }
 
-.heroDescription{
-  max-width:440px;
-  font-size:15px;
-  line-height:1.7;
-  color:#625e58;
-}
-
-.heroDescription strong{
+.introDescription strong{
   color:var(--ink);
-  font-weight:600;
 }
 
-.heroMeta{
+.introMeta{
   display:flex;
-  justify-content:flex-end;
-  gap:60px;
-}
+  gap:45px;
 
-.metaItem{
-  min-width:100px;
+  margin-top:35px;
 }
 
 .metaLabel{
   display:block;
+
   font-family:"DM Mono",monospace;
-  font-size:9px;
-  color:var(--muted);
+  font-size:8px;
   letter-spacing:.12em;
+
+  color:var(--muted);
+
   text-transform:uppercase;
-  margin-bottom:9px;
+
+  margin-bottom:7px;
 }
 
 .metaValue{
   font-family:"Playfair Display",serif;
-  font-size:25px;
+  font-size:21px;
 }
 
 /* =========================================================
-   CAMERA SECTION
+   LADY JUSTICE
 ========================================================= */
 
-.evidenceSection{
-  background:var(--dark);
-  color:var(--cream);
-  padding:110px 5vw;
+.justiceVisual{
+  height:calc(100vh - 100px);
+
+  position:relative;
+
+  display:flex;
+  justify-content:center;
+  align-items:flex-end;
+
+  overflow:hidden;
 }
 
-.sectionHeader{
+.justiceGlow{
+  position:absolute;
+
+  width:430px;
+  height:430px;
+
+  border-radius:50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(162,139,101,.18),
+      transparent 68%
+    );
+
+  filter:blur(4px);
+}
+
+.justiceImage{
+  position:relative;
+  z-index:2;
+
+  height:min(82vh,760px);
+  max-width:100%;
+
+  object-fit:contain;
+
+  object-position:center bottom;
+
+  mix-blend-mode:multiply;
+
+  filter:
+    contrast(1.02)
+    saturate(.75);
+
+  user-select:none;
+  pointer-events:none;
+}
+
+.justiceCaption{
+  position:absolute;
+
+  right:0;
+  bottom:95px;
+
+  z-index:5;
+
+  font-family:"DM Mono",monospace;
+  font-size:8px;
+  letter-spacing:.13em;
+
+  color:var(--muted);
+
+  writing-mode:vertical-rl;
+  text-transform:uppercase;
+}
+
+/* =========================================================
+   PAGE 2
+========================================================= */
+
+#pageEvidence{
+  background:var(--dark);
+  color:var(--cream);
+}
+
+.evidencePage{
+  width:100%;
+  height:100%;
+
+  padding:
+    100px
+    5vw
+    90px;
+
+  display:flex;
+  flex-direction:column;
+}
+
+.evidenceHeader{
   display:flex;
   justify-content:space-between;
   align-items:flex-end;
-  gap:30px;
-  margin-bottom:45px;
+
+  margin-bottom:24px;
 }
 
 .sectionEyebrow{
   font-family:"DM Mono",monospace;
-  font-size:10px;
+  font-size:9px;
+
   color:#99958e;
+
   letter-spacing:.15em;
   text-transform:uppercase;
-  margin-bottom:15px;
+
+  margin-bottom:8px;
 }
 
 .sectionTitle{
   margin:0;
+
   font-family:"Playfair Display",serif;
   font-weight:500;
-  font-size:clamp(40px,5vw,75px);
+
+  font-size:clamp(40px,5vw,70px);
+
+  line-height:.9;
   letter-spacing:-.05em;
-  line-height:.95;
 }
 
 .liveBadge{
   display:flex;
   align-items:center;
-  gap:9px;
+  gap:8px;
+
+  padding:9px 13px;
+
   border:1px solid #45443f;
-  padding:10px 14px;
+
   font-family:"DM Mono",monospace;
-  font-size:9px;
-  letter-spacing:.12em;
+  font-size:8px;
+
+  letter-spacing:.1em;
   text-transform:uppercase;
 }
 
@@ -308,25 +450,39 @@ a{
 
 @keyframes pulse{
   0%,100%{opacity:1}
-  50%{opacity:.35}
+  50%{opacity:.3}
 }
 
 /* =========================================================
-   CAMERA FRAME
+   CAMERA
 ========================================================= */
 
 .cameraLayout{
+  flex:1;
+  min-height:0;
+
   display:grid;
-  grid-template-columns:minmax(0,2.1fr) minmax(280px,.9fr);
-  gap:22px;
+
+  grid-template-columns:
+    minmax(0,2.15fr)
+    minmax(290px,.85fr);
+
+  gap:18px;
 }
 
 .cameraCard{
-  background:#090909;
-  border-radius:4px;
-  overflow:hidden;
   position:relative;
-  min-height:520px;
+
+  min-height:0;
+
+  background:#050505;
+
+  border:1px solid #2b2b28;
+
+  border-radius:8px;
+
+  overflow:hidden;
+
   display:flex;
   align-items:center;
   justify-content:center;
@@ -334,10 +490,12 @@ a{
 
 #streamCanvas{
   display:none;
+
   width:100%;
-  height:auto;
-  aspect-ratio:4/3;
+  height:100%;
+
   object-fit:contain;
+
   background:#050505;
 }
 
@@ -350,56 +508,76 @@ a{
 .placeholderIcon{
   width:48px;
   height:48px;
+
   border:1px solid #45433f;
   border-radius:50%;
-  margin:0 auto 20px;
+
+  margin:0 auto 18px;
+
   display:grid;
   place-items:center;
+
   font-family:"Playfair Display",serif;
-  font-size:19px;
   color:#aaa59d;
 }
 
 .placeholderTitle{
   font-family:"Playfair Display",serif;
-  font-size:22px;
+  font-size:21px;
+
   color:#d7d2ca;
-  margin-bottom:9px;
+
+  margin-bottom:8px;
 }
 
 .placeholderText{
   font-family:"DM Mono",monospace;
-  font-size:9px;
+  font-size:8px;
+
   letter-spacing:.08em;
   text-transform:uppercase;
 }
 
 .cameraOverlay{
   position:absolute;
-  left:20px;
-  right:20px;
-  top:18px;
+
+  top:16px;
+  left:18px;
+  right:18px;
+
   display:none;
   justify-content:space-between;
+
   pointer-events:none;
+
   font-family:"DM Mono",monospace;
-  font-size:9px;
+  font-size:8px;
+
+  color:#aaa59d;
   letter-spacing:.1em;
-  color:#b5b1aa;
-  text-transform:uppercase;
 }
 
 .cameraBottom{
   position:absolute;
+
   bottom:0;
   left:0;
   right:0;
-  padding:16px 20px;
+
+  padding:22px 18px 14px;
+
   display:none;
   justify-content:space-between;
-  background:linear-gradient(transparent,rgba(0,0,0,.8));
+
+  background:
+    linear-gradient(
+      transparent,
+      rgba(0,0,0,.9)
+    );
+
   font-family:"DM Mono",monospace;
-  font-size:9px;
+  font-size:8px;
+
   color:#aaa59d;
 }
 
@@ -408,40 +586,49 @@ a{
 ========================================================= */
 
 .controlCard{
+  min-height:0;
+
   background:var(--cream);
   color:var(--ink);
-  padding:30px;
+
+  border-radius:8px;
+
+  padding:24px;
+
   display:flex;
   flex-direction:column;
   justify-content:space-between;
-  min-height:520px;
-  border-radius:4px;
 }
 
 .controlTop{
   display:flex;
   justify-content:space-between;
-  gap:15px;
 }
 
-.controlLabel{
+.controlLabel,
+.ipLabel{
   font-family:"DM Mono",monospace;
-  font-size:9px;
+  font-size:8px;
+
   letter-spacing:.13em;
   text-transform:uppercase;
+
   color:var(--muted);
 }
 
 .recordState{
+  margin-top:6px;
+
   font-family:"Playfair Display",serif;
-  font-size:30px;
-  margin-top:7px;
+  font-size:27px;
 }
 
 .connectionState{
   text-align:right;
+
   font-family:"DM Mono",monospace;
-  font-size:9px;
+  font-size:8px;
+
   color:var(--muted);
   text-transform:uppercase;
 }
@@ -449,81 +636,83 @@ a{
 .connectionState strong{
   display:block;
   color:var(--ink);
-  margin-top:6px;
+  margin-top:5px;
 }
 
 .ipGroup{
-  margin:35px 0;
+  margin:25px 0;
 }
 
 .ipLabel{
   display:block;
-  font-family:"DM Mono",monospace;
-  font-size:9px;
-  letter-spacing:.12em;
-  color:var(--muted);
-  text-transform:uppercase;
-  margin-bottom:9px;
+  margin-bottom:7px;
 }
 
 .ipRow{
   display:flex;
+
   border-bottom:1px solid #bbb4aa;
 }
 
 .ipRow input{
   width:100%;
+
   border:0;
   outline:0;
+
   background:transparent;
-  padding:10px 0;
+
+  padding:8px 0;
+
   font-family:"DM Mono",monospace;
-  font-size:13px;
-  color:var(--ink);
+  font-size:12px;
 }
 
 .connectButton{
+  width:42px;
+  height:38px;
+
   border:0;
+
   background:var(--ink);
   color:white;
-  width:45px;
-  height:42px;
-  margin-left:10px;
-  align-self:flex-end;
-  transition:.25s;
-}
 
-.connectButton:hover{
-  background:#3a3935;
+  margin-left:10px;
 }
 
 .controlButtons{
   display:grid;
+
   grid-template-columns:1fr 1fr;
-  gap:8px;
+
+  gap:7px;
 }
 
 .controlButtons button{
   border:1px solid #c3bcb1;
+
   background:transparent;
+
   color:var(--ink);
-  padding:13px 10px;
-  font-size:10px;
+
+  padding:11px 8px;
+
+  font-size:8px;
   letter-spacing:.08em;
+
   text-transform:uppercase;
-  transition:.25s ease;
+
+  transition:.2s;
 }
 
 .controlButtons button:hover:not(:disabled){
   background:var(--ink);
   color:white;
-  border-color:var(--ink);
 }
 
 .controlButtons button.primary{
   background:var(--ink);
   color:white;
-  border-color:var(--ink);
 }
 
 .controlButtons button.danger{
@@ -532,456 +721,538 @@ a{
 }
 
 .controlButtons button:disabled{
-  opacity:.32;
-  cursor:not-allowed;
+  opacity:.3;
 }
 
 .timer{
   font-family:"DM Mono",monospace;
-  font-size:25px;
+  font-size:22px;
+
   letter-spacing:.06em;
-  margin:25px 0 8px;
+
+  margin-top:20px;
 }
 
 .message{
-  min-height:18px;
+  min-height:16px;
+
   font-family:"DM Mono",monospace;
-  font-size:9px;
+  font-size:8px;
+
   line-height:1.5;
+
   color:var(--muted);
 }
 
 /* =========================================================
-   INFORMATION SECTION
+   LIQUID GLASS NAVIGATION
 ========================================================= */
 
-.infoSection{
-  padding:110px 5vw;
-}
+.pageNav{
+  position:absolute;
 
-.infoGrid{
-  display:grid;
-  grid-template-columns:1.1fr 2fr;
-  gap:80px;
-}
+  left:50%;
+  bottom:22px;
 
-.infoHeading{
-  font-family:"Playfair Display",serif;
-  font-size:clamp(40px,5vw,68px);
-  font-weight:500;
-  line-height:.95;
-  letter-spacing:-.05em;
-}
+  transform:translateX(-50%);
 
-.infoText{
-  max-width:680px;
-  font-size:16px;
-  line-height:1.8;
-  color:#68635c;
-}
+  z-index:100;
 
-.systemGrid{
-  margin-top:55px;
-  border-top:1px solid var(--line);
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-}
-
-.systemItem{
-  padding:25px 20px 25px 0;
-  border-bottom:1px solid var(--line);
-}
-
-.systemItem:not(:last-child){
-  border-right:1px solid var(--line);
-  padding-right:25px;
-}
-
-.systemItem:not(:first-child){
-  padding-left:25px;
-}
-
-.systemLabel{
-  display:block;
-  font-family:"DM Mono",monospace;
-  font-size:9px;
-  letter-spacing:.12em;
-  color:var(--muted);
-  text-transform:uppercase;
-  margin-bottom:12px;
-}
-
-.systemValue{
-  font-family:"Playfair Display",serif;
-  font-size:23px;
-}
-
-/* =========================================================
-   FOOTER
-========================================================= */
-
-footer{
-  background:var(--dark);
-  color:var(--cream);
-  padding:35px 5vw;
   display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:20px;
+  gap:8px;
+
+  padding:7px;
+
+  border:1px solid rgba(255,255,255,.25);
+
+  border-radius:20px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,.25),
+      rgba(255,255,255,.07)
+    );
+
+  box-shadow:
+    0 12px 35px rgba(0,0,0,.22),
+    inset 0 1px rgba(255,255,255,.4);
+
+  backdrop-filter:blur(24px) saturate(150%);
+  -webkit-backdrop-filter:blur(24px) saturate(150%);
+}
+
+.pageButton{
+  min-width:110px;
+
+  padding:11px 18px;
+
+  border:1px solid rgba(255,255,255,.18);
+
+  border-radius:14px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,.22),
+      rgba(255,255,255,.05)
+    );
+
+  color:inherit;
+
   font-family:"DM Mono",monospace;
-  font-size:9px;
-  letter-spacing:.08em;
+  font-size:8px;
+
+  letter-spacing:.1em;
+
   text-transform:uppercase;
+
+  transition:
+    transform .25s,
+    background .25s,
+    box-shadow .25s;
+
+  backdrop-filter:blur(12px);
 }
 
-.footerBrand{
-  font-family:"Playfair Display",serif;
-  font-size:17px;
-  text-transform:none;
-  letter-spacing:0;
+.pageButton:hover{
+  transform:translateY(-2px);
 }
 
-/* =========================================================
-   REVEAL ANIMATION
-========================================================= */
+.pageButton.active{
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,.48),
+      rgba(255,255,255,.16)
+    );
 
-.reveal{
-  opacity:0;
-  transform:translateY(24px);
-  animation:reveal .9s cubic-bezier(.22,1,.36,1) forwards;
-}
-
-.delay1{animation-delay:.12s}
-.delay2{animation-delay:.24s}
-.delay3{animation-delay:.36s}
-
-@keyframes reveal{
-  to{
-    opacity:1;
-    transform:none;
-  }
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.65),
+    0 5px 18px rgba(0,0,0,.12);
 }
 
 /* =========================================================
-   RESPONSIVE
+   MOBILE
 ========================================================= */
 
-@media(max-width:900px){
+@media(max-width:850px){
 
-  .navLinks{
-    display:none;
-  }
-
-  .hero{
-    min-height:auto;
-    padding-top:70px;
-    padding-bottom:80px;
-  }
-
-  .heroTitle{
-    margin:60px 0;
-  }
-
-  .heroTitle h1{
-    font-size:clamp(58px,15vw,110px);
-  }
-
-  .heroTitle h1 .italic{
-    padding-left:5vw;
-  }
-
-  .heroBottom{
+  .introContent{
     grid-template-columns:1fr;
-    gap:35px;
+    padding:100px 25px 80px;
   }
 
-  .heroMeta{
-    justify-content:flex-start;
+  .introCopy{
+    align-self:start;
+  }
+
+  .justiceVisual{
+    position:absolute;
+    right:0;
+    bottom:60px;
+
+    width:52%;
+
+    height:65vh;
+
+    opacity:.42;
+  }
+
+  .introTitle{
+    font-size:clamp(60px,17vw,100px);
+  }
+
+  .introDescription{
+    max-width:350px;
   }
 
   .cameraLayout{
     grid-template-columns:1fr;
   }
 
-  .cameraCard,
-  .controlCard{
-    min-height:auto;
-  }
-
   .cameraCard{
-    min-height:300px;
+    min-height:42vh;
   }
 
-  .infoGrid{
-    grid-template-columns:1fr;
-    gap:30px;
-  }
-
-  .systemGrid{
-    grid-template-columns:1fr 1fr;
-  }
-
-  .systemItem:nth-child(2){
-    border-right:0;
-  }
-
-  .systemItem:nth-child(3){
-    padding-left:0;
+  .controlCard{
+    overflow:auto;
   }
 
 }
 
-@media(max-width:560px){
+@media(max-width:550px){
 
-  .nav{
-    height:70px;
+  .topbar{
+    height:64px;
     padding:0 20px;
   }
 
-  .hero,
-  .evidenceSection,
-  .infoSection{
-    padding-left:20px;
-    padding-right:20px;
+  .evidencePage{
+    padding:
+      82px
+      20px
+      75px;
   }
 
-  .heroTitle h1{
-    font-size:58px;
+  .evidenceHeader{
+    margin-bottom:14px;
   }
 
-  .heroMeta{
-    gap:30px;
+  .liveBadge{
+    display:none;
   }
 
-  .sectionHeader{
-    align-items:flex-start;
-    flex-direction:column;
+  .sectionTitle{
+    font-size:42px;
   }
 
-  .controlCard{
-    padding:22px;
+  .pageButton{
+    min-width:90px;
+    padding:10px 12px;
   }
 
-  .systemGrid{
-    grid-template-columns:1fr;
+  .justiceVisual{
+    width:65%;
+    opacity:.28;
   }
-
-  .systemItem,
-  .systemItem:not(:first-child),
-  .systemItem:not(:last-child){
-    border-right:0;
-    padding-left:0;
-    padding-right:0;
-  }
-
-  footer{
-    flex-direction:column;
-    align-items:flex-start;
-  }
-
 }
 </style>
 </head>
 
 <body>
 
-<!-- =========================================================
-     NAVIGATION
-========================================================= -->
-
-<nav class="nav">
-
-  <a class="logo" href="#">
-    <span class="logoMark">M</span>
-    <span class="logoText">MR. JUSTICE</span>
-  </a>
-
-  <div class="navLinks">
-    <a href="#system">System</a>
-    <a href="#evidence">Evidence</a>
-    <a href="#recording">Recording</a>
-  </div>
-
-  <div class="navStatus">
-    <span id="navDot" class="statusDot"></span>
-    <span id="navStatus">OFFLINE</span>
-  </div>
-
-</nav>
-
+<div id="app">
 
 <!-- =========================================================
-     HERO
+     PAGE 1 — INTRO
 ========================================================= -->
 
-<section class="hero">
+<section
+  id="pageIntro"
+  class="page active"
+>
 
-  <div class="eyebrow reveal">
-    <span class="eyebrowLine"></span>
-    Digital Evidence Logger · Field System 01
-  </div>
+  <header class="topbar">
 
-  <div class="heroTitle reveal delay1">
-
-    <h1>
-      <span>MR.</span>
-      <span class="italic">JUSTICE</span>
-    </h1>
-
-  </div>
-
-  <div class="heroBottom reveal delay2">
-
-    <div class="heroDescription">
-      A compact digital evidence platform built around the
-      <strong>XIAO ESP32-S3 Sense</strong>.
-      Designed for reliable field capture, live monitoring
-      and browser-based recording.
+    <div class="logo">
+      <span class="logoMark">M</span>
+      <span>MR. JUSTICE</span>
     </div>
 
-    <div class="heroMeta">
+    <div class="status">
+      <span
+        id="navDot"
+        class="statusDot"
+      ></span>
 
-      <div class="metaItem">
-        <span class="metaLabel">System</span>
-        <span class="metaValue">01</span>
+      <span id="navStatus">
+        OFFLINE
+      </span>
+    </div>
+
+  </header>
+
+
+  <main class="introContent">
+
+    <div class="introCopy">
+
+      <div class="eyebrow">
+        <span class="eyebrowLine"></span>
+        Digital Evidence Logger · Field System 01
       </div>
 
-      <div class="metaItem">
-        <span class="metaLabel">Camera</span>
-        <span class="metaValue">QVGA</span>
+      <h1 class="introTitle">
+        <span>MR.</span>
+        <span class="italic">JUSTICE</span>
+      </h1>
+
+      <div class="introDescription">
+
+        A compact digital evidence platform built around
+        the <strong>XIAO ESP32-S3 Sense</strong>.
+
+        <br><br>
+
+        Live monitoring. Evidence capture.
+        Browser recording.
+
       </div>
 
-      <div class="metaItem">
-        <span class="metaLabel">Feed</span>
-        <span class="metaValue">MJPEG</span>
+      <div class="introMeta">
+
+        <div>
+          <span class="metaLabel">System</span>
+          <span class="metaValue">01</span>
+        </div>
+
+        <div>
+          <span class="metaLabel">Camera</span>
+          <span class="metaValue">QVGA</span>
+        </div>
+
+        <div>
+          <span class="metaLabel">Feed</span>
+          <span class="metaValue">MJPEG</span>
+        </div>
+
       </div>
 
     </div>
 
-  </div>
+
+    <div class="justiceVisual">
+
+      <div class="justiceGlow"></div>
+
+      <img
+        class="justiceImage"
+        src="lady-justice.png"
+        alt="Lady Justice holding the scales of justice"
+      >
+
+      <div class="justiceCaption">
+        Justice · Balance · Evidence
+      </div>
+
+    </div>
+
+  </main>
 
 </section>
 
 
 <!-- =========================================================
-     EVIDENCE
+     PAGE 2 — EVIDENCE
 ========================================================= -->
 
-<section class="evidenceSection" id="evidence">
+<section
+  id="pageEvidence"
+  class="page darkPage"
+>
 
-  <div class="sectionHeader">
+  <header class="topbar">
 
-    <div>
-      <div class="sectionEyebrow">
-        Evidence / 01
-      </div>
-
-      <h2 class="sectionTitle">
-        Live Evidence
-      </h2>
+    <div class="logo">
+      <span class="logoMark">M</span>
+      <span>MR. JUSTICE</span>
     </div>
 
-    <div class="liveBadge">
-      <span id="liveDot" class="liveDot"></span>
-      <span id="liveText">Awaiting connection</span>
+    <div class="status">
+      <span
+        id="navDot2"
+        class="statusDot"
+      ></span>
+
+      <span id="navStatus2">
+        OFFLINE
+      </span>
     </div>
 
-  </div>
+  </header>
 
 
-  <div class="cameraLayout">
+  <main class="evidencePage">
 
-    <!-- CAMERA -->
-
-    <div class="cameraCard">
-
-      <div id="placeholder" class="placeholder">
-
-        <div class="placeholderIcon">M</div>
-
-        <div class="placeholderTitle">
-          Camera Feed
-        </div>
-
-        <div class="placeholderText">
-          Enter XIAO address to establish secure link
-        </div>
-
-      </div>
-
-      <canvas
-        id="streamCanvas"
-        width="320"
-        height="240"
-      ></canvas>
-
-
-      <div id="cameraOverlay" class="cameraOverlay">
-        <span>MR. JUSTICE / LIVE</span>
-        <span>CAM 01 · 320×240</span>
-      </div>
-
-      <div id="cameraBottom" class="cameraBottom">
-        <span id="cameraConnection">OFFLINE</span>
-        <span id="cameraFps">LIVE FEED</span>
-      </div>
-
-    </div>
-
-
-    <!-- CONTROLS -->
-
-    <div class="controlCard" id="recording">
+    <div class="evidenceHeader">
 
       <div>
 
-        <div class="controlTop">
+        <div class="sectionEyebrow">
+          Evidence / 01
+        </div>
 
-          <div>
-            <div class="controlLabel">
-              Session status
-            </div>
+        <h2 class="sectionTitle">
+          Live Evidence
+        </h2>
 
-            <div
-              id="recordState"
-              class="recordState"
-            >
-              Preview
-            </div>
+      </div>
+
+      <div class="liveBadge">
+
+        <span
+          id="liveDot"
+          class="liveDot"
+        ></span>
+
+        <span id="liveText">
+          Awaiting connection
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <div class="cameraLayout">
+
+      <!-- CAMERA -->
+
+      <div class="cameraCard">
+
+        <div
+          id="placeholder"
+          class="placeholder"
+        >
+
+          <div class="placeholderIcon">
+            M
           </div>
 
-          <div class="connectionState">
-            Connection
-            <strong id="connectionText">
-              Offline
-            </strong>
+          <div class="placeholderTitle">
+            Camera Feed
+          </div>
+
+          <div class="placeholderText">
+            Enter XIAO address to establish link
           </div>
 
         </div>
 
+        <canvas
+          id="streamCanvas"
+          width="320"
+          height="240"
+        ></canvas>
 
-        <div class="ipGroup">
+        <div
+          id="cameraOverlay"
+          class="cameraOverlay"
+        >
+          <span>
+            MR. JUSTICE / LIVE
+          </span>
 
-          <label class="ipLabel">
-            XIAO Device Address
-          </label>
+          <span>
+            CAM 01 · 320×240
+          </span>
+        </div>
 
-          <div class="ipRow">
+        <div
+          id="cameraBottom"
+          class="cameraBottom"
+        >
+          <span id="cameraConnection">
+            OFFLINE
+          </span>
 
-            <input
-              id="ip"
-              value="192.168.1.8"
-              placeholder="192.168.1.8"
-              autocomplete="off"
-              spellcheck="false"
-            >
+          <span id="cameraFps">
+            LIVE FEED
+          </span>
+        </div>
+
+      </div>
+
+
+      <!-- CONTROLS -->
+
+      <div class="controlCard">
+
+        <div>
+
+          <div class="controlTop">
+
+            <div>
+
+              <div class="controlLabel">
+                Session status
+              </div>
+
+              <div
+                id="recordState"
+                class="recordState"
+              >
+                Preview
+              </div>
+
+            </div>
+
+            <div class="connectionState">
+
+              Connection
+
+              <strong id="connectionText">
+                Offline
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div class="ipGroup">
+
+            <label class="ipLabel">
+              XIAO Device Address
+            </label>
+
+            <div class="ipRow">
+
+              <input
+                id="ip"
+                value="192.168.1.8"
+                placeholder="192.168.1.8"
+                autocomplete="off"
+                spellcheck="false"
+              >
+
+              <button
+                id="connectBtn"
+                class="connectButton"
+              >
+                →
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <div class="controlButtons">
 
             <button
-              id="connectBtn"
-              class="connectButton"
-              title="Connect"
+              id="captureBtn"
+              disabled
             >
-              →
+              Capture JPEG
+            </button>
+
+            <button
+              id="startBtn"
+              class="primary"
+              disabled
+            >
+              Begin Recording
+            </button>
+
+            <button
+              id="pauseBtn"
+              disabled
+            >
+              Pause
+            </button>
+
+            <button
+              id="resumeBtn"
+              disabled
+            >
+              Resume
+            </button>
+
+            <button
+              id="stopBtn"
+              class="danger"
+              disabled
+            >
+              End Session
+            </button>
+
+            <button
+              id="disconnectBtn"
+              disabled
+            >
+              Disconnect
             </button>
 
           </div>
@@ -989,314 +1260,161 @@ footer{
         </div>
 
 
-        <div class="controlButtons">
+        <div>
 
-          <button
-            id="captureBtn"
-            disabled
+          <div
+            id="timer"
+            class="timer"
           >
-            Capture JPEG
-          </button>
+            00:00:00
+          </div>
 
-          <button
-            id="startBtn"
-            class="primary"
-            disabled
+          <div
+            id="message"
+            class="message"
           >
-            Begin Recording
-          </button>
+            System ready.
+          </div>
 
-          <button
-            id="pauseBtn"
-            disabled
-          >
-            Pause
-          </button>
-
-          <button
-            id="resumeBtn"
-            disabled
-          >
-            Resume
-          </button>
-
-          <button
-            id="stopBtn"
-            class="danger"
-            disabled
-          >
-            End Session
-          </button>
-
-          <button
-            id="disconnectBtn"
-            disabled
-          >
-            Disconnect
-          </button>
-
-        </div>
-
-      </div>
-
-
-      <div>
-
-        <div
-          id="timer"
-          class="timer"
-        >
-          00:00:00
-        </div>
-
-        <div
-          id="message"
-          class="message"
-        >
-          System ready.
         </div>
 
       </div>
 
     </div>
 
-  </div>
+  </main>
 
 </section>
 
 
 <!-- =========================================================
-     SYSTEM
+     LIQUID GLASS NAV
 ========================================================= -->
 
-<section
-  class="infoSection"
-  id="system"
->
+<nav class="pageNav">
 
-  <div class="infoGrid">
+  <button
+    class="pageButton active"
+    data-page="intro"
+  >
+    01 · INTRO
+  </button>
 
-    <div>
-      <div class="sectionEyebrow">
-        System / 02
-      </div>
+  <button
+    class="pageButton"
+    data-page="evidence"
+  >
+    02 · EVIDENCE
+  </button>
 
-      <div class="infoHeading">
-        Precision<br>
-        in every frame.
-      </div>
-    </div>
+</nav>
 
-    <div>
-
-      <div class="infoText">
-        Mr. Justice is built around a low-latency MJPEG
-        pipeline. The XIAO captures the scene while the
-        browser provides the interface for monitoring,
-        evidence capture and recording.
-      </div>
-
-      <div class="systemGrid">
-
-        <div class="systemItem">
-          <span class="systemLabel">
-            Connection
-          </span>
-          <span
-            id="sConnection"
-            class="systemValue"
-          >
-            Offline
-          </span>
-        </div>
-
-        <div class="systemItem">
-          <span class="systemLabel">
-            Wi-Fi
-          </span>
-          <span
-            id="sWifi"
-            class="systemValue"
-          >
-            —
-          </span>
-        </div>
-
-        <div class="systemItem">
-          <span class="systemLabel">
-            RSSI
-          </span>
-          <span
-            id="sRssi"
-            class="systemValue"
-          >
-            —
-          </span>
-        </div>
-
-        <div class="systemItem">
-          <span class="systemLabel">
-            Resolution
-          </span>
-          <span
-            id="sResolution"
-            class="systemValue"
-          >
-            —
-          </span>
-        </div>
-
-        <div class="systemItem">
-          <span class="systemLabel">
-            Free Heap
-          </span>
-          <span
-            id="sHeap"
-            class="systemValue"
-          >
-            —
-          </span>
-        </div>
-
-        <div class="systemItem">
-          <span class="systemLabel">
-            Free PSRAM
-          </span>
-          <span
-            id="sPsram"
-            class="systemValue"
-          >
-            —
-          </span>
-        </div>
-
-        <div class="systemItem">
-          <span class="systemLabel">
-            PSRAM Size
-          </span>
-          <span
-            id="sPsramSize"
-            class="systemValue"
-          >
-            —
-          </span>
-        </div>
-
-        <div class="systemItem">
-          <span class="systemLabel">
-            Recording
-          </span>
-          <span
-            id="sRecording"
-            class="systemValue"
-          >
-            —
-          </span>
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</section>
-
-
-<!-- =========================================================
-     FOOTER
-========================================================= -->
-
-<footer>
-
-  <div class="footerBrand">
-    Mr. Justice
-  </div>
-
-  <div>
-    Digital Evidence Logger · XIAO ESP32-S3 Sense
-  </div>
-
-  <div>
-    Field System 01
-  </div>
-
-</footer>
+</div>
 
 
 <script>
-
 "use strict";
+
+/* =========================================================
+   PAGE NAVIGATION
+========================================================= */
+
+const pages = {
+  intro:
+    document.getElementById("pageIntro"),
+
+  evidence:
+    document.getElementById("pageEvidence")
+};
+
+const pageButtons =
+  document.querySelectorAll(".pageButton");
+
+function showPage(name){
+
+  Object.entries(pages).forEach(
+    ([key,page]) => {
+
+      page.classList.toggle(
+        "active",
+        key === name
+      );
+
+    }
+  );
+
+  pageButtons.forEach(
+    button => {
+
+      button.classList.toggle(
+        "active",
+        button.dataset.page === name
+      );
+
+    }
+  );
+
+}
+
+pageButtons.forEach(
+  button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        showPage(
+          button.dataset.page
+        );
+
+      }
+    );
+
+  }
+);
+
 
 /* =========================================================
    ELEMENTS
 ========================================================= */
 
-const $ = id =>
-  document.getElementById(id);
+const $ =
+  id => document.getElementById(id);
 
 const el = {
 
   ip:$("ip"),
-
   connect:$("connectBtn"),
-
   disconnect:$("disconnectBtn"),
-
   capture:$("captureBtn"),
-
   start:$("startBtn"),
-
   pause:$("pauseBtn"),
-
   resume:$("resumeBtn"),
-
   stop:$("stopBtn"),
 
   canvas:$("streamCanvas"),
-
   placeholder:$("placeholder"),
 
   message:$("message"),
 
   navDot:$("navDot"),
-
   navStatus:$("navStatus"),
 
-  liveDot:$("liveDot"),
+  navDot2:$("navDot2"),
+  navStatus2:$("navStatus2"),
 
+  liveDot:$("liveDot"),
   liveText:$("liveText"),
 
   connectionText:$("connectionText"),
-
   cameraConnection:$("cameraConnection"),
 
   cameraOverlay:$("cameraOverlay"),
-
   cameraBottom:$("cameraBottom"),
-
   cameraFps:$("cameraFps"),
 
   recordState:$("recordState"),
-
-  timer:$("timer"),
-
-  sConnection:$("sConnection"),
-
-  sWifi:$("sWifi"),
-
-  sRssi:$("sRssi"),
-
-  sHeap:$("sHeap"),
-
-  sPsram:$("sPsram"),
-
-  sPsramSize:$("sPsramSize"),
-
-  sResolution:$("sResolution"),
-
-  sRecording:$("sRecording")
-
+  timer:$("timer")
 };
 
 
@@ -1305,44 +1423,31 @@ const el = {
 ========================================================= */
 
 let baseUrl = "";
-
 let streamUrl = "";
 
 let connected = false;
 
 let recording = false;
-
 let paused = false;
 
 let recordStartedAt = 0;
-
 let pausedAt = 0;
-
 let accumulatedPause = 0;
 
 let timerHandle = null;
-
 let statusHandle = null;
 
-
-/* =========================================================
-   STREAM STATE
-========================================================= */
-
 let streamController = null;
-
 let streamReader = null;
-
 let streamRunning = false;
 
-let streamBuffer = new Uint8Array(0);
+let streamBuffer =
+  new Uint8Array(0);
 
 let newestJPEG = null;
-
 let decoding = false;
 
 let lastFrameTime = 0;
-
 let currentFPS = 0;
 
 
@@ -1365,17 +1470,13 @@ const ctx =
 ========================================================= */
 
 let recorder = null;
-
 let chunks = [];
 
 let captureStream = null;
-
 let recordingCanvas = null;
-
 let recordingContext = null;
 
 let drawing = false;
-
 let drawTimer = null;
 
 
@@ -1383,7 +1484,10 @@ let drawTimer = null;
    MESSAGE
 ========================================================= */
 
-function message(text,color=""){
+function message(
+  text,
+  color=""
+){
 
   el.message.textContent = text;
 
@@ -1394,26 +1498,35 @@ function message(text,color=""){
 
 
 /* =========================================================
-   CONNECTION UI
+   CONNECTION
 ========================================================= */
 
-function setConnection(ok,text){
+function setConnection(ok){
 
   connected = ok;
 
-  el.navStatus.textContent =
+  const status =
     ok ? "ONLINE" : "OFFLINE";
+
+  el.navStatus.textContent =
+    status;
+
+  el.navStatus2.textContent =
+    status;
 
   el.connectionText.textContent =
     ok ? "Online" : "Offline";
 
   el.cameraConnection.textContent =
-    ok ? "LINK ESTABLISHED" : "OFFLINE";
-
-  el.sConnection.textContent =
-    ok ? "Online" : "Offline";
+    ok
+      ? "LINK ESTABLISHED"
+      : "OFFLINE";
 
   el.navDot.className =
+    "statusDot " +
+    (ok ? "online" : "");
+
+  el.navDot2.className =
     "statusDot " +
     (ok ? "online" : "");
 
@@ -1432,7 +1545,7 @@ function setConnection(ok,text){
 
 
 /* =========================================================
-   BUTTON STATE
+   BUTTONS
 ========================================================= */
 
 function updateButtons(){
@@ -1467,16 +1580,16 @@ function normalizeUrl(value){
   let v =
     value.trim();
 
-  if(!v){
+  if(!v)
     throw new Error(
       "Enter the XIAO IP address."
     );
-  }
 
   if(
     !/^https?:\/\//i.test(v)
   ){
-    v = "http://" + v;
+    v =
+      "http://" + v;
   }
 
   v =
@@ -1485,9 +1598,7 @@ function normalizeUrl(value){
       ""
     );
 
-  const u = new URL(v);
-
-  return u.origin;
+  return new URL(v).origin;
 
 }
 
@@ -1517,14 +1628,14 @@ function formatTime(ms){
 
   return [
     h,m,s
-  ].map(
+  ]
+  .map(
     v =>
-      String(v)
-        .padStart(2,"0")
-  ).join(":");
+      String(v).padStart(2,"0")
+  )
+  .join(":");
 
 }
-
 
 function updateTimer(){
 
@@ -1540,23 +1651,21 @@ function updateTimer(){
   const now =
     performance.now();
 
-  let pausedTotal =
+  let pauseTotal =
     accumulatedPause;
 
-  if(paused){
-    pausedTotal +=
+  if(paused)
+    pauseTotal +=
       now - pausedAt;
-  }
 
   el.timer.textContent =
     formatTime(
       now -
       recordStartedAt -
-      pausedTotal
+      pauseTotal
     );
 
 }
-
 
 function startTimer(){
 
@@ -1572,12 +1681,13 @@ function startTimer(){
 
 }
 
-
 function stopTimer(){
 
   if(timerHandle){
 
-    clearInterval(timerHandle);
+    clearInterval(
+      timerHandle
+    );
 
     timerHandle = null;
 
@@ -1598,68 +1708,21 @@ async function getStatus(){
       "/status?t=" +
       Date.now(),
       {
-        method:"GET",
         cache:"no-store"
       }
     );
 
-  if(!response.ok){
+  if(!response.ok)
     throw new Error(
       "Status HTTP " +
       response.status
     );
-  }
 
   return response.json();
 
 }
 
-
 function updateStatus(s){
-
-  el.sWifi.textContent =
-    s.wifi
-      ? "Connected"
-      : "Offline";
-
-  el.sRssi.textContent =
-    Number.isFinite(s.wifi_rssi)
-      ? s.wifi_rssi + " dBm"
-      : "—";
-
-  el.sHeap.textContent =
-    Number.isFinite(s.free_heap)
-      ? Math.round(
-          s.free_heap / 1024
-        ) + " KB"
-      : "—";
-
-  el.sPsram.textContent =
-    Number.isFinite(s.free_psram)
-      ? Math.round(
-          s.free_psram / 1024
-        ) + " KB"
-      : "—";
-
-  el.sPsramSize.textContent =
-    Number.isFinite(s.psram_size)
-      ? Math.round(
-          s.psram_size / 1024
-        ) + " KB"
-      : "—";
-
-  el.sResolution.textContent =
-    Number.isFinite(s.width) &&
-    Number.isFinite(s.height)
-      ? s.width +
-        " × " +
-        s.height
-      : "—";
-
-  el.sRecording.textContent =
-    s.recording
-      ? "Active"
-      : "Idle";
 
   el.recordState.textContent =
     s.recording
@@ -1672,29 +1735,27 @@ function updateStatus(s){
 
   if(s.recording){
 
-    el.navDot.className =
-      "statusDot recording";
-
     el.navStatus.textContent =
       s.paused
         ? "PAUSED"
         : "RECORDING";
 
-  }
-  else if(connected){
+    el.navStatus2.textContent =
+      s.paused
+        ? "PAUSED"
+        : "RECORDING";
 
     el.navDot.className =
-      "statusDot online";
+      "statusDot recording";
 
-    el.navStatus.textContent =
-      "ONLINE";
+    el.navDot2.className =
+      "statusDot recording";
 
   }
 
   updateButtons();
 
 }
-
 
 async function pollStatus(){
 
@@ -1703,10 +1764,9 @@ async function pollStatus(){
 
   try{
 
-    const s =
-      await getStatus();
-
-    updateStatus(s);
+    updateStatus(
+      await getStatus()
+    );
 
   }
   catch(e){
@@ -1722,16 +1782,15 @@ async function pollStatus(){
 
 
 /* =========================================================
-   XIAO COMMAND
+   COMMAND
 ========================================================= */
 
 async function xiaoCommand(path){
 
-  if(!baseUrl){
+  if(!baseUrl)
     throw new Error(
       "Not connected."
     );
-  }
 
   const response =
     await fetch(
@@ -1740,17 +1799,15 @@ async function xiaoCommand(path){
       "?t=" +
       Date.now(),
       {
-        method:"GET",
         cache:"no-store"
       }
     );
 
-  if(!response.ok){
+  if(!response.ok)
     throw new Error(
       "XIAO HTTP " +
       response.status
     );
-  }
 
   return response.text();
 
@@ -1777,7 +1834,6 @@ function showPreview(){
 
 }
 
-
 function hidePreview(){
 
   el.canvas.style.display =
@@ -1796,10 +1852,13 @@ function hidePreview(){
 
 
 /* =========================================================
-   STREAM BUFFER
+   MJPEG BUFFER
 ========================================================= */
 
-function appendBytes(oldBuffer,newBytes){
+function appendBytes(
+  oldBuffer,
+  newBytes
+){
 
   const combined =
     new Uint8Array(
@@ -1808,8 +1867,7 @@ function appendBytes(oldBuffer,newBytes){
     );
 
   combined.set(
-    oldBuffer,
-    0
+    oldBuffer
   );
 
   combined.set(
@@ -1820,11 +1878,6 @@ function appendBytes(oldBuffer,newBytes){
   return combined;
 
 }
-
-
-/* =========================================================
-   JPEG EXTRACTION
-========================================================= */
 
 function extractJPEG(){
 
@@ -1850,12 +1903,9 @@ function extractJPEG(){
 
   if(start < 0){
 
-    if(streamBuffer.length > 1){
-
+    if(streamBuffer.length > 1)
       streamBuffer =
         streamBuffer.slice(-1);
-
-    }
 
     return null;
 
@@ -1874,7 +1924,9 @@ function extractJPEG(){
       streamBuffer[i+1] === 0xD9
     ){
 
-      end = i + 2;
+      end =
+        i + 2;
+
       break;
 
     }
@@ -1899,7 +1951,7 @@ function extractJPEG(){
 
 
 /* =========================================================
-   DECODE
+   FRAME DECODER
 ========================================================= */
 
 function queueJPEG(jpeg){
@@ -1909,7 +1961,6 @@ function queueJPEG(jpeg){
   decodeNewest();
 
 }
-
 
 async function decodeNewest(){
 
@@ -1933,30 +1984,27 @@ async function decodeNewest(){
 
     try{
 
-      const blob =
-        new Blob(
-          [jpeg],
-          {type:"image/jpeg"}
-        );
-
       const bitmap =
-        await createImageBitmap(blob);
+        await createImageBitmap(
+          new Blob(
+            [jpeg],
+            {type:"image/jpeg"}
+          )
+        );
 
       if(
         el.canvas.width !==
         bitmap.width
-      ){
+      )
         el.canvas.width =
           bitmap.width;
-      }
 
       if(
         el.canvas.height !==
         bitmap.height
-      ){
+      )
         el.canvas.height =
           bitmap.height;
-      }
 
       ctx.drawImage(
         bitmap,
@@ -1978,12 +2026,12 @@ async function decodeNewest(){
 
         if(dt > 0){
 
-          const instant =
+          const fps =
             1000 / dt;
 
           currentFPS =
             currentFPS * .8 +
-            instant * .2;
+            fps * .2;
 
         }
 
@@ -1991,10 +2039,7 @@ async function decodeNewest(){
 
       lastFrameTime = now;
 
-      if(
-        Number.isFinite(currentFPS) &&
-        currentFPS > 0
-      ){
+      if(currentFPS > 0){
 
         el.cameraFps.textContent =
           currentFPS.toFixed(1) +
@@ -2006,7 +2051,7 @@ async function decodeNewest(){
     catch(e){
 
       console.warn(
-        "JPEG decode:",
+        "Decode:",
         e
       );
 
@@ -2020,15 +2065,12 @@ async function decodeNewest(){
 
 
 /* =========================================================
-   MJPEG
+   START STREAM
 ========================================================= */
 
 async function startMJPEG(){
 
   stopMJPEG();
-
-  if(!streamUrl)
-    return;
 
   streamController =
     new AbortController();
@@ -2040,10 +2082,7 @@ async function startMJPEG(){
 
   newestJPEG = null;
 
-  decoding = false;
-
   lastFrameTime = 0;
-
   currentFPS = 0;
 
   try{
@@ -2054,7 +2093,6 @@ async function startMJPEG(){
         "?t=" +
         Date.now(),
         {
-          method:"GET",
           cache:"no-store",
           mode:"cors",
           signal:
@@ -2062,31 +2100,21 @@ async function startMJPEG(){
         }
       );
 
-    if(!response.ok){
-
+    if(!response.ok)
       throw new Error(
         "Stream HTTP " +
         response.status
       );
 
-    }
-
-    if(!response.body){
-
+    if(!response.body)
       throw new Error(
         "ReadableStream unavailable."
       );
 
-    }
-
     streamReader =
       response.body.getReader();
 
-    setConnection(
-      true,
-      "CONNECTED"
-    );
-
+    setConnection(true);
     showPreview();
 
     message(
@@ -2128,7 +2156,7 @@ async function startMJPEG(){
 
       if(
         streamBuffer.length >
-        1024 * 1024
+        1024*1024
       ){
 
         streamBuffer =
@@ -2148,17 +2176,11 @@ async function startMJPEG(){
       "AbortError"
     ){
 
-      console.error(
-        "MJPEG:",
-        e
-      );
+      console.error(e);
 
       if(streamRunning){
 
-        setConnection(
-          false,
-          "STREAM ERROR"
-        );
+        setConnection(false);
 
         message(
           "Camera stream disconnected.",
@@ -2173,14 +2195,7 @@ async function startMJPEG(){
 
   streamRunning = false;
 
-  streamReader = null;
-
 }
-
-
-/* =========================================================
-   STOP STREAM
-========================================================= */
 
 function stopMJPEG(){
 
@@ -2196,15 +2211,6 @@ function stopMJPEG(){
   }
 
   streamController = null;
-
-  if(streamReader){
-
-    try{
-      streamReader.cancel();
-    }
-    catch(_){}
-
-  }
 
   streamReader = null;
 
@@ -2248,13 +2254,9 @@ function connectPreview(){
   baseUrl = url;
 
   streamUrl =
-    url +
-    ":81/stream";
+    url + ":81/stream";
 
-  setConnection(
-    false,
-    "CONNECTING..."
-  );
+  setConnection(false);
 
   message(
     "Establishing connection..."
@@ -2293,15 +2295,11 @@ function disconnect(){
   stopMJPEG();
 
   baseUrl = "";
-
   streamUrl = "";
 
   hidePreview();
 
-  setConnection(
-    false,
-    "DISCONNECTED"
-  );
+  setConnection(false);
 
   message(
     "System disconnected."
@@ -2335,14 +2333,11 @@ async function captureJPEG(){
         }
       );
 
-    if(!response.ok){
-
+    if(!response.ok)
       throw new Error(
         "Capture HTTP " +
         response.status
       );
-
-    }
 
     const blob =
       await response.blob();
@@ -2402,8 +2397,6 @@ async function captureJPEG(){
   }
   catch(e){
 
-    console.error(e);
-
     message(
       "Capture failed: " +
       e.message,
@@ -2416,7 +2409,7 @@ async function captureJPEG(){
 
 
 /* =========================================================
-   RECORDING CANVAS
+   RECORDING
 ========================================================= */
 
 async function buildCaptureStream(){
@@ -2428,33 +2421,21 @@ async function buildCaptureStream(){
     el.canvas.height || 240;
 
   recordingCanvas =
-    document.createElement("canvas");
+    document.createElement(
+      "canvas"
+    );
 
-  recordingCanvas.width = width;
+  recordingCanvas.width =
+    width;
 
-  recordingCanvas.height = height;
+  recordingCanvas.height =
+    height;
 
   recordingContext =
     recordingCanvas.getContext(
       "2d",
       {alpha:false}
     );
-
-  if(!recordingContext){
-
-    throw new Error(
-      "Recording canvas unavailable."
-    );
-
-  }
-
-  recordingContext.drawImage(
-    el.canvas,
-    0,
-    0,
-    width,
-    height
-  );
 
   captureStream =
     recordingCanvas.captureStream(20);
@@ -2488,11 +2469,6 @@ async function buildCaptureStream(){
 
 }
 
-
-/* =========================================================
-   START RECORDING
-========================================================= */
-
 async function startRecording(){
 
   if(
@@ -2516,39 +2492,30 @@ async function startRecording(){
       MediaRecorder.isTypeSupported(
         "video/webm;codecs=vp9"
       )
-    ){
-
+    )
       mime =
         "video/webm;codecs=vp9";
 
-    }
     else if(
       MediaRecorder.isTypeSupported(
         "video/webm;codecs=vp8"
       )
-    ){
-
+    )
       mime =
         "video/webm;codecs=vp8";
 
-    }
     else if(
       MediaRecorder.isTypeSupported(
         "video/webm"
       )
-    ){
-
+    )
       mime =
         "video/webm";
 
-    }
-    else{
-
+    else
       throw new Error(
         "WebM recording unsupported."
       );
-
-    }
 
     recorder =
       new MediaRecorder(
@@ -2566,21 +2533,16 @@ async function startRecording(){
 
         if(
           event.data &&
-          event.data.size > 0
-        ){
-
+          event.data.size
+        )
           chunks.push(
             event.data
           );
 
-        }
-
       };
 
     recorder.onstop =
-      () => {
-        saveRecording();
-      };
+      saveRecording;
 
     recorder.start(1000);
 
@@ -2589,13 +2551,10 @@ async function startRecording(){
     );
 
     recording = true;
-
     paused = false;
 
     recordStartedAt =
       performance.now();
-
-    pausedAt = 0;
 
     accumulatedPause = 0;
 
@@ -2605,7 +2564,13 @@ async function startRecording(){
     el.navDot.className =
       "statusDot recording";
 
+    el.navDot2.className =
+      "statusDot recording";
+
     el.navStatus.textContent =
+      "RECORDING";
+
+    el.navStatus2.textContent =
       "RECORDING";
 
     startTimer();
@@ -2617,8 +2582,6 @@ async function startRecording(){
       "#526b50"
     );
 
-    pollStatus();
-
   }
   catch(e){
 
@@ -2626,34 +2589,18 @@ async function startRecording(){
 
     drawing = false;
 
-    if(drawTimer){
-
+    if(drawTimer)
       clearTimeout(drawTimer);
 
-      drawTimer = null;
-
-    }
-
-    if(captureStream){
-
+    if(captureStream)
       captureStream
         .getTracks()
         .forEach(
-          track =>
-            track.stop()
+          t => t.stop()
         );
 
-    }
-
     captureStream = null;
-
     recorder = null;
-
-    recording = false;
-
-    paused = false;
-
-    updateButtons();
 
     message(
       "Record start failed: " +
@@ -2664,11 +2611,6 @@ async function startRecording(){
   }
 
 }
-
-
-/* =========================================================
-   PAUSE
-========================================================= */
 
 async function pauseRecording(){
 
@@ -2688,11 +2630,8 @@ async function pauseRecording(){
       recorder &&
       recorder.state ===
       "recording"
-    ){
-
+    )
       recorder.pause();
-
-    }
 
     paused = true;
 
@@ -2705,14 +2644,10 @@ async function pauseRecording(){
     el.navStatus.textContent =
       "PAUSED";
 
+    el.navStatus2.textContent =
+      "PAUSED";
+
     updateButtons();
-
-    message(
-      "Recording paused.",
-      "#a17c38"
-    );
-
-    pollStatus();
 
   }
   catch(e){
@@ -2726,11 +2661,6 @@ async function pauseRecording(){
   }
 
 }
-
-
-/* =========================================================
-   RESUME
-========================================================= */
 
 async function resumeRecording(){
 
@@ -2750,18 +2680,14 @@ async function resumeRecording(){
       recorder &&
       recorder.state ===
       "paused"
-    ){
-
+    )
       recorder.resume();
-
-    }
 
     accumulatedPause +=
       performance.now() -
       pausedAt;
 
     pausedAt = 0;
-
     paused = false;
 
     el.recordState.textContent =
@@ -2770,14 +2696,10 @@ async function resumeRecording(){
     el.navStatus.textContent =
       "RECORDING";
 
+    el.navStatus2.textContent =
+      "RECORDING";
+
     updateButtons();
-
-    message(
-      "Recording resumed.",
-      "#526b50"
-    );
-
-    pollStatus();
 
   }
   catch(e){
@@ -2791,11 +2713,6 @@ async function resumeRecording(){
   }
 
 }
-
-
-/* =========================================================
-   STOP
-========================================================= */
 
 async function stopRecording(){
 
@@ -2815,40 +2732,25 @@ async function stopRecording(){
   }
   catch(e){
 
-    console.warn(
-      "XIAO stop:",
-      e
-    );
+    console.warn(e);
 
   }
 
   drawing = false;
 
-  if(drawTimer){
-
+  if(drawTimer)
     clearTimeout(drawTimer);
-
-    drawTimer = null;
-
-  }
 
   if(
     recorder &&
     recorder.state !==
     "inactive"
-  ){
-
+  )
     recorder.stop();
-
-  }
-  else{
-
+  else
     saveRecording();
 
-  }
-
   recording = false;
-
   paused = false;
 
   stopTimer();
@@ -2859,32 +2761,27 @@ async function stopRecording(){
   el.navDot.className =
     "statusDot online";
 
+  el.navDot2.className =
+    "statusDot online";
+
   el.navStatus.textContent =
+    "ONLINE";
+
+  el.navStatus2.textContent =
     "ONLINE";
 
   updateButtons();
 
-  if(captureStream){
-
+  if(captureStream)
     captureStream
       .getTracks()
       .forEach(
-        track =>
-          track.stop()
+        t => t.stop()
       );
-
-  }
 
   captureStream = null;
 
-  pollStatus();
-
 }
-
-
-/* =========================================================
-   SAVE
-========================================================= */
 
 function saveRecording(){
 
@@ -2896,7 +2793,6 @@ function saveRecording(){
     );
 
     recorder = null;
-
     return;
 
   }
@@ -2955,7 +2851,6 @@ function saveRecording(){
   );
 
   chunks = [];
-
   recorder = null;
 
   message(
@@ -2970,77 +2865,45 @@ function saveRecording(){
    EVENTS
 ========================================================= */
 
-el.connect.addEventListener(
-  "click",
-  connectPreview
-);
+el.connect.onclick =
+  connectPreview;
 
-el.disconnect.addEventListener(
-  "click",
-  disconnect
-);
+el.disconnect.onclick =
+  disconnect;
 
-el.capture.addEventListener(
-  "click",
-  captureJPEG
-);
+el.capture.onclick =
+  captureJPEG;
 
-el.start.addEventListener(
-  "click",
-  startRecording
-);
+el.start.onclick =
+  startRecording;
 
-el.pause.addEventListener(
-  "click",
-  pauseRecording
-);
+el.pause.onclick =
+  pauseRecording;
 
-el.resume.addEventListener(
-  "click",
-  resumeRecording
-);
+el.resume.onclick =
+  resumeRecording;
 
-el.stop.addEventListener(
-  "click",
-  stopRecording
-);
+el.stop.onclick =
+  stopRecording;
 
 el.ip.addEventListener(
   "keydown",
-  event => {
+  e => {
 
-    if(event.key === "Enter"){
+    if(e.key === "Enter")
       connectPreview();
-    }
 
   }
 );
 
-
-/* =========================================================
-   STATUS POLLING
-========================================================= */
-
 statusHandle =
   setInterval(
-    () => {
-
-      if(connected)
-        pollStatus();
-
-    },
+    pollStatus,
     3000
   );
 
-
-/* =========================================================
-   INITIAL
-========================================================= */
-
 updateButtons();
-
 hidePreview();
-
 </script>
 
 </body>
