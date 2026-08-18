@@ -22,7 +22,6 @@ button:disabled{ cursor:not-allowed; opacity: 0.5; }
 
 #app{ width:100vw; height:100vh; overflow:hidden; position:relative; }
 
-/* NAVIGATION LOGIC */
 .page{
   position:absolute; inset:0; width:100%; height:100%; overflow:hidden;
   opacity:0; visibility:hidden; pointer-events:none; transform:translateX(35px);
@@ -30,7 +29,6 @@ button:disabled{ cursor:not-allowed; opacity: 0.5; }
 }
 .page.active{ opacity:1; visibility:visible; pointer-events:auto; transform:none; }
 
-/* TOP BAR */
 .topbar{
   position:absolute; top:0; left:0; right:0; height:76px; padding:0 5vw;
   display:flex; align-items:center; justify-content:space-between; z-index:30;
@@ -43,36 +41,26 @@ button:disabled{ cursor:not-allowed; opacity: 0.5; }
 .status{ display:flex; align-items:center; gap:8px; font-family:"DM Mono",monospace; font-size:9px; letter-spacing:.1em; }
 .statusDot{ width:7px; height:7px; border-radius:50%; background:#777; transition: background 0.3s; }
 .statusDot.online{ background:var(--green); box-shadow:0 0 0 4px rgba(82,107,80,.12); }
-.statusDot.recording{ background:var(--red); box-shadow:0 0 0 4px rgba(155,81,76,.15); }
 
-/* PAGE 1: INTRO */
 #pageIntro{ background: radial-gradient(circle at 70% 42%, rgba(162,139,101,.13), transparent 32%), var(--paper); }
 .introContent{ width:100%; height:100%; padding:100px 7vw 100px; display:grid; grid-template-columns: minmax(0,1fr) minmax(320px,.85fr); align-items:center; gap:4vw; }
 .introTitle{ margin:35px 0 25px; font-family:"Playfair Display",serif; font-weight:500; font-size: clamp(65px, 9vw, 145px); line-height:.8; letter-spacing:-.065em; }
 .italic{ font-style:italic; margin-left:8vw; display:block; }
-.introDescription{ max-width:480px; font-size:14px; line-height:1.8; color:#666159; }
 
-/* PAGE 2: EVIDENCE */
 #pageEvidence{ background:var(--dark); color:var(--cream); }
 .evidencePage{ width:100%; height:100%; padding: 100px 5vw 90px; display:flex; flex-direction:column; }
 .cameraLayout{ flex:1; min-height:0; display:grid; grid-template-columns: minmax(0,2.15fr) minmax(290px,.85fr); gap:18px; }
 .cameraCard{ position:relative; min-height:0; background:#050505; border:1px solid #2b2b28; border-radius:8px; overflow:hidden; display:flex; align-items:center; justify-content:center; }
-#streamImage{ display:none; width:100%; height:100%; object-fit:contain; image-rendering: pixelated; }
+#streamImage{ display:none; width:100%; height:100%; object-fit:contain; }
 
-/* CONTROL CARD */
 .controlCard{ background:var(--cream); color:var(--ink); border-radius:8px; padding:24px; display:flex; flex-direction:column; justify-content:space-between; }
 .ipGroup{ margin:25px 0; }
 .ipRow{ display:flex; border-bottom:1px solid #bbb4aa; }
 .ipRow input{ width:100%; border:0; outline:0; background:transparent; padding:8px 0; font-family:"DM Mono",monospace; font-size:12px; }
 .connectButton{ width:42px; height:38px; border:0; background:var(--ink); color:white; transition: 0.2s; }
-.connectButton:hover{ background: #333; }
 .controlButtons{ display:grid; grid-template-columns:1fr 1fr; gap:7px; }
 .controlButtons button{ border:1px solid #c3bcb1; background:transparent; padding:11px 8px; font-size:8px; text-transform:uppercase; transition:.2s; font-weight: 600; }
-.controlButtons button:hover{ background: #eee; }
-.controlButtons button.primary{ background:var(--ink); color:white; }
-.controlButtons button.primary:hover{ background: #333; }
 
-/* NAVIGATION BAR */
 .pageNav{ position:absolute; left:50%; bottom:22px; transform:translateX(-50%); z-index:100; display:flex; gap:8px; padding:7px; border:1px solid rgba(255,255,255,.25); border-radius:20px; background: linear-gradient(135deg, rgba(255,255,255,.25), rgba(255,255,255,.07)); backdrop-filter:blur(24px); }
 .pageButton{ min-width:110px; padding:11px 18px; border:1px solid rgba(255,255,255,.18); border-radius:14px; background: rgba(255,255,255,0.05); color:inherit; font-family:"DM Mono",monospace; font-size:8px; text-transform:uppercase; transition: 0.3s; }
 .pageButton.active{ background: rgba(255,255,255,0.4); box-shadow: 0 5px 18px rgba(0,0,0,0.12); }
@@ -81,89 +69,59 @@ button:disabled{ cursor:not-allowed; opacity: 0.5; }
 <body>
 
 <div id="app">
-
-  <!-- ==========================================
-       PAGE 1: INTRO
-       ========================================== -->
+  <!-- PAGE 1 -->
   <section id="pageIntro" class="page active">
     <header class="topbar">
       <div class="logo"><span class="logoMark">M</span><span>IRON CLAUSE</span></div>
-      <div class="status">
-        <span id="navDot" class="statusDot"></span>
-        <span id="navStatus">OFFLINE</span>
-      </div>
+      <div class="status"><span id="navDot" class="statusDot"></span><span id="navStatus">OFFLINE</span></div>
     </header>
     <main class="introContent">
       <div class="introCopy">
         <h1 class="introTitle"><span>MR.</span><span class="italic">JUSTICE</span></h1>
-        <div class="introDescription">
-            High-Performance Digital Evidence Logger. 
-            <br>Stream seamless <strong>SVGA</strong> footage directly from 
-            the <strong>XIAO ESP32-S3 Sense</strong>.
-        </div>
       </div>
     </main>
   </section>
 
-  <!-- ==========================================
-       PAGE 2: EVIDENCE
-       ========================================== -->
+  <!-- PAGE 2 -->
   <section id="pageEvidence" class="page darkPage">
     <header class="topbar">
       <div class="logo"><span class="logoMark">M</span><span>IRON CLAUSE</span></div>
-      <div class="status">
-        <span id="navDot2" class="statusDot"></span>
-        <span id="navStatus2">OFFLINE</span>
-      </div>
+      <div class="status"><span id="navDot2" class="statusDot"></span><span id="navStatus2">OFFLINE</span></div>
     </header>
     <main class="evidencePage">
       <div class="cameraLayout">
-        
-        <!-- CAMERA DISPLAY -->
         <div class="cameraCard">
-          <div id="placeholder" style="color:#777; text-align: center;">
-            <strong>AWAITING LINK</strong><br>
-            <span style="font-size: 10px; opacity: 0.6; text-transform: uppercase;">Enter address to initialize feed</span>
-          </div>
-          <img id="streamImage" alt="Live Seamless Feed" crossorigin="anonymous">
+          <div id="placeholder" style="color:#777; text-align: center;">AWAITING LINK</div>
+          <img id="streamImage" alt="Live Seamless Feed">
         </div>
 
-        <!-- CONTROL PANEL -->
         <div class="controlCard">
           <div class="ipGroup">
-            <label style="font-size:9px; opacity:0.6; display:block; margin-bottom:10px; letter-spacing: 0.1em;">XIAO IP ADDRESS</label>
+            <label style="font-size:9px; opacity:0.6; display:block; margin-bottom:10px;">XIAO ADDRESS</label>
             <div class="ipRow">
-              <input id="ip" placeholder="e.g. 192.168.1.50" autocomplete="off">
+              <input id="ip" placeholder="e.g. 192.168.1.50">
               <button id="connectBtn" class="connectButton">→</button>
             </div>
           </div>
-
           <div class="controlButtons">
-            <button id="startBtn" class="primary" onclick="sendCommand('/record/start')">Begin Record</button>
-            <button id="stopBtn" style="color:var(--red)" onclick="sendCommand('/record/stop')">End Session</button>
+            <button class="primary" onclick="sendCommand('/record/start')">Record</button>
+            <button style="color:var(--red)" onclick="sendCommand('/record/stop')">Stop</button>
           </div>
-
-          <div id="message" style="font-size:9px; margin-top:20px; opacity:0.6; font-family: 'DM Mono'; line-height: 1.5;">
-            SYSTEM READY.<br>CONNECTION: STABLE.
-          </div>
+          <div id="message" style="font-size:9px; margin-top:20px; opacity:0.6;">READY.</div>
         </div>
-
       </div>
     </main>
   </section>
 
-  <!-- NAVIGATION BAR -->
   <nav class="pageNav">
     <button class="pageButton active" data-page="intro">01 · INTRO</button>
     <button class="pageButton" data-page="evidence">02 · EVIDENCE</button>
   </nav>
-
 </div>
 
 <script>
 "use strict";
 
-// --- PAGE NAVIGATION ---
 const pages = {
   intro: document.getElementById("pageIntro"),
   evidence: document.getElementById("pageEvidence")
@@ -179,11 +137,9 @@ function showPage(name) {
   });
 }
 
-pageButtons.forEach(btn => {
-  btn.addEventListener("click", () => showPage(btn.dataset.page));
-});
+pageButtons.forEach(btn => btn.addEventListener("click", () => showPage(btn.dataset.page)));
 
-// --- STREAM & COMMAND LOGIC ---
+// --- NEW SEAMLESS LOGIC ---
 const el = {
   ip: document.getElementById("ip"),
   connect: document.getElementById("connectBtn"),
@@ -198,55 +154,48 @@ const el = {
 
 let deviceIp = "";
 
-// Connect and Start Seamless Stream
+/**
+ * START MJPEG:
+ * This function bypasses the lag by telling the browser to open a persistent
+ * high-speed pipe to the stream server on port 81.
+ */
+function startMJPEG() {
+    if(!deviceIp) return;
+
+    // Use Port 81 (the raw socket we set in the firmware)
+    const streamUrl = `http://${deviceIp}:81`;
+    
+    el.placeholder.style.display = "none";
+    el.streamImage.style.display = "block";
+    
+    // Crucial: Set the src directly. Native browser C++ decoders will 
+    // run this as fast as the network allows (25-50 FPS).
+    el.streamImage.src = streamUrl;
+
+    // Update Dots
+    [el.navDot, el.navDot2].forEach(dot => dot.classList.add("online"));
+    el.statusText.innerText = el.statusText2.innerText = "ONLINE";
+    el.message.innerHTML = "STREAM CONNECTED: HIGH SPEED ACTIVE";
+}
+
 el.connect.onclick = () => {
-  const ip = el.ip.value.trim();
-  if(!ip) {
-      alert("Please enter the XIAO IP address.");
-      return;
-  }
-
-  deviceIp = ip;
-  const streamUrl = `http://${ip}:81/stream`;
-  
-  // Update UI to Online
-  el.placeholder.style.display = "none";
-  el.streamImage.style.display = "block";
-  
-  // Set source with cache-buster
-  el.streamImage.src = streamUrl + "?t=" + Date.now();
-
-  // Update Global Status
-  [el.navDot, el.navDot2].forEach(dot => dot.classList.add("online"));
-  el.statusText.innerText = el.statusText2.innerText = "ONLINE";
-  el.message.innerHTML = `LINK ESTABLISHED.<br>TARGET: ${ip}<br>FEED: SEAMLESS SVGA`;
+    deviceIp = el.ip.value.trim();
+    if(deviceIp) startMJPEG();
 };
 
-// Handle Stream Errors (Reconnection)
 el.streamImage.onerror = () => {
-  if (deviceIp) {
-    console.warn("Stream interrupted. Reconnecting...");
-    setTimeout(() => {
-        el.streamImage.src = `http://${deviceIp}:81/stream?t=` + Date.now();
-    }, 1000);
-  }
+    if(deviceIp) {
+        console.warn("Reconnecting stream...");
+        setTimeout(startMJPEG, 1000);
+    }
 };
 
-// Send Commands to XIAO (Start/Stop Record)
 async function sendCommand(path) {
-  if (!deviceIp) {
-      alert("Connect to XIAO first.");
-      return;
-  }
-  
-  try {
-    const response = await fetch(`http://${deviceIp}${path}`, { mode: 'no-cors' });
-    el.message.innerHTML += `<br>CMD: ${path.toUpperCase()} SENT.`;
-  } catch (e) {
-    el.message.innerHTML += `<br>ERR: CMD FAILED.`;
-  }
+    if(!deviceIp) return;
+    try {
+        await fetch(`http://${deviceIp}${path}`, { mode: 'no-cors' });
+    } catch (e) {}
 }
 </script>
-
 </body>
 </html>
