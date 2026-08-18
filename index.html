@@ -2508,6 +2508,7 @@ async function toggleMicTest(){
     try{
       await fetch(baseUrl+"/mic/test/stop?t="+Date.now(),{cache:"no-store"});
       setMicTestUI(false);
+      setMicAudioEnabled(false, false);
       stopAudioStream();
       stopMicVisualizer();
       message("Microphone test stopped.","#77736c");
@@ -2528,6 +2529,7 @@ async function toggleMicTest(){
     if(!response.ok) throw new Error("MIC TEST HTTP "+response.status);
 
     setMicTestUI(true);
+    setMicAudioEnabled(true, false);
     startMicVisualizer();
     startAudioStream();
 
@@ -2961,7 +2963,10 @@ async function startRecording(){
     );
 
     await ensureAudioGraph();
-    await startAudioStream();
+
+    // IMPORTANT: /audio is an endless stream. Do NOT await it here,
+    // otherwise startRecording() never reaches MediaRecorder.start().
+    startAudioStream();
 
     // Every recording starts silent. Press MIC ON to include audio.
     setMicAudioEnabled(false, false);
