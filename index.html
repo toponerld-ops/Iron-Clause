@@ -721,6 +721,22 @@ button:disabled{
   color:#85453f;
 }
 
+.controlButtons button.micButton{
+  border-color:#8d806b;
+  color:#6f624f;
+}
+
+.controlButtons button.micButton.active{
+  background:var(--green);
+  border-color:var(--green);
+  color:white;
+}
+
+.controlButtons button.micButton.active:hover:not(:disabled){
+  background:var(--green);
+  color:white;
+}
+
 .controlButtons button:disabled{
   opacity:.3;
 }
@@ -1281,6 +1297,14 @@ button:disabled{
             </button>
 
             <button
+              id="micBtn"
+              class="micButton"
+              disabled
+            >
+              MIC OFF
+            </button>
+
+            <button
               id="disconnectBtn"
               disabled
             >
@@ -1472,6 +1496,7 @@ const el = {
   pause:$("pauseBtn"),
   resume:$("resumeBtn"),
   stop:$("stopBtn"),
+  mic:$("micBtn"),
 
   canvas:$("streamCanvas"),
   streamImage:$("streamImage"),
@@ -1547,6 +1572,8 @@ let audioController = null;
 let audioRunning = false;
 let audioContext = null;
 let audioDestination = null;
+let micGain = null;
+let micAudioEnabled = false;
 let audioBuffer = new Uint8Array(0);
 let audioNextTime = 0;
 
@@ -1669,6 +1696,17 @@ function updateButtons(){
 
   el.stop.disabled =
     !recording;
+
+  el.mic.disabled =
+    !recording;
+
+  el.mic.textContent =
+    micAudioEnabled ? "MIC ON" : "MIC OFF";
+
+  el.mic.classList.toggle(
+    "active",
+    micAudioEnabled
+  );
 
   el.disconnect.disabled =
     !connected;
@@ -2081,6 +2119,14 @@ async function ensureAudioGraph(){
   audioDestination =
     audioContext.createMediaStreamDestination();
 
+  // The microphone track always exists in the recorder, but this gain
+  // controls whether its samples are actually audible/included.
+  micGain =
+    audioContext.createGain();
+
+  micGain.gain.value = 0;
+  micGain.connect(audioDestination);
+
   await audioContext.resume();
 
   audioNextTime =
@@ -2168,7 +2214,7 @@ function consumeAudioBlock(){
     audioContext.createBufferSource();
 
   source.buffer = buffer;
-  source.connect(audioDestination);
+  source.connect(micGain);
 
   const startAt =
     Math.max(
@@ -2183,6 +2229,48 @@ function consumeAudioBlock(){
     buffer.duration;
 
   return true;
+}
+
+function setMicAudioEnabled(enabled, announce=true){
+
+  micAudioEnabled = !!enabled;
+
+  if(micGain && audioContext){
+    const now = audioContext.currentTime;
+    micGain.gain.cancelScheduledValues(now);
+    micGain.gain.setTargetAtTime(
+      micAudioEnabled ? 1 : 0,
+      now,
+      0.015
+    );
+  }
+
+  if(el.mic){
+    el.mic.textContent =
+      micAudioEnabled ? "MIC ON" : "MIC OFF";
+    el.mic.classList.toggle(
+      "active",
+      micAudioEnabled
+    );
+  }
+
+  if(announce){
+    message(
+      micAudioEnabled
+        ? "Microphone audio INCLUDED in recording."
+        : "Microphone audio MUTED from recording.",
+      micAudioEnabled ? "#526b50" : "#77736c"
+    );
+  }
+}
+
+function toggleMicAudio(){
+
+  if(!recording){
+    return;
+  }
+
+  setMicAudioEnabled(!micAudioEnabled, true);
 }
 
 async function startAudioStream(){
@@ -2363,6 +2451,7 @@ function disconnect(){
 
   stopMJPEG();
   stopAudioStream();
+  setMicAudioEnabled(false, false);
 
   baseUrl = "";
   streamUrl = "";
@@ -2548,10 +2637,13 @@ async function startRecording(){
       "/record/start"
     );
 
+    await ensureAudioGraph();
+
+    // Every recording starts silent. Press MIC ON to include audio.
+    setMicAudioEnabled(false, false);
+
     const videoStream =
       await buildCaptureStream();
-
-    await ensureAudioGraph();
 
     const combinedStream =
       new MediaStream();
@@ -2656,8 +2748,8 @@ async function startRecording(){
     updateButtons();
 
     message(
-      "Recording video + wired microphone audio.",
-      "#526b50"
+      "Recording video. MIC OFF — press MIC to include audio.",
+      "#77736c"
     );
 
   }catch(e){
@@ -2860,6 +2952,8 @@ async function stopRecording(){
   recording = false;
   paused = false;
   pausedAt = 0;
+
+  setMicAudioEnabled(false, false);
 
   stopTimer();
 
@@ -3091,6 +3185,9 @@ el.resume.onclick =
 
 el.stop.onclick =
   stopRecording;
+
+el.mic.onclick =
+  toggleMicAudio;
 
 el.ip.addEventListener(
   "keydown",
