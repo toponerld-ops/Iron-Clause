@@ -833,6 +833,44 @@ button:disabled{
 }
 
 /* =========================================================
+   CAMERA / REMINDER CONTROLS
+========================================================= */
+.cameraControls{margin-top:16px;padding-top:15px;border-top:1px solid #d0c9be}
+.settingsTitle{font-family:"DM Mono",monospace;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.sliderRow{display:grid;grid-template-columns:72px 1fr 28px;align-items:center;gap:8px;margin:7px 0;font-family:"DM Mono",monospace;font-size:8px;color:var(--muted)}
+.sliderRow input[type=range]{width:100%;accent-color:var(--ink)}
+.sliderValue{text-align:right;color:var(--ink)}
+.filterRow{display:flex;align-items:center;gap:10px;margin-top:10px}
+.filterRow label{font-family:"DM Mono",monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.filterSelect{flex:1;border:1px solid #c3bcb1;background:transparent;color:var(--ink);padding:8px;outline:none;font-size:10px}
+.micStatusRow{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:9px;border-top:1px solid #d0c9be;font-family:"DM Mono",monospace;font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.micStatusRow strong{color:var(--muted)}
+.micStatusRow strong.on{color:var(--green)}
+.micStatusNote{margin-top:6px;font-family:"DM Mono",monospace;font-size:7px;line-height:1.5;color:var(--muted)}
+
+.remindersPage{width:100%;height:100%;padding:100px 5vw 90px;overflow:auto;background:var(--paper);color:var(--ink)}
+.reminderLayout{display:grid;grid-template-columns:minmax(280px,.8fr) minmax(0,1.2fr);gap:18px;max-width:1200px;margin:0 auto}
+.reminderCard{background:var(--cream);border:1px solid var(--line);border-radius:8px;padding:24px}
+.reminderInput{width:100%;border:0;border-bottom:1px solid #bbb4aa;background:transparent;padding:9px 0;outline:0;color:var(--ink);margin-bottom:15px}
+.reminderGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.reminderGrid label{font-family:"DM Mono",monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.reminderGrid input,.reminderGrid select{width:100%;margin-top:6px;border:1px solid #c3bcb1;background:transparent;padding:9px;color:var(--ink);outline:none}
+.reminderActions{display:flex;gap:8px;margin-top:16px}
+.reminderActions button{flex:1;border:1px solid #c3bcb1;background:transparent;padding:11px;font-size:8px;letter-spacing:.08em;text-transform:uppercase}
+.reminderActions .primary{background:var(--ink);color:#fff}
+.toggleRow{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:12px 0;border-bottom:1px solid var(--line)}
+.toggleRowText{font-family:"DM Mono",monospace;font-size:8px;letter-spacing:.08em;text-transform:uppercase}
+.toggleRow button{min-width:76px;border:1px solid #c3bcb1;background:transparent;padding:8px 10px;font-family:"DM Mono",monospace;font-size:8px}
+.toggleRow button.on{background:var(--ink);color:#fff}
+.reminderList{display:grid;gap:8px;max-height:58vh;overflow:auto}
+.reminderItem{display:grid;grid-template-columns:1fr auto;gap:15px;align-items:center;border-bottom:1px solid var(--line);padding:12px 0}
+.reminderItemText{font-family:"Playfair Display",serif;font-size:20px}
+.reminderItemMeta{margin-top:5px;font-family:"DM Mono",monospace;font-size:8px;color:var(--muted);text-transform:uppercase}
+.reminderDelete{border:1px solid #b77b76;color:#85453f;background:transparent;padding:8px 10px;font-family:"DM Mono",monospace;font-size:8px}
+.emptyReminders{color:var(--muted);font-family:"DM Mono",monospace;font-size:9px;padding:25px 0}
+@media(max-width:850px){.reminderLayout{grid-template-columns:1fr}}
+
+/* =========================================================
    MOBILE
 ========================================================= */
 
@@ -1257,6 +1295,17 @@ button:disabled{
 
           </div>
 
+          <div class="cameraControls">
+            <div class="settingsTitle">Camera controls</div>
+            <div class="sliderRow"><span>Brightness</span><input id="camBrightness" type="range" min="-100" max="100" step="1" value="0"><span id="camBrightnessValue" class="sliderValue">0</span></div>
+            <div class="sliderRow"><span>Contrast</span><input id="camContrast" type="range" min="-100" max="100" step="1" value="0"><span id="camContrastValue" class="sliderValue">0</span></div>
+            <div class="sliderRow"><span>Saturation</span><input id="camSaturation" type="range" min="-100" max="100" step="1" value="0"><span id="camSaturationValue" class="sliderValue">0</span></div>
+            <div class="sliderRow"><span>Sharpness</span><input id="camSharpness" type="range" min="-100" max="100" step="1" value="0"><span id="camSharpnessValue" class="sliderValue">0</span></div>
+            <div class="filterRow"><label for="camFilter">Display filter</label><select id="camFilter" class="filterSelect"><option value="none">Normal</option><option value="grayscale(1)">Grayscale</option><option value="sepia(1)">Sepia</option><option value="contrast(1.35) saturate(1.1)">High contrast</option><option value="sepia(.35) saturate(1.25) brightness(1.05)">Warm</option><option value="saturate(.8) hue-rotate(180deg)">Cool</option><option value="brightness(.72) contrast(1.15)">Night</option></select></div>
+            <div class="micStatusRow"><span>Audio input</span><strong id="micStatusText">MIC OFF</strong></div>
+            <div class="micStatusNote">Physical button controls MIC state. When MIC is ON, browser microphone audio is added to recordings.</div>
+          </div>
+
         </div>
 
 
@@ -1288,6 +1337,31 @@ button:disabled{
 
 
 <!-- =========================================================
+     PAGE 3 — REMINDERS
+========================================================= -->
+<section id="pageReminders" class="page">
+  <header class="topbar"><div class="logo"><span class="logoMark">M</span><span>IRON CLAUSE</span></div><div class="status"><span id="navDot3" class="statusDot"></span><span id="navStatus3">OFFLINE</span></div></header>
+  <main class="remindersPage">
+    <div class="evidenceHeader"><div><div class="sectionEyebrow">Control / 02</div><h2 class="sectionTitle">Reminders</h2></div><div class="liveBadge"><span class="liveDot active"></span><span>Persistent device schedule</span></div></div>
+    <div class="reminderLayout">
+      <div class="reminderCard">
+        <div class="settingsTitle">New reminder</div>
+        <input id="reminderText" class="reminderInput" maxlength="47" placeholder="What should Sir Aman remind you about?">
+        <div class="reminderGrid">
+          <label>Schedule<select id="reminderMode"><option value="0">Specific time</option><option value="1">Repeat interval</option></select></label>
+          <label id="intervalLabel">Interval · minutes<input id="reminderInterval" type="number" min="1" max="1440" value="60"></label>
+          <label>Time / start time<input id="reminderTime" type="time" value="09:00"></label>
+        </div>
+        <div class="reminderActions"><button id="addReminderBtn" class="primary">Add reminder</button><button id="refreshRemindersBtn">Refresh</button></div>
+        
+        <div style="margin-top:12px" class="message" id="reminderMessage">Device reminders are stored on the XIAO.</div>
+      </div>
+      <div class="reminderCard"><div class="settingsTitle">Scheduled reminders</div><div id="reminderList" class="reminderList"><div class="emptyReminders">Connect to the XIAO to load reminders.</div></div></div>
+    </div>
+  </main>
+</section>
+
+<!-- =========================================================
      LIQUID GLASS NAV
 ========================================================= -->
 
@@ -1307,6 +1381,13 @@ button:disabled{
     02 · EVIDENCE
   </button>
 
+  <button
+    class="pageButton"
+    data-page="reminders"
+  >
+    03 · REMINDERS
+  </button>
+
 </nav>
 
 </div>
@@ -1324,7 +1405,10 @@ const pages = {
     document.getElementById("pageIntro"),
 
   evidence:
-    document.getElementById("pageEvidence")
+    document.getElementById("pageEvidence"),
+
+  reminders:
+    document.getElementById("pageReminders")
 };
 
 const pageButtons =
@@ -1414,7 +1498,29 @@ const el = {
   cameraFps:$("cameraFps"),
 
   recordState:$("recordState"),
-  timer:$("timer")
+  timer:$("timer"),
+
+  camBrightness:$("camBrightness"),
+  camBrightnessValue:$("camBrightnessValue"),
+  camContrast:$("camContrast"),
+  camContrastValue:$("camContrastValue"),
+  camSaturation:$("camSaturation"),
+  camSaturationValue:$("camSaturationValue"),
+  camSharpness:$("camSharpness"),
+  camSharpnessValue:$("camSharpnessValue"),
+  camFilter:$("camFilter"),
+  micStatusText:$("micStatusText"),
+
+  reminderText:$("reminderText"),
+  reminderMode:$("reminderMode"),
+  reminderTime:$("reminderTime"),
+  reminderInterval:$("reminderInterval"),
+  addReminder:$("addReminderBtn"),
+  refreshReminders:$("refreshRemindersBtn"),
+  reminderList:$("reminderList"),
+  reminderMessage:$("reminderMessage"),
+  navDot3:$("navDot3"),
+  navStatus3:$("navStatus3")
 };
 
 
@@ -1453,6 +1559,19 @@ let reconnectTimer = null;
 let reconnectAttempt = 0;
 let manualDisconnect = false;
 
+let cameraSettings = {brightness:0,contrast:0,saturation:0,sharpness:0,effect:0};
+let displayFilter = "none";
+let micEnabled = false;
+let micStream = null;
+let micAudioTrack = null;
+let xiaoAudioContext = null;
+let xiaoAudioDestination = null;
+let xiaoAudioReader = null;
+let xiaoAudioController = null;
+let xiaoAudioRunning = false;
+let xiaoAudioNextTime = 0;
+let cameraDebounce = null;
+
 
 /* =========================================================
    CANVAS
@@ -1469,898 +1588,51 @@ const ctx =
 
 
 /* =========================================================
-   RECORDING
+   XIAO WIRED MICROPHONE AUDIO
 ========================================================= */
-
-let recorder = null;
-let chunks = [];
-
-let captureStream = null;
-let recordingCanvas = null;
-let recordingContext = null;
-
-let drawing = false;
-let drawTimer = null;
-
-
-/* =========================================================
-   MESSAGE
-========================================================= */
-
-function message(text, color=""){
-
-  el.message.textContent = text;
-  el.message.style.color =
-    color || "#77736c";
-
-}
-
-
-/* =========================================================
-   CONNECTION STATE
-========================================================= */
-
-function setConnection(ok){
-
-  connected = !!ok;
-
-  el.connectionText.textContent =
-    connected ? "Online" : "Offline";
-
-  el.navStatus.textContent =
-    connected
-      ? (recording ? (paused ? "PAUSED" : "RECORDING") : "ONLINE")
-      : "OFFLINE";
-
-  el.navStatus2.textContent =
-    el.navStatus.textContent;
-
-  el.navDot.className =
-    "statusDot " +
-    (connected ? (recording ? "recording" : "online") : "");
-
-  el.navDot2.className =
-    "statusDot " +
-    (connected ? (recording ? "recording" : "online") : "");
-
-  updateStreamUI();
-  updateButtons();
-
-}
-
-function setStreamState(ok){
-
-  streamOnline = !!ok;
-  updateStreamUI();
-
-}
-
-function updateStreamUI(){
-
-  el.cameraConnection.textContent =
-    streamOnline
-      ? "LINK ESTABLISHED"
-      : connected
-        ? "VIDEO RECONNECTING"
-        : "OFFLINE";
-
-  el.liveDot.className =
-    "liveDot " +
-    (streamOnline ? "active" : "");
-
-  el.liveText.textContent =
-    streamOnline
-      ? "Live evidence feed"
-      : connected
-        ? "Device online · video reconnecting"
-        : "Awaiting connection";
-
-}
-
-
-/* =========================================================
-   BUTTONS
-========================================================= */
-
-function updateButtons(){
-
-  el.start.disabled =
-    !connected || recording;
-
-  el.capture.disabled =
-    !connected || recording;
-
-  el.pause.disabled =
-    !recording || paused;
-
-  el.resume.disabled =
-    !recording || !paused;
-
-  el.stop.disabled =
-    !recording;
-
-  el.disconnect.disabled =
-    !connected;
-
-}
-
-
-/* =========================================================
-   URL
-========================================================= */
-
-function normalizeUrl(value){
-
-  let v = value.trim();
-
-  if(!v)
-    throw new Error("Enter the XIAO IP address.");
-
-  if(!/^https?:\/\//i.test(v))
-    v = "http://" + v;
-
-  return new URL(v.replace(/\/+$/, "")).origin;
-
-}
-
-function makeStreamUrl(origin){
-
-  const u = new URL(origin);
-
-  // The current ESP32 firmware exposes MJPEG on port 81.
-  u.port = "81";
-
-  return u.origin + "/stream";
-
-}
-
-
-/* =========================================================
-   TIMER
-========================================================= */
-
-function formatTime(ms){
-
-  const sec =
-    Math.max(0, Math.floor(ms / 1000));
-
-  const h = Math.floor(sec / 3600);
-  const m = Math.floor((sec % 3600) / 60);
-  const s = sec % 60;
-
-  return [h,m,s]
-    .map(v => String(v).padStart(2,"0"))
-    .join(":");
-
-}
-
-function updateTimer(){
-
-  if(!recording){
-    el.timer.textContent = "00:00:00";
-    return;
-  }
-
-  const now = performance.now();
-
-  let pauseTotal = accumulatedPause;
-
-  if(paused)
-    pauseTotal += now - pausedAt;
-
-  el.timer.textContent =
-    formatTime(
-      now - recordStartedAt - pauseTotal
-    );
-
-}
-
-function startTimer(){
-
-  stopTimer();
-
-  timerHandle =
-    setInterval(updateTimer, 250);
-
-  updateTimer();
-
-}
-
-function stopTimer(){
-
-  if(timerHandle){
-    clearInterval(timerHandle);
-    timerHandle = null;
-  }
-
-}
-
-
-/* =========================================================
-   STATUS
-========================================================= */
-
-async function getStatus(){
-
-  const response =
-    await fetch(
-      baseUrl + "/status?t=" + Date.now(),
-      {
-        cache:"no-store",
-        signal:AbortSignal.timeout(2500)
-      }
-    );
-
-  if(!response.ok)
-    throw new Error("Status HTTP " + response.status);
-
-  return response.json();
-
-}
-
-function updateStatus(s){
-
-  const deviceRecording = !!s.recording;
-  const devicePaused = !!s.paused;
-
-  recording = deviceRecording;
-  paused = devicePaused;
-
-  el.recordState.textContent =
-    deviceRecording
-      ? (devicePaused ? "Paused" : "Recording")
-      : "Preview";
-
-  el.navStatus.textContent =
-    deviceRecording
-      ? (devicePaused ? "PAUSED" : "RECORDING")
-      : (connected ? "ONLINE" : "OFFLINE");
-
-  el.navStatus2.textContent =
-    el.navStatus.textContent;
-
-  const dotClass =
-    connected
-      ? (deviceRecording ? "recording" : "online")
-      : "";
-
-  el.navDot.className = "statusDot " + dotClass;
-  el.navDot2.className = "statusDot " + dotClass;
-
-  updateButtons();
-
-}
-
-async function pollStatus(){
-
-  if(!connected || !baseUrl)
-    return;
-
-  try{
-
-    const status = await getStatus();
-
-    // /status proves the control server is reachable independently
-    // of the long-lived MJPEG socket.
-    setConnection(true);
-    updateStatus(status);
-
-  }
-  catch(e){
-
-    console.warn("Status:", e);
-
-    setConnection(false);
-    setStreamState(false);
-
-    if(!manualDisconnect)
-      scheduleReconnect();
-
-  }
-
-}
-
-
-/* =========================================================
-   COMMAND
-========================================================= */
-
-async function xiaoCommand(path){
-
-  if(!baseUrl)
-    throw new Error("Not connected.");
-
-  const response =
-    await fetch(
-      baseUrl + path + "?t=" + Date.now(),
-      {
-        cache:"no-store",
-        signal:AbortSignal.timeout(5000)
-      }
-    );
-
-  if(!response.ok)
-    throw new Error("XIAO HTTP " + response.status);
-
-  return response.text();
-
-}
-
-
-/* =========================================================
-   PREVIEW
-========================================================= */
-
-function showPreview(){
-
-  el.placeholder.style.display = "none";
-  el.canvas.style.display = "block";
-  el.cameraOverlay.style.display = "flex";
-  el.cameraBottom.style.display = "flex";
-
-}
-
-function hidePreview(){
-
-  el.canvas.style.display = "none";
-  el.placeholder.style.display = "block";
-  el.cameraOverlay.style.display = "none";
-  el.cameraBottom.style.display = "none";
-
-}
-
-
-/* =========================================================
-   MJPEG BUFFER
-========================================================= */
-
-function appendBytes(oldBuffer, newBytes){
-
-  const MAX = 256 * 1024;
-
-  if(oldBuffer.length + newBytes.length > MAX)
-    oldBuffer =
-      oldBuffer.slice(
-        Math.max(0, oldBuffer.length - 65536)
-      );
-
-  const combined =
-    new Uint8Array(
-      oldBuffer.length + newBytes.length
-    );
-
-  combined.set(oldBuffer);
-  combined.set(newBytes, oldBuffer.length);
-
-  return combined;
-
-}
-
-function extractJPEG(){
-
-  let start = -1;
-
-  for(let i=0; i<streamBuffer.length-1; i++){
-
-    if(
-      streamBuffer[i] === 0xFF &&
-      streamBuffer[i+1] === 0xD8
-    ){
-      start = i;
-      break;
+async function startXiaoAudio(){
+  stopXiaoAudio();
+  if(!baseUrl || !micEnabled) return null;
+  xiaoAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+  if(xiaoAudioContext.state === "suspended") await xiaoAudioContext.resume();
+  xiaoAudioDestination = xiaoAudioContext.createMediaStreamDestination();
+  xiaoAudioRunning = true;
+  xiaoAudioController = new AbortController();
+  xiaoAudioNextTime = xiaoAudioContext.currentTime + 0.08;
+  const response = await fetch(baseUrl + ":82/audio?t=" + Date.now(), {cache:"no-store",mode:"cors",signal:xiaoAudioController.signal});
+  if(!response.ok || !response.body) throw new Error("XIAO audio HTTP " + response.status);
+  xiaoAudioReader = response.body.getReader();
+  (async()=>{
+    let pending = new Uint8Array(0);
+    while(xiaoAudioRunning){
+      const {value,done}=await xiaoAudioReader.read();
+      if(done) break;
+      if(!value || !value.length) continue;
+      const merged=new Uint8Array(pending.length+value.length);
+      merged.set(pending); merged.set(value,pending.length); pending=merged;
+      const sampleCount=Math.min(1024, Math.floor(pending.length/2));
+      if(sampleCount<1) continue;
+      const bytes=sampleCount*2;
+      const audioBuffer=xiaoAudioContext.createBuffer(1,sampleCount,8000);
+      const ch=audioBuffer.getChannelData(0);
+      const dv=new DataView(pending.buffer,pending.byteOffset,bytes);
+      for(let i=0;i<sampleCount;i++) ch[i]=dv.getInt16(i*2,true)/32768;
+      pending=pending.slice(bytes);
+      const src=xiaoAudioContext.createBufferSource();
+      src.buffer=audioBuffer; src.connect(xiaoAudioDestination);
+      const now=xiaoAudioContext.currentTime;
+      if(xiaoAudioNextTime<now+0.03) xiaoAudioNextTime=now+0.03;
+      src.start(xiaoAudioNextTime); xiaoAudioNextTime+=audioBuffer.duration;
     }
-
-  }
-
-  if(start < 0){
-
-    if(streamBuffer.length > 1)
-      streamBuffer =
-        streamBuffer.slice(-1);
-
-    return null;
-
-  }
-
-  let end = -1;
-
-  for(
-    let i=start+2;
-    i<streamBuffer.length-1;
-    i++
-  ){
-
-    if(
-      streamBuffer[i] === 0xFF &&
-      streamBuffer[i+1] === 0xD9
-    ){
-      end = i + 2;
-      break;
-    }
-
-  }
-
-  if(end < 0)
-    return null;
-
-  const jpeg =
-    streamBuffer.slice(start, end);
-
-  streamBuffer =
-    streamBuffer.slice(end);
-
-  return jpeg;
-
+  })().catch(e=>{if(xiaoAudioRunning) console.warn("XIAO audio:",e);});
+  return xiaoAudioDestination.stream.getAudioTracks()[0] || null;
 }
-
-
-/* =========================================================
-   FRAME DECODER
-========================================================= */
-
-function queueJPEG(jpeg){
-
-  // Keep only the newest frame to prevent latency buildup.
-  newestJPEG = jpeg;
-  decodeNewest();
-
-}
-
-async function decodeNewest(){
-
-  if(decoding || !newestJPEG)
-    return;
-
-  decoding = true;
-
-  while(newestJPEG && streamRunning){
-
-    const jpeg = newestJPEG;
-    newestJPEG = null;
-
-    try{
-
-      const bitmap =
-        await createImageBitmap(
-          new Blob(
-            [jpeg],
-            {type:"image/jpeg"}
-          )
-        );
-
-      if(el.canvas.width !== bitmap.width)
-        el.canvas.width = bitmap.width;
-
-      if(el.canvas.height !== bitmap.height)
-        el.canvas.height = bitmap.height;
-
-      ctx.drawImage(
-        bitmap,
-        0,
-        0,
-        el.canvas.width,
-        el.canvas.height
-      );
-
-      bitmap.close();
-
-      const now = performance.now();
-
-      if(lastFrameTime){
-
-        const dt = now - lastFrameTime;
-
-        if(dt > 0){
-
-          currentFPS =
-            currentFPS * .8 +
-            (1000 / dt) * .2;
-
-        }
-
-      }
-
-      lastFrameTime = now;
-
-      if(currentFPS > 0)
-        el.cameraFps.textContent =
-          currentFPS.toFixed(1) + " FPS";
-
-    }
-    catch(e){
-
-      console.warn("Decode:", e);
-
-    }
-
-  }
-
-  decoding = false;
-
-}
-
-
-/* =========================================================
-   RECONNECT
-========================================================= */
-
-function clearReconnectTimer(){
-
-  if(reconnectTimer){
-
-    clearTimeout(reconnectTimer);
-    reconnectTimer = null;
-
-  }
-
-}
-
-function scheduleReconnect(){
-
-  if(
-    manualDisconnect ||
-    !baseUrl ||
-    streamRunning ||
-    reconnectTimer
-  )
-    return;
-
-  const delay =
-    Math.min(
-      8000,
-      500 * Math.pow(2, reconnectAttempt)
-    );
-
-  reconnectAttempt =
-    Math.min(reconnectAttempt + 1, 5);
-
-  setStreamState(false);
-
-  message(
-    "Connection lost — retrying in " +
-    Math.ceil(delay / 1000) +
-    "s..."
-  );
-
-  reconnectTimer =
-    setTimeout(
-      () => {
-
-        reconnectTimer = null;
-
-        if(!manualDisconnect && baseUrl)
-          startMJPEG();
-
-      },
-      delay
-    );
-
-}
-
-
-/* =========================================================
-   START STREAM
-========================================================= */
-
-async function startMJPEG(){
-
-  if(!baseUrl || manualDisconnect)
-    return;
-
-  stopMJPEG(false);
-
-  streamController =
-    new AbortController();
-
-  streamRunning = true;
-
-  streamBuffer =
-    new Uint8Array(0);
-
-  newestJPEG = null;
-
-  lastFrameTime = 0;
-  currentFPS = 0;
-
-  setStreamState(false);
-
-  try{
-
-    const response =
-      await fetch(
-        streamUrl + "?t=" + Date.now(),
-        {
-          cache:"no-store",
-          mode:"cors",
-          signal:streamController.signal
-        }
-      );
-
-    if(!response.ok)
-      throw new Error(
-        "Stream HTTP " + response.status
-      );
-
-    if(!response.body)
-      throw new Error(
-        "ReadableStream unavailable."
-      );
-
-    streamReader =
-      response.body.getReader();
-
-    setStreamState(true);
-    showPreview();
-
-    reconnectAttempt = 0;
-
-    message(
-      "Live evidence feed established.",
-      "#526b50"
-    );
-
-    while(streamRunning){
-
-      const {value, done} =
-        await streamReader.read();
-
-      if(done)
-        break;
-
-      if(!value)
-        continue;
-
-      streamBuffer =
-        appendBytes(
-          streamBuffer,
-          value
-        );
-
-      while(true){
-
-        const jpeg =
-          extractJPEG();
-
-        if(!jpeg)
-          break;
-
-        queueJPEG(jpeg);
-
-      }
-
-    }
-
-  }
-  catch(e){
-
-    if(e.name !== "AbortError")
-      console.error("MJPEG:", e);
-
-  }
-
-  streamRunning = false;
-  streamReader = null;
-
-  setStreamState(false);
-
-  if(!manualDisconnect && baseUrl){
-
-    message(
-      connected
-        ? "Device online — video reconnecting..."
-        : "Camera connection lost.",
-      connected
-        ? "#a17c38"
-        : "#9b514c"
-    );
-
-    scheduleReconnect();
-
-  }
-
-}
-
-function stopMJPEG(clearState=true){
-
-  streamRunning = false;
-
-  if(streamController){
-
-    try{
-      streamController.abort();
-    }
-    catch(_){}
-
-  }
-
-  streamController = null;
-  streamReader = null;
-
-  streamBuffer =
-    new Uint8Array(0);
-
-  newestJPEG = null;
-
-  if(clearState)
-    setStreamState(false);
-
-}
-
-
-/* =========================================================
-   CONNECT
-========================================================= */
-
-async function connectPreview(){
-
-  let url;
-
-  try{
-    url = normalizeUrl(el.ip.value);
-  }
-  catch(e){
-    message(e.message, "#9b514c");
-    return;
-  }
-
-  manualDisconnect = false;
-  clearReconnectTimer();
-  reconnectAttempt = 0;
-
-  stopMJPEG();
-
-  baseUrl = url;
-  streamUrl = makeStreamUrl(url);
-
-  setConnection(false);
-  setStreamState(false);
-
-  message("Checking XIAO device...");
-
-  try{
-
-    const status = await getStatus();
-
-    setConnection(true);
-    updateStatus(status);
-
-    showPreview();
-
-    message(
-      "Device connected. Starting live feed...",
-      "#526b50"
-    );
-
-    startMJPEG();
-
-  }
-  catch(e){
-
-    console.error("Connect:", e);
-
-    setConnection(false);
-    setStreamState(false);
-
-    message(
-      "Connection failed: " + e.message,
-      "#9b514c"
-    );
-
-    scheduleReconnect();
-
-  }
-
-}
-
-
-/* =========================================================
-   DISCONNECT
-========================================================= */
-
-function disconnect(){
-
-  if(recording){
-
-    message(
-      "End the recording before disconnecting.",
-      "#a17c38"
-    );
-
-    return;
-
-  }
-
-  manualDisconnect = true;
-  clearReconnectTimer();
-
-  stopMJPEG();
-
-  baseUrl = "";
-  streamUrl = "";
-
-  hidePreview();
-
-  setConnection(false);
-  setStreamState(false);
-
-  message("System disconnected.");
-
-}
-
-
-/* =========================================================
-   CAPTURE
-========================================================= */
-
-async function captureJPEG(){
-
-  if(!connected)
-    return;
-
-  try{
-
-    message("Capturing evidence...");
-
-    const response =
-      await fetch(
-        baseUrl + "/capture?t=" + Date.now(),
-        {
-          cache:"no-store",
-          signal:AbortSignal.timeout(8000)
-        }
-      );
-
-    if(!response.ok)
-      throw new Error(
-        "Capture HTTP " + response.status
-      );
-
-    const blob = await response.blob();
-
-    const url =
-      URL.createObjectURL(blob);
-
-    const now = new Date();
-
-    const stamp =
-      now.getFullYear() +
-      String(now.getMonth()+1).padStart(2,"0") +
-      String(now.getDate()).padStart(2,"0") +
-      "_" +
-      String(now.getHours()).padStart(2,"0") +
-      String(now.getMinutes()).padStart(2,"0") +
-      String(now.getSeconds()).padStart(2,"0");
-
-    const a =
-      document.createElement("a");
-
-    a.href = url;
-    a.download = "iron_clause_" + stamp + ".jpg";
-
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-
-    setTimeout(
-      () => URL.revokeObjectURL(url),
-      5000
-    );
-
-    message(
-      "Evidence image captured.",
-      "#526b50"
-    );
-
-  }
-  catch(e){
-
-    message(
-      "Capture failed: " + e.message,
-      "#9b514c"
-    );
-
-  }
-
+function stopXiaoAudio(){
+  xiaoAudioRunning=false;
+  if(xiaoAudioController){try{xiaoAudioController.abort();}catch(_){} }
+  xiaoAudioController=null; xiaoAudioReader=null;
+  if(xiaoAudioContext){try{xiaoAudioContext.close();}catch(_){} }
+  xiaoAudioContext=null; xiaoAudioDestination=null; xiaoAudioNextTime=0;
 }
 
 
@@ -2390,6 +1662,12 @@ async function buildCaptureStream(){
 
   captureStream =
     recordingCanvas.captureStream(20);
+
+  // Add the wired XIAO microphone audio to the same recording.
+  if(micEnabled){
+    const audioTrack = await startXiaoAudio();
+    if(audioTrack) captureStream.addTrack(audioTrack);
+  }
 
   drawing = true;
 
@@ -2522,6 +1800,9 @@ async function startRecording(){
 
     captureStream = null;
     recorder = null;
+    stopXiaoAudio();
+
+    if(micStream && !recording) stopBrowserMic();
 
     message(
       "Record start failed: " + e.message,
@@ -2655,6 +1936,7 @@ async function stopRecording(){
       .forEach(t => t.stop());
 
   captureStream = null;
+  stopXiaoAudio();
 
 }
 
@@ -2719,6 +2001,75 @@ function saveRecording(){
 
 
 /* =========================================================
+   CAMERA CONTROLS
+========================================================= */
+function signedValue(v){
+  const n=Number(v)||0;
+  return n>0 ? "+"+n : String(n);
+}
+function updateSliderLabels(){
+  el.camBrightnessValue.textContent=signedValue(el.camBrightness.value);
+  el.camContrastValue.textContent=signedValue(el.camContrast.value);
+  el.camSaturationValue.textContent=signedValue(el.camSaturation.value);
+  el.camSharpnessValue.textContent=signedValue(el.camSharpness.value);
+}
+function cameraSliderPreview(){
+  updateSliderLabels();
+  clearTimeout(cameraDebounce);
+  cameraDebounce=setTimeout(updateCameraSettings,140);
+}
+async function updateCameraSettings(){
+  if(!connected)return;
+  cameraSettings.brightness=Number(el.camBrightness.value);
+  cameraSettings.contrast=Number(el.camContrast.value);
+  cameraSettings.saturation=Number(el.camSaturation.value);
+  cameraSettings.sharpness=Number(el.camSharpness.value);
+  updateSliderLabels();
+  const params=new URLSearchParams({
+    brightness:String(cameraSettings.brightness),
+    contrast:String(cameraSettings.contrast),
+    saturation:String(cameraSettings.saturation),
+    sharpness:String(cameraSettings.sharpness),
+    effect:String(cameraSettings.effect||0)
+  });
+  try{
+    const response=await fetch(baseUrl+"/camera?"+params.toString()+"&t="+Date.now(),{cache:"no-store"});
+    if(!response.ok)throw new Error("Camera HTTP "+response.status);
+    const data=await response.json();
+    cameraSettings=data;
+    el.camBrightness.value=data.brightness;
+    el.camContrast.value=data.contrast;
+    el.camSaturation.value=data.saturation;
+    el.camSharpness.value=data.sharpness;
+    updateSliderLabels();
+    message("Camera settings updated.","#526b50");
+  }catch(e){
+    message("Camera settings failed: "+e.message,"#9b514c");
+  }
+}
+function applyDisplayFilter(){displayFilter=el.camFilter.value; el.canvas.style.filter=displayFilter;}
+
+/* =========================================================
+   REMINDERS
+========================================================= */
+function reminderMessage(text,color=""){el.reminderMessage.textContent=text;el.reminderMessage.style.color=color||"#77736c";}
+function formatReminderTime(r){const hh=String(r.hour).padStart(2,"0"),mm=String(r.minute).padStart(2,"0");return Number(r.mode)===0?`At ${hh}:${mm}`:`Every ${r.interval} min · starts ${hh}:${mm}`;}
+function renderReminders(list){
+  el.reminderList.innerHTML="";const active=list.filter(r=>r.active);
+  if(!active.length){el.reminderList.innerHTML='<div class="emptyReminders">No reminders scheduled.</div>';return;}
+  active.forEach(r=>{const item=document.createElement("div");item.className="reminderItem";item.innerHTML=`<div><div class="reminderItemText"></div><div class="reminderItemMeta">${formatReminderTime(r)} · TFT reminder</div></div><button class="reminderDelete" data-id="${r.id}">Delete</button>`;item.querySelector(".reminderItemText").textContent=r.text;item.querySelector(".reminderDelete").onclick=async()=>{try{await xiaoCommand(`/reminder/delete?id=${encodeURIComponent(r.id)}`);await loadReminders();reminderMessage("Reminder deleted.","#526b50");}catch(e){reminderMessage("Delete failed: "+e.message,"#9b514c");}};el.reminderList.appendChild(item);});
+}
+async function loadReminders(){if(!connected)return;try{const response=await fetch(baseUrl+"/reminders?t="+Date.now(),{cache:"no-store"});if(!response.ok)throw new Error("Reminder HTTP "+response.status);renderReminders(await response.json());}catch(e){reminderMessage("Could not load reminders: "+e.message,"#9b514c");}}
+async function addReminder(){
+  if(!connected){reminderMessage("Connect to the XIAO first.","#9b514c");return;}
+  const text=el.reminderText.value.trim();if(!text){reminderMessage("Enter reminder text.","#9b514c");return;}
+  const [hour,minute]=el.reminderTime.value.split(":").map(Number);
+  const params=new URLSearchParams({text,mode:el.reminderMode.value,hour:String(Number.isFinite(hour)?hour:9),minute:String(Number.isFinite(minute)?minute:0),interval:String(Math.max(1,Number(el.reminderInterval.value)||60))});
+  try{const response=await fetch(baseUrl+"/reminder/set?"+params.toString(),{cache:"no-store"});if(!response.ok)throw new Error("Reminder HTTP "+response.status);el.reminderText.value="";await loadReminders();reminderMessage("Reminder saved to the XIAO.","#526b50");}catch(e){reminderMessage("Save failed: "+e.message,"#9b514c");}
+}
+function updateReminderConnectionUI(){if(!el.navDot3)return;el.navDot3.className="statusDot "+(connected?"online":"");el.navStatus3.textContent=connected?"ONLINE":"OFFLINE";}
+
+/* =========================================================
    EVENTS
 ========================================================= */
 
@@ -2729,6 +2080,16 @@ el.start.onclick = startRecording;
 el.pause.onclick = pauseRecording;
 el.resume.onclick = resumeRecording;
 el.stop.onclick = stopRecording;
+
+el.camBrightness.addEventListener("input",cameraSliderPreview);
+el.camContrast.addEventListener("input",cameraSliderPreview);
+el.camSaturation.addEventListener("input",cameraSliderPreview);
+el.camSharpness.addEventListener("input",cameraSliderPreview);
+el.camFilter.addEventListener("change",applyDisplayFilter);
+el.addReminder.onclick=addReminder;
+el.refreshReminders.onclick=loadReminders;
+el.reminderMode.addEventListener("change",()=>{const repeat=el.reminderMode.value==="1";el.reminderInterval.parentElement.style.opacity=repeat?"1":".45";});
+updateSliderLabels();updateMicStatusUI();applyDisplayFilter();
 
 el.ip.addEventListener(
   "keydown",
@@ -2748,6 +2109,7 @@ updateButtons();
 hidePreview();
 setConnection(false);
 setStreamState(false);
+updateReminderConnectionUI();
 /* =========================================================
    EVENTS
 ========================================================= */
