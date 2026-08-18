@@ -2084,7 +2084,7 @@ async function ensureAudioGraph(){
   await audioContext.resume();
 
   audioNextTime =
-    audioContext.currentTime + 0.08;
+    audioContext.currentTime + 0.05;
 }
 
 function appendAudioBytes(bytes){
@@ -2112,7 +2112,7 @@ function appendAudioBytes(bytes){
 function consumeAudioBlock(){
 
   const BLOCK_BYTES =
-    3200 * 2; // 200 ms @ 16 kHz mono 16-bit
+    1600 * 2; // 100 ms @ 16 kHz mono 16-bit
 
   if(audioBuffer.length < BLOCK_BYTES)
     return false;
@@ -2202,7 +2202,7 @@ async function startAudioStream(){
       new Uint8Array(0);
 
     audioNextTime =
-      audioContext.currentTime + 0.12;
+      audioContext.currentTime + 0.05;
 
     const response =
       await fetch(
