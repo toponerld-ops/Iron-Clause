@@ -4,150 +4,107 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Iron Clause — Digital Evidence Logger</title>
-
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
-
-:root{
-  --paper:#eee9e1; --paper2:#e5ded3; --ink:#171715; --muted:#77736c; --line:#cbc4b9;
-  --dark:#11110f; --dark2:#1b1b19; --cream:#f7f4ee; --accent:#a28b65; --green:#526b50; --red:#9b514c;
-}
-
-*{ box-sizing:border-box; }
-html, body{ width:100%; height:100%; margin:0; overflow:hidden; }
+:root{ --paper:#eee9e1; --ink:#171715; --muted:#77736c; --dark:#11110f; --cream:#f7f4ee; --accent:#a28b65; --green:#526b50; --red:#9b514c; }
+*{ box-sizing:border-box; } html, body{ width:100%; height:100%; margin:0; overflow:hidden; }
 body{ background:var(--paper); color:var(--ink); font-family:"DM Sans",sans-serif; -webkit-font-smoothing:antialiased; }
-button, input{ font:inherit; }
-button{ cursor:pointer; outline: none; }
-button:disabled{ cursor:not-allowed; opacity: 0.5; }
-
+button, input{ font:inherit; } button{ cursor:pointer; outline: none; }
 #app{ width:100vw; height:100vh; overflow:hidden; position:relative; }
-
-.page{
-  position:absolute; inset:0; width:100%; height:100%; overflow:hidden;
-  opacity:0; visibility:hidden; pointer-events:none; transform:translateX(35px);
-  transition: opacity .45s ease, transform .55s cubic-bezier(.22,1,.36,1), visibility .45s;
-}
+.page{ position:absolute; inset:0; width:100%; height:100%; overflow:hidden; opacity:0; visibility:hidden; pointer-events:none; transform:translateX(35px); transition: all .45s cubic-bezier(.22,1,.36,1); }
 .page.active{ opacity:1; visibility:visible; pointer-events:auto; transform:none; }
-
-.topbar{
-  position:absolute; top:0; left:0; right:0; height:76px; padding:0 5vw;
-  display:flex; align-items:center; justify-content:space-between; z-index:30;
-  border-bottom:1px solid rgba(23,23,21,.14); background:rgba(238,233,225,.68);
-  backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
-}
+.topbar{ position:absolute; top:0; left:0; right:0; height:76px; padding:0 5vw; display:flex; align-items:center; justify-content:space-between; z-index:30; border-bottom:1px solid rgba(23,23,21,.14); background:rgba(238,233,225,.68); backdrop-filter:blur(22px); }
 .darkPage .topbar{ color:white; border-color:rgba(255,255,255,.12); background:rgba(17,17,15,.65); }
 .logo{ display:flex; align-items:center; gap:11px; font-weight:700; letter-spacing:.08em; font-size:12px; }
-.logoMark{ width:34px; height:34px; border:1px solid currentColor; border-radius:50%; display:grid; place-items:center; font-family:"Playfair Display",serif; font-size:15px; }
-.status{ display:flex; align-items:center; gap:8px; font-family:"DM Mono",monospace; font-size:9px; letter-spacing:.1em; }
-.statusDot{ width:7px; height:7px; border-radius:50%; background:#777; transition: background 0.3s; }
+.logoMark{ width:34px; height:34px; border:1px solid currentColor; border-radius:50%; display:grid; place-items:center; font-family:"Playfair Display",serif; }
+.status{ display:flex; align-items:center; gap:8px; font-family:"DM Mono",monospace; font-size:9px; }
+.statusDot{ width:7px; height:7px; border-radius:50%; background:#777; }
 .statusDot.online{ background:var(--green); box-shadow:0 0 0 4px rgba(82,107,80,.12); }
-
 #pageIntro{ background: radial-gradient(circle at 70% 42%, rgba(162,139,101,.13), transparent 32%), var(--paper); }
-.introContent{ width:100%; height:100%; padding:100px 7vw 100px; display:grid; grid-template-columns: minmax(0,1fr) minmax(320px,.85fr); align-items:center; gap:4vw; }
-.introTitle{ margin:35px 0 25px; font-family:"Playfair Display",serif; font-weight:500; font-size: clamp(65px, 9vw, 145px); line-height:.8; letter-spacing:-.065em; }
-.italic{ font-style:italic; margin-left:8vw; display:block; }
-
+.introContent{ width:100%; height:100%; padding:100px 7vw; display:grid; grid-template-columns: 1fr 1fr; align-items:center; }
+.introTitle{ font-family:"Playfair Display",serif; font-size: 8vw; line-height:.8; margin:0; }
 #pageEvidence{ background:var(--dark); color:var(--cream); }
 .evidencePage{ width:100%; height:100%; padding: 100px 5vw 90px; display:flex; flex-direction:column; }
-.cameraLayout{ flex:1; min-height:0; display:grid; grid-template-columns: minmax(0,2.15fr) minmax(290px,.85fr); gap:18px; }
-.cameraCard{ position:relative; min-height:0; background:#050505; border:1px solid #2b2b28; border-radius:8px; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+.cameraLayout{ flex:1; display:grid; grid-template-columns: 2fr 1fr; gap:18px; min-height:0; }
+.cameraCard{ background:#050505; border-radius:8px; overflow:hidden; display:flex; align-items:center; justify-content:center; position:relative; }
 #streamImage{ display:none; width:100%; height:100%; object-fit:contain; }
-
 .controlCard{ background:var(--cream); color:var(--ink); border-radius:8px; padding:24px; display:flex; flex-direction:column; justify-content:space-between; }
-.ipGroup{ margin:25px 0; }
-.ipRow{ display:flex; border-bottom:1px solid #bbb4aa; }
-.ipRow input{ width:100%; border:0; outline:0; background:transparent; padding:8px 0; font-family:"DM Mono",monospace; font-size:12px; }
-.connectButton{ width:42px; height:38px; border:0; background:var(--ink); color:white; transition: 0.2s; }
-.controlButtons{ display:grid; grid-template-columns:1fr 1fr; gap:7px; }
-.controlButtons button{ border:1px solid #c3bcb1; background:transparent; padding:11px 8px; font-size:8px; text-transform:uppercase; transition:.2s; font-weight: 600; }
-
-.pageNav{ position:absolute; left:50%; bottom:22px; transform:translateX(-50%); z-index:100; display:flex; gap:8px; padding:7px; border:1px solid rgba(255,255,255,.25); border-radius:20px; background: linear-gradient(135deg, rgba(255,255,255,.25), rgba(255,255,255,.07)); backdrop-filter:blur(24px); }
-.pageButton{ min-width:110px; padding:11px 18px; border:1px solid rgba(255,255,255,.18); border-radius:14px; background: rgba(255,255,255,0.05); color:inherit; font-family:"DM Mono",monospace; font-size:8px; text-transform:uppercase; transition: 0.3s; }
-.pageButton.active{ background: rgba(255,255,255,0.4); box-shadow: 0 5px 18px rgba(0,0,0,0.12); }
+.ipRow{ display:flex; border-bottom:1px solid #bbb4aa; margin-top:10px; }
+.ipRow input{ width:100%; border:0; background:transparent; padding:8px 0; font-family:"DM Mono"; }
+.connectButton{ background:var(--ink); color:white; border:0; width:40px; }
+.pageNav{ position:absolute; left:50%; bottom:22px; transform:translateX(-50%); z-index:100; display:flex; gap:8px; padding:7px; border-radius:20px; background: rgba(255,255,255,0.1); backdrop-filter:blur(24px); border:1px solid rgba(255,255,255,0.2); }
+.pageButton{ min-width:110px; padding:11px; border-radius:14px; background: rgba(255,255,255,0.1); color:inherit; font-family:"DM Mono"; font-size:8px; border:0; color: white; }
+.pageButton.active{ background: rgba(255,255,255,0.3); }
 </style>
 </head>
 <body>
-
 <div id="app">
-  <!-- PAGE 1 -->
-  <section id="pageIntro" class="page active">
-    <header class="topbar">
-      <div class="logo"><span class="logoMark">M</span><span>IRON CLAUSE</span></div>
-      <div class="status"><span id="navDot" class="statusDot"></span><span id="navStatus">OFFLINE</span></div>
-    </header>
-    <main class="introContent">
-      <div class="introCopy">
-        <h1 class="introTitle"><span>MR.</span><span class="italic">JUSTICE</span></h1>
-      </div>
-    </main>
-  </section>
+    <section id="pageIntro" class="page active">
+        <header class="topbar">
+            <div class="logo"><span class="logoMark">M</span><span>IRON CLAUSE</span></div>
+            <div class="status"><span class="statusDot" id="navDot1"></span><span id="navStatus1">OFFLINE</span></div>
+        </header>
+        <main class="introContent">
+            <h1 class="introTitle">MR.<br><span style="font-style:italic; margin-left:2em;">JUSTICE</span></h1>
+        </main>
+    </section>
 
-  <!-- PAGE 2 -->
-  <section id="pageEvidence" class="page darkPage">
-    <header class="topbar">
-      <div class="logo"><span class="logoMark">M</span><span>IRON CLAUSE</span></div>
-      <div class="status"><span id="navDot2" class="statusDot"></span><span id="navStatus2">OFFLINE</span></div>
-    </header>
-    <main class="evidencePage">
-      <div class="cameraLayout">
-        <div class="cameraCard">
-          <div id="placeholder" style="color:#777; text-align: center;">AWAITING LINK</div>
-          <img id="streamImage" alt="Live Seamless Feed">
-        </div>
-
-        <div class="controlCard">
-          <div class="ipGroup">
-            <label style="font-size:9px; opacity:0.6; display:block; margin-bottom:10px;">XIAO ADDRESS</label>
-            <div class="ipRow">
-              <input id="ip" placeholder="e.g. 192.168.1.50">
-              <button id="connectBtn" class="connectButton">→</button>
+    <section id="pageEvidence" class="page darkPage">
+        <header class="topbar">
+            <div class="logo"><span class="logoMark">M</span><span>IRON CLAUSE</span></div>
+            <div class="status"><span class="statusDot" id="navDot2"></span><span id="navStatus2">OFFLINE</span></div>
+        </header>
+        <main class="evidencePage">
+            <div class="cameraLayout">
+                <div class="cameraCard">
+                    <div id="placeholder">AWAITING CONNECTION</div>
+                    <img id="streamImage" alt="Live Feed">
+                </div>
+                <div class="controlCard">
+                    <div>
+                        <label style="font-size:9px; opacity:0.5;">XIAO ADDRESS</label>
+                        <div class="ipRow">
+                            <input id="ip" placeholder="192.168.1.XX">
+                            <button id="connectBtn" class="connectButton">→</button>
+                        </div>
+                    </div>
+                    <div id="message" style="font-size:10px; opacity:0.6;">System Ready.</div>
+                </div>
             </div>
-          </div>
-          <div class="controlButtons">
-            <button class="primary" onclick="sendCommand('/record/start')">Record</button>
-            <button style="color:var(--red)" onclick="sendCommand('/record/stop')">Stop</button>
-          </div>
-          <div id="message" style="font-size:9px; margin-top:20px; opacity:0.6;">READY.</div>
-        </div>
-      </div>
-    </main>
-  </section>
+        </main>
+    </section>
 
-  <nav class="pageNav">
-    <button class="pageButton active" data-page="intro">01 · INTRO</button>
-    <button class="pageButton" data-page="evidence">02 · EVIDENCE</button>
-  </nav>
+    <nav class="pageNav">
+        <button class="pageButton active" data-page="intro">01 · INTRO</button>
+        <button class="pageButton" data-page="evidence">02 · EVIDENCE</button>
+    </nav>
 </div>
 
 <script>
+const pages = { intro: document.getElementById("pageIntro"), evidence: document.getElementById("pageEvidence") };
+const buttons = document.querySelectorAll(".pageButton");
 let deviceIp = "";
 
-function startMJPEG() {
-    const ipInput = document.getElementById("ip").value.trim();
-    if (!ipInput) return;
-    
-    deviceIp = ipInput;
-    const streamImg = document.getElementById("streamImage");
-    
-    // Step 1: Kill any existing stream
-    streamImg.src = "";
-    
-    // Step 2: Establish new high-speed stream
-    // We target Port 81 and the /stream path defined in the firmware
-    const streamUrl = `http://${deviceIp}:81/stream`;
-    
-    streamImg.style.display = "block";
+buttons.forEach(btn => {
+    btn.onclick = () => {
+        buttons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        Object.values(pages).forEach(p => p.classList.remove("active"));
+        pages[btn.dataset.page].classList.add("active");
+    };
+});
+
+function startStream() {
+    deviceIp = document.getElementById("ip").value.trim();
+    if(!deviceIp) return;
+    const img = document.getElementById("streamImage");
+    img.src = `http://${deviceIp}:81/stream`;
+    img.style.display = "block";
     document.getElementById("placeholder").style.display = "none";
-    
-    // The browser handles the MJPEG speed automatically
-    streamImg.src = streamUrl;
-
-    // Optional: UI Updates
-    document.getElementById("navStatus").innerText = "ONLINE";
-    document.getElementById("navDot").classList.add("online");
+    document.getElementById("navDot1").className = document.getElementById("navDot2").className = "statusDot online";
+    document.getElementById("navStatus1").innerText = document.getElementById("navStatus2").innerText = "ONLINE";
 }
-
-document.getElementById("connectBtn").onclick = startMJPEG;
+document.getElementById("connectBtn").onclick = startStream;
 </script>
 </body>
 </html>
