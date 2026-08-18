@@ -762,8 +762,30 @@ button:disabled{
 }
 
 /* =========================================================
+   MICROPHONE SPECTRUM
+========================================================= */
+
+.micTestCard{margin-top:18px;background:var(--cream);color:var(--ink);border-radius:8px;padding:20px 24px;border:1px solid rgba(69,68,63,.12)}
+.micTestTop{display:flex;justify-content:space-between;align-items:flex-start;gap:18px}
+.micTestEyebrow{font-family:"DM Mono",monospace;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+.micTestTitle{margin-top:6px;font-family:"Playfair Display",serif;font-size:25px;line-height:1}
+.micTestStatus{display:flex;align-items:center;gap:7px;font-family:"DM Mono",monospace;font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.micTestDot{width:7px;height:7px;border-radius:50%;background:#8a8780}
+.micTestDot.active{background:#7c9679;box-shadow:0 0 0 4px rgba(124,150,121,.12)}
+.micSpectrumWrap{position:relative;height:128px;margin-top:16px;overflow:hidden;border:1px solid #c7c0b5;border-radius:6px;background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(0,0,0,.025))}
+#micSpectrum{display:block;width:100%;height:100%}
+.micLevel,.micPeak{position:absolute;bottom:10px;font-family:"DM Mono",monospace;font-size:8px;color:#77736c;pointer-events:none;text-transform:uppercase}
+.micLevel{left:12px}.micPeak{right:12px}
+.micTestBottom{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px}
+.micTestHint{max-width:62%;font-family:"DM Mono",monospace;font-size:8px;line-height:1.6;color:var(--muted)}
+.micTestButton{min-width:150px;border:1px solid #c3bcb1;background:transparent;color:var(--ink);padding:11px 14px;font-family:"DM Mono",monospace;font-size:8px;letter-spacing:.08em;text-transform:uppercase}
+.micTestButton.active{background:var(--ink);color:white}.micTestButton:disabled{opacity:.3}
+@media(max-width:900px){.micTestBottom{align-items:stretch;flex-direction:column}.micTestHint{max-width:none}.micTestButton{width:100%}}
+
+/* =========================================================
    LIQUID GLASS NAVIGATION
 ========================================================= */
+
 
 .pageNav{
   position:absolute;
@@ -1338,6 +1360,34 @@ button:disabled{
 
     </div>
 
+    <div class="micTestCard">
+      <div class="micTestTop">
+        <div>
+          <div class="micTestEyebrow">Audio / 01</div>
+          <div class="micTestTitle">Microphone Spectrum</div>
+        </div>
+        <div class="micTestStatus">
+          <span id="micTestDot" class="micTestDot"></span>
+          <span id="micTestStatus">TEST OFF</span>
+        </div>
+      </div>
+
+      <div class="micSpectrumWrap">
+        <canvas id="micSpectrum" aria-label="Live microphone sound spectrum"></canvas>
+        <div id="micLevel" class="micLevel">LEVEL · SILENT</div>
+        <div id="micPeak" class="micPeak">PEAK · 0%</div>
+      </div>
+
+      <div class="micTestBottom">
+        <div class="micTestHint">
+          Press <strong>MIC TEST</strong>, then speak or tap the microphone.
+          Moving bars and a rising level confirm that the XIAO is receiving
+          sound from A0.
+        </div>
+        <button id="micTestBtn" class="micTestButton" disabled>MIC TEST</button>
+      </div>
+    </div>
+
   </main>
 
 </section>
@@ -1497,6 +1547,12 @@ const el = {
   resume:$("resumeBtn"),
   stop:$("stopBtn"),
   mic:$("micBtn"),
+  micTest:$("micTestBtn"),
+  micSpectrum:$("micSpectrum"),
+  micTestDot:$("micTestDot"),
+  micTestStatus:$("micTestStatus"),
+  micLevel:$("micLevel"),
+  micPeak:$("micPeak"),
 
   canvas:$("streamCanvas"),
   streamImage:$("streamImage"),
@@ -1573,7 +1629,10 @@ let audioRunning = false;
 let audioContext = null;
 let audioDestination = null;
 let micGain = null;
+let micAnalyser = null;
 let micAudioEnabled = false;
+let micTestRunning = false;
+let micVisualFrame = 0;
 let audioBuffer = new Uint8Array(0);
 let audioNextTime = 0;
 
@@ -1699,6 +1758,9 @@ function updateButtons(){
 
   el.mic.disabled =
     !recording;
+
+  el.micTest.disabled =
+    !connected;
 
   el.mic.textContent =
     micAudioEnabled ? "MIC ON" : "MIC OFF";
@@ -2125,6 +2187,13 @@ async function ensureAudioGraph(){
     audioContext.createGain();
 
   micGain.gain.value = 0;
+
+  micAnalyser =
+    audioContext.createAnalyser();
+
+  micAnalyser.fftSize = 256;
+  micAnalyser.smoothingTimeConstant = 0.78;
+
   micGain.connect(audioDestination);
 
   await audioContext.resume();
@@ -2214,6 +2283,7 @@ function consumeAudioBlock(){
     audioContext.createBufferSource();
 
   source.buffer = buffer;
+  source.connect(micAnalyser);
   source.connect(micGain);
 
   const startAt =
@@ -2230,6 +2300,161 @@ function consumeAudioBlock(){
 
   return true;
 }
+
+function setMicTestUI(active){
+  micTestRunning = !!active;
+
+  if(el.micTest){
+    el.micTest.textContent = micTestRunning ? "STOP MIC TEST" : "MIC TEST";
+    el.micTest.classList.toggle("active", micTestRunning);
+  }
+
+  if(el.micTestDot)
+    el.micTestDot.classList.toggle("active", micTestRunning);
+
+  if(el.micTestStatus)
+    el.micTestStatus.textContent = micTestRunning ? "LISTENING" : "TEST OFF";
+
+  if(!micTestRunning){
+    if(el.micLevel) el.micLevel.textContent = "LEVEL · SILENT";
+    if(el.micPeak) el.micPeak.textContent = "PEAK · 0%";
+  }
+}
+
+function drawMicSpectrum(){
+  const canvas = el.micSpectrum;
+  if(!canvas) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const width = Math.max(1, Math.floor(rect.width * dpr));
+  const height = Math.max(1, Math.floor(rect.height * dpr));
+
+  if(canvas.width !== width || canvas.height !== height){
+    canvas.width = width;
+    canvas.height = height;
+  }
+
+  const c = canvas.getContext("2d");
+  const w = canvas.width, h = canvas.height;
+  c.clearRect(0,0,w,h);
+  c.strokeStyle = "rgba(69,68,63,.10)";
+  c.lineWidth = 1;
+
+  for(let y=h*.25;y<h;y+=h*.25){
+    c.beginPath(); c.moveTo(0,Math.round(y)+.5); c.lineTo(w,Math.round(y)+.5); c.stroke();
+  }
+  for(let x=w*.125;x<w;x+=w*.125){
+    c.beginPath(); c.moveTo(Math.round(x)+.5,0); c.lineTo(Math.round(x)+.5,h); c.stroke();
+  }
+
+  if(!micAnalyser || !micTestRunning) return;
+
+  const bins = new Uint8Array(micAnalyser.frequencyBinCount);
+  const time = new Uint8Array(micAnalyser.fftSize);
+  micAnalyser.getByteFrequencyData(bins);
+  micAnalyser.getByteTimeDomainData(time);
+
+  let sum=0, peak=0;
+  for(let i=0;i<time.length;i++){
+    const v=Math.abs(time[i]-128)/128;
+    sum += v*v; if(v>peak) peak=v;
+  }
+
+  const rms=Math.sqrt(sum/time.length);
+  const level=Math.min(100,Math.round(rms*220));
+  const peakPct=Math.min(100,Math.round(peak*100));
+
+  if(el.micLevel) el.micLevel.textContent = "LEVEL · " + (level<3 ? "SILENT" : level+"%");
+  if(el.micPeak) el.micPeak.textContent = "PEAK · " + peakPct + "%";
+
+  const barCount=Math.min(64,bins.length);
+  const step=bins.length/barCount;
+  const gap=Math.max(2,w/900);
+  const barW=Math.max(2,w/barCount-gap);
+
+  for(let i=0;i<barCount;i++){
+    const index=Math.min(bins.length-1,Math.floor(i*step));
+    const value=Math.pow(bins[index]/255,.72);
+    const barH=Math.max(2,value*h*.82);
+    const x=i*(w/barCount)+gap/2;
+    const y=h-barH;
+
+    c.fillStyle=value>.58 ? "rgba(82,107,80,.90)" : "rgba(111,98,79,.78)";
+    c.fillRect(x,y,barW,barH);
+  }
+
+  c.strokeStyle="rgba(82,107,80,.32)";
+  c.beginPath();
+  for(let i=0;i<time.length;i++){
+    const x=(i/(time.length-1))*w;
+    const v=(time[i]-128)/128;
+    const y=h*.52-v*h*.18;
+    if(i===0) c.moveTo(x,y); else c.lineTo(x,y);
+  }
+  c.stroke();
+}
+
+function startMicVisualizer(){
+  if(micVisualFrame) cancelAnimationFrame(micVisualFrame);
+  const loop=()=>{
+    drawMicSpectrum();
+    micVisualFrame=requestAnimationFrame(loop);
+  };
+  loop();
+}
+
+function stopMicVisualizer(){
+  if(micVisualFrame){
+    cancelAnimationFrame(micVisualFrame);
+    micVisualFrame=0;
+  }
+  drawMicSpectrum();
+}
+
+async function toggleMicTest(){
+
+  if(!connected){
+    message("Connect to the XIAO first.","#9b514c");
+    return;
+  }
+
+  if(micTestRunning){
+
+    try{
+      await fetch(baseUrl+"/mic/test/stop?t="+Date.now(),{cache:"no-store"});
+      setMicTestUI(false);
+      stopAudioStream();
+      stopMicVisualizer();
+      message("Microphone test stopped.","#77736c");
+    }catch(e){
+      message("Mic test stop failed: "+e.message,"#9b514c");
+    }
+    return;
+  }
+
+  try{
+    await ensureAudioGraph();
+
+    const response=await fetch(
+      baseUrl+"/mic/test/start?t="+Date.now(),
+      {cache:"no-store"}
+    );
+
+    if(!response.ok) throw new Error("MIC TEST HTTP "+response.status);
+
+    setMicTestUI(true);
+    startMicVisualizer();
+    startAudioStream();
+
+    message("Microphone test running. Speak or tap the mic.","#526b50");
+  }catch(e){
+    setMicTestUI(false);
+    stopMicVisualizer();
+    message("Microphone test failed: "+e.message,"#9b514c");
+  }
+}
+
 
 function setMicAudioEnabled(enabled, announce=true){
 
@@ -2423,7 +2648,6 @@ async function connectPreview(){
     showPreview();
     message("XIAO connected. Starting live feed...", "#526b50");
     startMJPEG();
-    startAudioStream();
     loadCameraSettings();
     loadReminders();
   } catch(e) {
@@ -2450,7 +2674,17 @@ function disconnect(){
   }
 
   stopMJPEG();
+
+  if(micTestRunning && baseUrl){
+    fetch(
+      baseUrl + "/mic/test/stop?t=" + Date.now(),
+      {cache:"no-store"}
+    ).catch(() => {});
+  }
+
   stopAudioStream();
+  stopMicVisualizer();
+  setMicTestUI(false);
   setMicAudioEnabled(false, false);
 
   baseUrl = "";
@@ -2638,6 +2872,7 @@ async function startRecording(){
     );
 
     await ensureAudioGraph();
+    await startAudioStream();
 
     // Every recording starts silent. Press MIC ON to include audio.
     setMicAudioEnabled(false, false);
@@ -2957,6 +3192,11 @@ async function stopRecording(){
 
   stopTimer();
 
+  if(!micTestRunning){
+    stopAudioStream();
+    stopMicVisualizer();
+  }
+
   el.recordState.textContent = "Preview";
   el.navDot.className = "statusDot online";
   el.navDot2.className = "statusDot online";
@@ -3189,6 +3429,9 @@ el.stop.onclick =
 el.mic.onclick =
   toggleMicAudio;
 
+el.micTest.onclick =
+  toggleMicTest;
+
 el.ip.addEventListener(
   "keydown",
   e => {
@@ -3206,6 +3449,8 @@ statusHandle =
   );
 
 updateButtons();
+setMicTestUI(false);
+startMicVisualizer();
 hidePreview();
 </script>
 
