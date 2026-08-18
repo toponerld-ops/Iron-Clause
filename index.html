@@ -6,39 +6,70 @@
 <title>Iron Clause — Digital Evidence Logger</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
-:root{ --paper:#eee9e1; --ink:#171715; --muted:#77736c; --dark:#11110f; --cream:#f7f4ee; --accent:#a28b65; --green:#526b50; --red:#9b514c; }
-*{ box-sizing:border-box; } html, body{ width:100%; height:100%; margin:0; overflow:hidden; }
+
+:root{
+  --paper:#eee9e1; --ink:#171715; --muted:#77736c; --dark:#11110f; --cream:#f7f4ee; --accent:#a28b65; --green:#526b50; --red:#9b514c;
+}
+
+*{ box-sizing:border-box; }
+html, body{ width:100%; height:100%; margin:0; overflow:hidden; }
 body{ background:var(--paper); color:var(--ink); font-family:"DM Sans",sans-serif; -webkit-font-smoothing:antialiased; }
-button, input{ font:inherit; } button{ cursor:pointer; outline: none; }
+
 #app{ width:100vw; height:100vh; overflow:hidden; position:relative; }
-.page{ position:absolute; inset:0; width:100%; height:100%; overflow:hidden; opacity:0; visibility:hidden; pointer-events:none; transform:translateX(35px); transition: all .45s cubic-bezier(.22,1,.36,1); }
+
+/* PAGE ANIMATIONS */
+.page{
+  position:absolute; inset:0; width:100%; height:100%; overflow:hidden;
+  opacity:0; visibility:hidden; pointer-events:none; transform:translateX(30px);
+  transition: all .5s cubic-bezier(.22,1,.36,1);
+}
 .page.active{ opacity:1; visibility:visible; pointer-events:auto; transform:none; }
-.topbar{ position:absolute; top:0; left:0; right:0; height:76px; padding:0 5vw; display:flex; align-items:center; justify-content:space-between; z-index:30; border-bottom:1px solid rgba(23,23,21,.14); background:rgba(238,233,225,.68); backdrop-filter:blur(22px); }
+
+/* TOP BAR */
+.topbar{
+  position:absolute; top:0; left:0; right:0; height:76px; padding:0 5vw;
+  display:flex; align-items:center; justify-content:space-between; z-index:30;
+  border-bottom:1px solid rgba(23,23,21,.14); background:rgba(238,233,225,.68);
+  backdrop-filter:blur(22px);
+}
 .darkPage .topbar{ color:white; border-color:rgba(255,255,255,.12); background:rgba(17,17,15,.65); }
-.logo{ display:flex; align-items:center; gap:11px; font-weight:700; letter-spacing:.08em; font-size:12px; }
+
+.logo{ display:flex; align-items:center; gap:11px; font-weight:700; font-size:12px; }
 .logoMark{ width:34px; height:34px; border:1px solid currentColor; border-radius:50%; display:grid; place-items:center; font-family:"Playfair Display",serif; }
+
 .status{ display:flex; align-items:center; gap:8px; font-family:"DM Mono",monospace; font-size:9px; }
-.statusDot{ width:7px; height:7px; border-radius:50%; background:#777; }
+.statusDot{ width:7px; height:7px; border-radius:50%; background:#777; transition: 0.3s; }
 .statusDot.online{ background:var(--green); box-shadow:0 0 0 4px rgba(82,107,80,.12); }
+
+/* CONTENT STYLES */
 #pageIntro{ background: radial-gradient(circle at 70% 42%, rgba(162,139,101,.13), transparent 32%), var(--paper); }
-.introContent{ width:100%; height:100%; padding:100px 7vw; display:grid; grid-template-columns: 1fr 1fr; align-items:center; }
+.introContent{ width:100%; height:100%; padding:100px 7vw; display:flex; align-items:center; }
 .introTitle{ font-family:"Playfair Display",serif; font-size: 8vw; line-height:.8; margin:0; }
+
 #pageEvidence{ background:var(--dark); color:var(--cream); }
 .evidencePage{ width:100%; height:100%; padding: 100px 5vw 90px; display:flex; flex-direction:column; }
 .cameraLayout{ flex:1; display:grid; grid-template-columns: 2fr 1fr; gap:18px; min-height:0; }
-.cameraCard{ background:#050505; border-radius:8px; overflow:hidden; display:flex; align-items:center; justify-content:center; position:relative; }
+.cameraCard{ background:#050505; border-radius:12px; overflow:hidden; display:flex; align-items:center; justify-content:center; position:relative; border: 1px solid #222; }
 #streamImage{ display:none; width:100%; height:100%; object-fit:contain; }
-.controlCard{ background:var(--cream); color:var(--ink); border-radius:8px; padding:24px; display:flex; flex-direction:column; justify-content:space-between; }
-.ipRow{ display:flex; border-bottom:1px solid #bbb4aa; margin-top:10px; }
-.ipRow input{ width:100%; border:0; background:transparent; padding:8px 0; font-family:"DM Mono"; }
-.connectButton{ background:var(--ink); color:white; border:0; width:40px; }
-.pageNav{ position:absolute; left:50%; bottom:22px; transform:translateX(-50%); z-index:100; display:flex; gap:8px; padding:7px; border-radius:20px; background: rgba(255,255,255,0.1); backdrop-filter:blur(24px); border:1px solid rgba(255,255,255,0.2); }
-.pageButton{ min-width:110px; padding:11px; border-radius:14px; background: rgba(255,255,255,0.1); color:inherit; font-family:"DM Mono"; font-size:8px; border:0; color: white; }
-.pageButton.active{ background: rgba(255,255,255,0.3); }
+
+.controlCard{ background:var(--cream); color:var(--ink); border-radius:12px; padding:24px; display:flex; flex-direction:column; justify-content:space-between; }
+.ipRow{ display:flex; border-bottom:1px solid #bbb4aa; margin: 10px 0 20px; }
+.ipRow input{ width:100%; border:0; background:transparent; padding:10px 0; font-family:"DM Mono"; outline: none; }
+.connectButton{ background:var(--ink); color:white; border:0; width:45px; height:40px; cursor: pointer; }
+
+.btnGrid{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btnGrid button{ padding: 12px; font-size: 9px; font-weight: bold; text-transform: uppercase; border: 1px solid #ccc; background: transparent; cursor: pointer; }
+.btnGrid button.primary{ background: var(--ink); color: white; }
+
+/* NAV BAR */
+.pageNav{ position:absolute; left:50%; bottom:22px; transform:translateX(-50%); z-index:100; display:flex; gap:8px; padding:7px; border-radius:20px; background: rgba(0,0,0,0.5); backdrop-filter:blur(24px); border:1px solid rgba(255,255,255,0.1); }
+.pageButton{ min-width:100px; padding:11px; border-radius:14px; background: rgba(255,255,255,0.05); color:white; font-family:"DM Mono"; font-size:8px; border:0; cursor: pointer; }
+.pageButton.active{ background: rgba(255,255,255,0.2); }
 </style>
 </head>
 <body>
 <div id="app">
+    <!-- PAGE 01: INTRO -->
     <section id="pageIntro" class="page active">
         <header class="topbar">
             <div class="logo"><span class="logoMark">M</span><span>IRON CLAUSE</span></div>
@@ -49,6 +80,7 @@ button, input{ font:inherit; } button{ cursor:pointer; outline: none; }
         </main>
     </section>
 
+    <!-- PAGE 02: EVIDENCE (Recording & Feed) -->
     <section id="pageEvidence" class="page darkPage">
         <header class="topbar">
             <div class="logo"><span class="logoMark">M</span><span>IRON CLAUSE</span></div>
@@ -57,18 +89,24 @@ button, input{ font:inherit; } button{ cursor:pointer; outline: none; }
         <main class="evidencePage">
             <div class="cameraLayout">
                 <div class="cameraCard">
-                    <div id="placeholder">AWAITING CONNECTION</div>
+                    <div id="placeholder" style="color: #444; font-family: 'DM Mono'; font-size: 10px;">AWAITING LINK...</div>
                     <img id="streamImage" alt="Live Feed">
                 </div>
                 <div class="controlCard">
                     <div>
-                        <label style="font-size:9px; opacity:0.5;">XIAO ADDRESS</label>
+                        <label style="font-size:9px; opacity:0.5;">XIAO DEVICE IP</label>
                         <div class="ipRow">
                             <input id="ip" placeholder="192.168.1.XX">
                             <button id="connectBtn" class="connectButton">→</button>
                         </div>
+                        <div class="btnGrid">
+                            <button class="primary" onclick="sendCmd('/record/start')">Start Record</button>
+                            <button onclick="sendCmd('/record/stop')">Stop Record</button>
+                            <button onclick="sendCmd('/capture')">Capture</button>
+                            <button onclick="location.reload()">Refresh</button>
+                        </div>
                     </div>
-                    <div id="message" style="font-size:10px; opacity:0.6;">System Ready.</div>
+                    <div id="message" style="font-size:10px; opacity:0.6; font-family: 'DM Mono';">READY.</div>
                 </div>
             </div>
         </main>
@@ -85,6 +123,7 @@ const pages = { intro: document.getElementById("pageIntro"), evidence: document.
 const buttons = document.querySelectorAll(".pageButton");
 let deviceIp = "";
 
+// NAVIGATION
 buttons.forEach(btn => {
     btn.onclick = () => {
         buttons.forEach(b => b.classList.remove("active"));
@@ -94,6 +133,7 @@ buttons.forEach(btn => {
     };
 });
 
+// STREAM CONNECTION
 function startStream() {
     deviceIp = document.getElementById("ip").value.trim();
     if(!deviceIp) return;
@@ -105,6 +145,18 @@ function startStream() {
     document.getElementById("navStatus1").innerText = document.getElementById("navStatus2").innerText = "ONLINE";
 }
 document.getElementById("connectBtn").onclick = startStream;
+
+// COMMANDS
+async function sendCmd(path) {
+    if(!deviceIp) { alert("Connect IP first"); return; }
+    document.getElementById("message").innerText = "SENDING: " + path;
+    try {
+        await fetch(`http://${deviceIp}${path}`, { mode: 'no-cors' });
+        document.getElementById("message").innerText = "COMMAND SENT.";
+    } catch(e) {
+        document.getElementById("message").innerText = "FAILED.";
+    }
+}
 </script>
 </body>
 </html>
