@@ -1486,7 +1486,19 @@ const el = {
   cameraFps:$("cameraFps"),
 
   recordState:$("recordState"),
-  timer:$("timer")
+  timer:$("timer"),
+
+  brightness:$("brightness"),
+  contrast:$("contrast"),
+  saturation:$("saturation"),
+  sharpness:$("sharpness"),
+  effect:$("effect"),
+  applyCamera:$("applyCamera"),
+
+  reminderText:$("reminderText"),
+  reminderInterval:$("reminderInterval"),
+  addReminder:$("addReminder"),
+  reminderList:$("reminderList")
 };
 
 
@@ -1516,9 +1528,11 @@ let statusHandle = null;
 let streamController = null;
 let streamReader = null;
 let streamRunning = false;
+let streamRetryHandle = null;
 
 let streamBuffer =
   new Uint8Array(0);
+let streamBufferLength = 0;
 
 let newestJPEG = null;
 let decoding = false;
@@ -1805,37 +1819,47 @@ async function getStatus(){
 
 function updateStatus(s){
 
-  el.recordState.textContent =
-    s.recording
-      ? (
-          s.paused
-            ? "Paused"
-            : "Recording"
-        )
-      : "Preview";
+  const deviceRecording = !!s.recording;
+  const devicePaused = !!s.paused;
 
-  if(s.recording){
+  /*
+     Device status is authoritative. This also fixes the old bug where
+     the UI could remain stuck on RECORDING after the XIAO had stopped.
+  */
+  if(deviceRecording !== recording){
+    recording = deviceRecording;
+
+    if(!recording){
+      paused = false;
+      stopTimer();
+      if(el.recordState)
+        el.recordState.textContent = "Preview";
+    }
+  }
+
+  if(recording){
+    paused = devicePaused;
+
+    el.recordState.textContent =
+      paused ? "Paused" : "Recording";
 
     el.navStatus.textContent =
-      s.paused
-        ? "PAUSED"
-        : "RECORDING";
+      paused ? "PAUSED" : "RECORDING";
 
     el.navStatus2.textContent =
-      s.paused
-        ? "PAUSED"
-        : "RECORDING";
+      paused ? "PAUSED" : "RECORDING";
 
-    el.navDot.className =
-      "statusDot recording";
-
-    el.navDot2.className =
-      "statusDot recording";
-
+    el.navDot.className = "statusDot recording";
+    el.navDot2.className = "statusDot recording";
+  }else{
+    el.recordState.textContent = "Preview";
+    el.navStatus.textContent = "ONLINE";
+    el.navStatus2.textContent = "ONLINE";
+    el.navDot.className = "statusDot online";
+    el.navDot2.className = "statusDot online";
   }
 
   updateButtons();
-
 }
 
 async function pollStatus(){
@@ -1936,100 +1960,76 @@ function hidePreview(){
    MJPEG BUFFER
 ========================================================= */
 
-function appendBytes(
-  oldBuffer,
-  newBytes
-){
+function appendBytes(newBytes){
+  const required = streamBufferLength + newBytes.length;
 
-  const combined =
-    new Uint8Array(
-      oldBuffer.length +
-      newBytes.length
-    );
+  if(streamBuffer.length < required){
+    let capacity = Math.max(32768, streamBuffer.length || 0);
+    while(capacity < required)
+      capacity *= 2;
 
-  combined.set(
-    oldBuffer
-  );
+    const next = new Uint8Array(capacity);
+    if(streamBufferLength)
+      next.set(streamBuffer.subarray(0, streamBufferLength));
 
-  combined.set(
-    newBytes,
-    oldBuffer.length
-  );
+    streamBuffer = next;
+  }
 
-  return combined;
-
+  streamBuffer.set(newBytes, streamBufferLength);
+  streamBufferLength += newBytes.length;
 }
 
 function extractJPEG(){
 
   let start = -1;
 
-  for(
-    let i=0;
-    i<streamBuffer.length-1;
-    i++
-  ){
-
+  for(let i=0; i<streamBufferLength-1; i++){
     if(
       streamBuffer[i] === 0xFF &&
       streamBuffer[i+1] === 0xD8
     ){
-
       start = i;
       break;
-
     }
-
   }
 
   if(start < 0){
-
-    if(streamBuffer.length > 1)
-      streamBuffer =
-        streamBuffer.slice(-1);
-
+    if(streamBufferLength > 1){
+      streamBuffer[0] =
+        streamBuffer[streamBufferLength - 1];
+      streamBufferLength = 1;
+    }
     return null;
-
   }
 
   let end = -1;
 
-  for(
-    let i=start+2;
-    i<streamBuffer.length-1;
-    i++
-  ){
-
+  for(let i=start+2; i<streamBufferLength-1; i++){
     if(
       streamBuffer[i] === 0xFF &&
       streamBuffer[i+1] === 0xD9
     ){
-
-      end =
-        i + 2;
-
+      end = i + 2;
       break;
-
     }
-
   }
 
   if(end < 0)
     return null;
 
   const jpeg =
-    streamBuffer.slice(
-      start,
-      end
-    );
+    streamBuffer.slice(start, end);
 
-  streamBuffer =
-    streamBuffer.slice(end);
+  const remaining =
+    streamBufferLength - end;
+
+  if(remaining > 0)
+    streamBuffer.copyWithin(0, end, streamBufferLength);
+
+  streamBufferLength = remaining;
 
   return jpeg;
-
 }
-
 
 /* =========================================================
    FRAME DECODER
@@ -2151,18 +2151,16 @@ async function decodeNewest(){
 
 async function startMJPEG(){
 
-  stopMJPEG();
+  stopMJPEG(false);
 
-  streamController =
-    new AbortController();
+  if(!baseUrl)
+    return;
 
+  streamController = new AbortController();
   streamRunning = true;
-
-  streamBuffer =
-    new Uint8Array(0);
-
+  streamBuffer = new Uint8Array(0);
+  streamBufferLength = 0;
   newestJPEG = null;
-
   lastFrameTime = 0;
   currentFPS = 0;
 
@@ -2170,138 +2168,125 @@ async function startMJPEG(){
 
     const response =
       await fetch(
-        streamUrl +
-        "?t=" +
-        Date.now(),
+        streamUrl + "?t=" + Date.now(),
         {
           cache:"no-store",
           mode:"cors",
-          signal:
-            streamController.signal
+          signal:streamController.signal
         }
       );
 
     if(!response.ok)
-      throw new Error(
-        "Stream HTTP " +
-        response.status
-      );
+      throw new Error("Stream HTTP " + response.status);
 
     if(!response.body)
-      throw new Error(
-        "ReadableStream unavailable."
-      );
+      throw new Error("ReadableStream unavailable.");
 
-    streamReader =
-      response.body.getReader();
+    streamReader = response.body.getReader();
 
-    setConnection(true);
     showPreview();
 
-    message(
-      "Live evidence feed established.",
-      "#526b50"
-    );
+    el.liveText.textContent = "Live evidence feed";
+    message("Live evidence feed established.", "#526b50");
 
     while(streamRunning){
 
-      const {
-        value,
-        done
-      } =
+      const {value, done} =
         await streamReader.read();
 
       if(done)
         break;
 
-      if(!value)
+      if(!value || !value.length)
         continue;
 
-      streamBuffer =
-        appendBytes(
-          streamBuffer,
-          value
-        );
+      appendBytes(value);
 
       while(true){
-
-        const jpeg =
-          extractJPEG();
-
+        const jpeg = extractJPEG();
         if(!jpeg)
           break;
-
         queueJPEG(jpeg);
-
       }
 
-      if(
-        streamBuffer.length >
-        1024*1024
-      ){
-
-        streamBuffer =
-          streamBuffer.slice(
-            -65536
-          );
-
+      /*
+         A corrupted connection can otherwise grow without bound.
+         Keep at most the newest ~128 KiB while waiting for an SOI.
+      */
+      if(streamBufferLength > 131072){
+        const keep = Math.min(streamBufferLength, 65536);
+        streamBuffer.copyWithin(
+          0,
+          streamBufferLength - keep,
+          streamBufferLength
+        );
+        streamBufferLength = keep;
       }
-
     }
 
   }
   catch(e){
 
-    if(
-      e.name !==
-      "AbortError"
-    ){
-
-      console.error(e);
-
+    if(e.name !== "AbortError"){
+      console.warn("MJPEG:", e);
       if(streamRunning){
-
-        setConnection(false);
-
+        el.liveText.textContent = "Reconnecting…";
+        el.cameraFps.textContent = "STREAM LOST";
         message(
-          "Camera stream disconnected.",
-          "#9b514c"
+          "Camera stream interrupted. Reconnecting…",
+          "#a17c38"
         );
-
       }
-
     }
-
   }
 
   streamRunning = false;
+  streamReader = null;
+  streamController = null;
 
+  /*
+     The XIAO can stay online while only the stream socket dies.
+     Reconnect the stream without falsely marking the whole device
+     offline.
+  */
+  if(connected && !streamRetryHandle){
+    streamRetryHandle = setTimeout(() => {
+      streamRetryHandle = null;
+      if(connected)
+        startMJPEG();
+    }, 1200);
+  }
 }
 
-function stopMJPEG(){
+function stopMJPEG(scheduleReconnect = false){
 
   streamRunning = false;
 
-  if(streamController){
+  if(streamRetryHandle){
+    clearTimeout(streamRetryHandle);
+    streamRetryHandle = null;
+  }
 
+  if(streamController){
     try{
       streamController.abort();
-    }
-    catch(_){}
-
+    }catch(_){}
   }
 
   streamController = null;
-
   streamReader = null;
-
-  streamBuffer =
-    new Uint8Array(0);
-
+  streamBuffer = new Uint8Array(0);
+  streamBufferLength = 0;
   newestJPEG = null;
 
+  if(scheduleReconnect && connected && !streamRetryHandle){
+    streamRetryHandle = setTimeout(() => {
+      streamRetryHandle = null;
+      if(connected)
+        startMJPEG();
+    }, 1200);
+  }
 }
-
 
 /* =========================================================
    CONNECT
@@ -2318,7 +2303,13 @@ async function connectPreview(){
 
   stopMJPEG();
   baseUrl = url;
-  streamUrl = url + ":81/stream";
+
+  const parsed = new URL(url);
+  streamUrl =
+    parsed.protocol +
+    "//" +
+    parsed.hostname +
+    ":81/stream";
   localStorage.setItem("ironClauseXiao", baseUrl);
   setConnection(false);
   message("Checking XIAO connection...");
@@ -2536,51 +2527,32 @@ async function buildCaptureStream(){
 
 async function startRecording(){
 
-  if(
-    !connected ||
-    recording
-  )
+  if(!connected || recording)
     return;
 
-  message(
-    "Preparing recording session..."
-  );
+  message("Preparing recording session...");
 
   try{
+
+    /*
+       First make the XIAO authoritative. If this fails we do not
+       create a browser recording that has no matching device state.
+    */
+    await xiaoCommand("/record/start");
 
     const mediaStream =
       await buildCaptureStream();
 
     let mime = "";
 
-    if(
-      MediaRecorder.isTypeSupported(
-        "video/webm;codecs=vp9"
-      )
-    )
-      mime =
-        "video/webm;codecs=vp9";
-
-    else if(
-      MediaRecorder.isTypeSupported(
-        "video/webm;codecs=vp8"
-      )
-    )
-      mime =
-        "video/webm;codecs=vp8";
-
-    else if(
-      MediaRecorder.isTypeSupported(
-        "video/webm"
-      )
-    )
-      mime =
-        "video/webm";
-
+    if(MediaRecorder.isTypeSupported("video/webm;codecs=vp9"))
+      mime = "video/webm;codecs=vp9";
+    else if(MediaRecorder.isTypeSupported("video/webm;codecs=vp8"))
+      mime = "video/webm;codecs=vp8";
+    else if(MediaRecorder.isTypeSupported("video/webm"))
+      mime = "video/webm";
     else
-      throw new Error(
-        "WebM recording unsupported."
-      );
+      throw new Error("WebM recording unsupported.");
 
     recorder =
       new MediaRecorder(
@@ -2593,53 +2565,27 @@ async function startRecording(){
 
     chunks = [];
 
-    recorder.ondataavailable =
-      event => {
+    recorder.ondataavailable = event => {
+      if(event.data && event.data.size)
+        chunks.push(event.data);
+    };
 
-        if(
-          event.data &&
-          event.data.size
-        )
-          chunks.push(
-            event.data
-          );
-
-      };
-
-    recorder.onstop =
-      saveRecording;
+    recorder.onstop = saveRecording;
 
     recorder.start(1000);
 
-    await xiaoCommand(
-      "/record/start"
-    );
-
     recording = true;
     paused = false;
-
-    recordStartedAt =
-      performance.now();
-
+    recordStartedAt = performance.now();
     accumulatedPause = 0;
 
-    el.recordState.textContent =
-      "Recording";
-
-    el.navDot.className =
-      "statusDot recording";
-
-    el.navDot2.className =
-      "statusDot recording";
-
-    el.navStatus.textContent =
-      "RECORDING";
-
-    el.navStatus2.textContent =
-      "RECORDING";
+    el.recordState.textContent = "Recording";
+    el.navDot.className = "statusDot recording";
+    el.navDot2.className = "statusDot recording";
+    el.navStatus.textContent = "RECORDING";
+    el.navStatus2.textContent = "RECORDING";
 
     startTimer();
-
     updateButtons();
 
     message(
@@ -2650,31 +2596,37 @@ async function startRecording(){
   }
   catch(e){
 
-    console.error(e);
+    console.error("Record start:", e);
 
     drawing = false;
 
     if(drawTimer)
       clearTimeout(drawTimer);
 
-    if(captureStream)
-      captureStream
-        .getTracks()
-        .forEach(
-          t => t.stop()
-        );
+    if(recorder && recorder.state !== "inactive"){
+      try{ recorder.stop(); }catch(_){}
+    }
+
+    if(captureStream){
+      captureStream.getTracks().forEach(t => t.stop());
+    }
 
     captureStream = null;
     recorder = null;
 
+    /*
+       If the XIAO was already put into recording state but the
+       browser recorder failed, roll the device state back.
+    */
+    try{
+      await xiaoCommand("/record/stop");
+    }catch(_){}
+
     message(
-      "Record start failed: " +
-      e.message,
+      "Record start failed: " + e.message,
       "#9b514c"
     );
-
   }
-
 }
 
 async function pauseRecording(){
@@ -2784,21 +2736,16 @@ async function stopRecording(){
   if(!recording)
     return;
 
-  message(
-    "Finalising recording..."
-  );
+  message("Finalising recording...");
 
+  /*
+     Stop the XIAO first, but always finish the browser recorder even
+     if the device request fails. This prevents half-saved WebM files.
+  */
   try{
-
-    await xiaoCommand(
-      "/record/stop"
-    );
-
-  }
-  catch(e){
-
-    console.warn(e);
-
+    await xiaoCommand("/record/stop");
+  }catch(e){
+    console.warn("XIAO stop:", e);
   }
 
   drawing = false;
@@ -2806,46 +2753,50 @@ async function stopRecording(){
   if(drawTimer)
     clearTimeout(drawTimer);
 
-  if(
-    recorder &&
-    recorder.state !==
-    "inactive"
-  )
-    recorder.stop();
-  else
+  const activeRecorder = recorder;
+
+  if(activeRecorder && activeRecorder.state !== "inactive"){
+    await new Promise(resolve => {
+      const oldStop = activeRecorder.onstop;
+
+      activeRecorder.onstop = event => {
+        try{
+          if(oldStop)
+            oldStop.call(activeRecorder, event);
+        }finally{
+          resolve();
+        }
+      };
+
+      try{
+        activeRecorder.stop();
+      }catch(_){
+        resolve();
+      }
+    });
+  }else if(chunks.length){
     saveRecording();
+  }
 
   recording = false;
   paused = false;
+  pausedAt = 0;
 
   stopTimer();
 
-  el.recordState.textContent =
-    "Preview";
-
-  el.navDot.className =
-    "statusDot online";
-
-  el.navDot2.className =
-    "statusDot online";
-
-  el.navStatus.textContent =
-    "ONLINE";
-
-  el.navStatus2.textContent =
-    "ONLINE";
+  el.recordState.textContent = "Preview";
+  el.navDot.className = "statusDot online";
+  el.navDot2.className = "statusDot online";
+  el.navStatus.textContent = "ONLINE";
+  el.navStatus2.textContent = "ONLINE";
 
   updateButtons();
 
-  if(captureStream)
-    captureStream
-      .getTracks()
-      .forEach(
-        t => t.stop()
-      );
+  if(captureStream){
+    captureStream.getTracks().forEach(t => t.stop());
+  }
 
   captureStream = null;
-
 }
 
 function saveRecording(){
