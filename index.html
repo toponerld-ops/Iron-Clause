@@ -488,15 +488,16 @@ button:disabled{
   justify-content:center;
 }
 
-#streamCanvas{
+#streamImage{
   display:none;
-
   width:100%;
   height:100%;
-
   object-fit:contain;
-
   background:#050505;
+}
+
+#streamCanvas{
+  display:none;
 }
 
 .placeholder{
@@ -1012,7 +1013,7 @@ button:disabled{
 
         <div>
           <span class="metaLabel">Camera</span>
-          <span class="metaValue">QVGA</span>
+          <span class="metaValue">VGA</span>
         </div>
 
         <div>
@@ -1133,10 +1134,18 @@ button:disabled{
 
         </div>
 
+        <img
+          id="streamImage"
+          alt="IRON CLAUSE live camera feed"
+          crossorigin="anonymous"
+          decoding="async"
+        >
+
         <canvas
           id="streamCanvas"
-          width="320"
-          height="240"
+          width="640"
+          height="480"
+          aria-hidden="true"
         ></canvas>
 
         <div
@@ -1148,7 +1157,7 @@ button:disabled{
           </span>
 
           <span>
-            CAM 01 · 320×240
+            CAM 01 · 640×480
           </span>
         </div>
 
@@ -1161,7 +1170,7 @@ button:disabled{
           </span>
 
           <span id="cameraFps">
-            LIVE FEED
+            VGA · WIRED MIC
           </span>
         </div>
 
@@ -1465,6 +1474,7 @@ const el = {
   stop:$("stopBtn"),
 
   canvas:$("streamCanvas"),
+  streamImage:$("streamImage"),
   placeholder:$("placeholder"),
 
   message:$("message"),
@@ -1525,20 +1535,20 @@ let accumulatedPause = 0;
 let timerHandle = null;
 let statusHandle = null;
 
-let streamController = null;
-let streamReader = null;
 let streamRunning = false;
 let streamRetryHandle = null;
-
-let streamBuffer =
-  new Uint8Array(0);
-let streamBufferLength = 0;
-
-let newestJPEG = null;
-let decoding = false;
+let streamGeneration = 0;
 
 let lastFrameTime = 0;
 let currentFPS = 0;
+
+// Wired XIAO microphone stream
+let audioController = null;
+let audioRunning = false;
+let audioContext = null;
+let audioDestination = null;
+let audioBuffer = new Uint8Array(0);
+let audioNextTime = 0;
 
 
 /* =========================================================
@@ -1928,7 +1938,7 @@ function showPreview(){
   el.placeholder.style.display =
     "none";
 
-  el.canvas.style.display =
+  el.streamImage.style.display =
     "block";
 
   el.cameraOverlay.style.display =
@@ -1941,7 +1951,7 @@ function showPreview(){
 
 function hidePreview(){
 
-  el.canvas.style.display =
+  el.streamImage.style.display =
     "none";
 
   el.placeholder.style.display =
@@ -1957,335 +1967,326 @@ function hidePreview(){
 
 
 /* =========================================================
-   MJPEG BUFFER
+   NATIVE MJPEG STREAM
 ========================================================= */
 
-function appendBytes(newBytes){
-  const required = streamBufferLength + newBytes.length;
-
-  if(streamBuffer.length < required){
-    let capacity = Math.max(32768, streamBuffer.length || 0);
-    while(capacity < required)
-      capacity *= 2;
-
-    const next = new Uint8Array(capacity);
-    if(streamBufferLength)
-      next.set(streamBuffer.subarray(0, streamBufferLength));
-
-    streamBuffer = next;
-  }
-
-  streamBuffer.set(newBytes, streamBufferLength);
-  streamBufferLength += newBytes.length;
-}
-
-function extractJPEG(){
-
-  let start = -1;
-
-  for(let i=0; i<streamBufferLength-1; i++){
-    if(
-      streamBuffer[i] === 0xFF &&
-      streamBuffer[i+1] === 0xD8
-    ){
-      start = i;
-      break;
-    }
-  }
-
-  if(start < 0){
-    if(streamBufferLength > 1){
-      streamBuffer[0] =
-        streamBuffer[streamBufferLength - 1];
-      streamBufferLength = 1;
-    }
-    return null;
-  }
-
-  let end = -1;
-
-  for(let i=start+2; i<streamBufferLength-1; i++){
-    if(
-      streamBuffer[i] === 0xFF &&
-      streamBuffer[i+1] === 0xD9
-    ){
-      end = i + 2;
-      break;
-    }
-  }
-
-  if(end < 0)
-    return null;
-
-  const jpeg =
-    streamBuffer.slice(start, end);
-
-  const remaining =
-    streamBufferLength - end;
-
-  if(remaining > 0)
-    streamBuffer.copyWithin(0, end, streamBufferLength);
-
-  streamBufferLength = remaining;
-
-  return jpeg;
-}
-
-/* =========================================================
-   FRAME DECODER
-========================================================= */
-
-function queueJPEG(jpeg){
-
-  newestJPEG = jpeg;
-
-  decodeNewest();
-
-}
-
-async function decodeNewest(){
-
-  if(decoding)
+function scheduleStreamReconnect(){
+  if(!connected || streamRetryHandle)
     return;
 
-  if(!newestJPEG)
-    return;
+  const generation = streamGeneration;
 
-  decoding = true;
+  streamRetryHandle = setTimeout(() => {
+    streamRetryHandle = null;
 
-  while(
-    newestJPEG &&
-    streamRunning
-  ){
-
-    const jpeg =
-      newestJPEG;
-
-    newestJPEG = null;
-
-    try{
-
-      const bitmap =
-        await createImageBitmap(
-          new Blob(
-            [jpeg],
-            {type:"image/jpeg"}
-          )
-        );
-
-      if(
-        el.canvas.width !==
-        bitmap.width
-      )
-        el.canvas.width =
-          bitmap.width;
-
-      if(
-        el.canvas.height !==
-        bitmap.height
-      )
-        el.canvas.height =
-          bitmap.height;
-
-      ctx.drawImage(
-        bitmap,
-        0,
-        0,
-        el.canvas.width,
-        el.canvas.height
-      );
-
-      bitmap.close();
-
-      const now =
-        performance.now();
-
-      if(lastFrameTime){
-
-        const dt =
-          now - lastFrameTime;
-
-        if(dt > 0){
-
-          const fps =
-            1000 / dt;
-
-          currentFPS =
-            currentFPS * .8 +
-            fps * .2;
-
-        }
-
-      }
-
-      lastFrameTime = now;
-
-      if(currentFPS > 0){
-
-        el.cameraFps.textContent =
-          currentFPS.toFixed(1) +
-          " FPS";
-
-      }
-
+    if(
+      connected &&
+      generation === streamGeneration
+    ){
+      startMJPEG();
     }
-    catch(e){
-
-      console.warn(
-        "Decode:",
-        e
-      );
-
-    }
-
-  }
-
-  decoding = false;
-
+  }, 700);
 }
 
-
-/* =========================================================
-   START STREAM
-========================================================= */
-
-async function startMJPEG(){
+function startMJPEG(){
 
   stopMJPEG(false);
 
   if(!baseUrl)
     return;
 
-  streamController = new AbortController();
+  const generation = ++streamGeneration;
+
   streamRunning = true;
-  streamBuffer = new Uint8Array(0);
-  streamBufferLength = 0;
-  newestJPEG = null;
-  lastFrameTime = 0;
   currentFPS = 0;
 
-  try{
-
-    const response =
-      await fetch(
-        streamUrl + "?t=" + Date.now(),
-        {
-          cache:"no-store",
-          mode:"cors",
-          signal:streamController.signal
-        }
-      );
-
-    if(!response.ok)
-      throw new Error("Stream HTTP " + response.status);
-
-    if(!response.body)
-      throw new Error("ReadableStream unavailable.");
-
-    streamReader = response.body.getReader();
-
-    showPreview();
-
-    el.liveText.textContent = "Live evidence feed";
-    message("Live evidence feed established.", "#526b50");
-
-    while(streamRunning){
-
-      const {value, done} =
-        await streamReader.read();
-
-      if(done)
-        break;
-
-      if(!value || !value.length)
-        continue;
-
-      appendBytes(value);
-
-      while(true){
-        const jpeg = extractJPEG();
-        if(!jpeg)
-          break;
-        queueJPEG(jpeg);
-      }
-
-      /*
-         A corrupted connection can otherwise grow without bound.
-         Keep at most the newest ~128 KiB while waiting for an SOI.
-      */
-      if(streamBufferLength > 131072){
-        const keep = Math.min(streamBufferLength, 65536);
-        streamBuffer.copyWithin(
-          0,
-          streamBufferLength - keep,
-          streamBufferLength
-        );
-        streamBufferLength = keep;
-      }
-    }
-
-  }
-  catch(e){
-
-    if(e.name !== "AbortError"){
-      console.warn("MJPEG:", e);
-      if(streamRunning){
-        el.liveText.textContent = "Reconnecting…";
-        el.cameraFps.textContent = "STREAM LOST";
-        message(
-          "Camera stream interrupted. Reconnecting…",
-          "#a17c38"
-        );
-      }
-    }
-  }
-
-  streamRunning = false;
-  streamReader = null;
-  streamController = null;
-
   /*
-     The XIAO can stay online while only the stream socket dies.
-     Reconnect the stream without falsely marking the whole device
-     offline.
+     Use the browser's native MJPEG decoder instead of the old
+     Uint8Array -> JPEG -> Blob -> createImageBitmap loop.
+     This removes the JavaScript decode bottleneck.
   */
-  if(connected && !streamRetryHandle){
-    streamRetryHandle = setTimeout(() => {
-      streamRetryHandle = null;
-      if(connected)
-        startMJPEG();
-    }, 1200);
-  }
+  el.streamImage.onload = () => {
+    if(generation !== streamGeneration) return;
+    showPreview();
+    el.liveText.textContent = "Live evidence feed";
+    el.cameraFps.textContent = "VGA · LIVE";
+  };
+
+  el.streamImage.onerror = () => {
+    if(generation !== streamGeneration) return;
+
+    streamRunning = false;
+    el.liveText.textContent = "Reconnecting…";
+    el.cameraFps.textContent = "STREAM LOST";
+    message(
+      "Camera stream interrupted. Reconnecting…",
+      "#a17c38"
+    );
+
+    scheduleStreamReconnect();
+  };
+
+  el.streamImage.src =
+    streamUrl +
+    "?t=" +
+    Date.now();
+
+  showPreview();
+  el.liveText.textContent = "Connecting…";
+  el.cameraFps.textContent = "VGA · CONNECTING";
 }
 
 function stopMJPEG(scheduleReconnect = false){
 
   streamRunning = false;
+  ++streamGeneration;
 
   if(streamRetryHandle){
     clearTimeout(streamRetryHandle);
     streamRetryHandle = null;
   }
 
-  if(streamController){
+  if(el.streamImage){
+    el.streamImage.onload = null;
+    el.streamImage.onerror = null;
+    el.streamImage.src = "";
+  }
+
+  if(scheduleReconnect && connected)
+    scheduleStreamReconnect();
+}
+
+
+/* =========================================================
+   WIRED MICROPHONE AUDIO
+========================================================= */
+
+async function ensureAudioGraph(){
+
+  if(audioContext)
+    return;
+
+  const AudioCtx =
+    window.AudioContext ||
+    window.webkitAudioContext;
+
+  if(!AudioCtx)
+    throw new Error(
+      "Web Audio is unavailable in this browser."
+    );
+
+  audioContext =
+    new AudioCtx();
+
+  audioDestination =
+    audioContext.createMediaStreamDestination();
+
+  await audioContext.resume();
+
+  audioNextTime =
+    audioContext.currentTime + 0.08;
+}
+
+function appendAudioBytes(bytes){
+
+  const combined =
+    new Uint8Array(
+      audioBuffer.length +
+      bytes.length
+    );
+
+  combined.set(
+    audioBuffer,
+    0
+  );
+
+  combined.set(
+    bytes,
+    audioBuffer.length
+  );
+
+  audioBuffer =
+    combined;
+}
+
+function consumeAudioBlock(){
+
+  const BLOCK_BYTES =
+    3200 * 2; // 200 ms @ 16 kHz mono 16-bit
+
+  if(audioBuffer.length < BLOCK_BYTES)
+    return false;
+
+  const block =
+    audioBuffer.slice(
+      0,
+      BLOCK_BYTES
+    );
+
+  audioBuffer =
+    audioBuffer.slice(
+      BLOCK_BYTES
+    );
+
+  const samples =
+    block.length / 2;
+
+  const buffer =
+    audioContext.createBuffer(
+      1,
+      samples,
+      16000
+    );
+
+  const channel =
+    buffer.getChannelData(0);
+
+  const view =
+    new DataView(
+      block.buffer
+    );
+
+  for(let i=0; i<samples; i++){
+
+    const s =
+      view.getInt16(
+        i * 2,
+        true
+      );
+
+    channel[i] =
+      Math.max(
+        -1,
+        Math.min(
+          1,
+          s / 32768
+        )
+      );
+  }
+
+  const source =
+    audioContext.createBufferSource();
+
+  source.buffer = buffer;
+  source.connect(audioDestination);
+
+  const startAt =
+    Math.max(
+      audioNextTime,
+      audioContext.currentTime + 0.03
+    );
+
+  source.start(startAt);
+
+  audioNextTime =
+    startAt +
+    buffer.duration;
+
+  return true;
+}
+
+async function startAudioStream(){
+
+  if(!baseUrl || audioRunning)
+    return;
+
+  try{
+
+    await ensureAudioGraph();
+
+    audioController =
+      new AbortController();
+
+    audioRunning = true;
+    audioBuffer =
+      new Uint8Array(0);
+
+    audioNextTime =
+      audioContext.currentTime + 0.12;
+
+    const response =
+      await fetch(
+        baseUrl +
+        "/audio?t=" +
+        Date.now(),
+        {
+          cache:"no-store",
+          mode:"cors",
+          signal:audioController.signal
+        }
+      );
+
+    if(!response.ok)
+      throw new Error(
+        "Audio HTTP " +
+        response.status
+      );
+
+    if(!response.body)
+      throw new Error(
+        "Audio ReadableStream unavailable."
+      );
+
+    const reader =
+      response.body.getReader();
+
+    while(audioRunning){
+
+      const {value, done} =
+        await reader.read();
+
+      if(done)
+        break;
+
+      if(value && value.length){
+
+        appendAudioBytes(value);
+
+        while(
+          consumeAudioBlock()
+        ){}
+      }
+    }
+
+  }catch(e){
+
+    if(e.name !== "AbortError"){
+
+      console.warn(
+        "XIAO MIC:",
+        e
+      );
+
+      message(
+        "Camera online; wired mic stream unavailable.",
+        "#a17c38"
+      );
+    }
+
+  }finally{
+
+    audioRunning = false;
+    audioController = null;
+  }
+}
+
+function stopAudioStream(){
+
+  audioRunning = false;
+
+  if(audioController){
     try{
-      streamController.abort();
+      audioController.abort();
     }catch(_){}
   }
 
-  streamController = null;
-  streamReader = null;
-  streamBuffer = new Uint8Array(0);
-  streamBufferLength = 0;
-  newestJPEG = null;
+  audioController = null;
+  audioBuffer =
+    new Uint8Array(0);
 
-  if(scheduleReconnect && connected && !streamRetryHandle){
-    streamRetryHandle = setTimeout(() => {
-      streamRetryHandle = null;
-      if(connected)
-        startMJPEG();
-    }, 1200);
-  }
+  if(audioContext)
+    audioNextTime =
+      audioContext.currentTime + 0.08;
 }
 
 /* =========================================================
@@ -2314,6 +2315,17 @@ async function connectPreview(){
   setConnection(false);
   message("Checking XIAO connection...");
 
+  /*
+     Create/resume the Web Audio graph while the Connect button's
+     user gesture is still active. This avoids browser autoplay
+     blocking the XIAO microphone stream later.
+  */
+  try {
+    await ensureAudioGraph();
+  } catch(e) {
+    console.warn("Audio graph:", e);
+  }
+
   try {
     const response = await fetch(baseUrl + "/status?t=" + Date.now(), {cache:"no-store", mode:"cors"});
     if (!response.ok) throw new Error("Status HTTP " + response.status);
@@ -2323,6 +2335,7 @@ async function connectPreview(){
     showPreview();
     message("XIAO connected. Starting live feed...", "#526b50");
     startMJPEG();
+    startAudioStream();
     loadCameraSettings();
     loadReminders();
   } catch(e) {
@@ -2349,6 +2362,7 @@ function disconnect(){
   }
 
   stopMJPEG();
+  stopAudioStream();
 
   baseUrl = "";
   streamUrl = "";
@@ -2470,22 +2484,14 @@ async function captureJPEG(){
 
 async function buildCaptureStream(){
 
-  const width =
-    el.canvas.width || 320;
-
-  const height =
-    el.canvas.height || 240;
+  const width = 640;
+  const height = 480;
 
   recordingCanvas =
-    document.createElement(
-      "canvas"
-    );
+    document.createElement("canvas");
 
-  recordingCanvas.width =
-    width;
-
-  recordingCanvas.height =
-    height;
+  recordingCanvas.width = width;
+  recordingCanvas.height = height;
 
   recordingContext =
     recordingCanvas.getContext(
@@ -2494,7 +2500,7 @@ async function buildCaptureStream(){
     );
 
   captureStream =
-    recordingCanvas.captureStream(20);
+    recordingCanvas.captureStream(30);
 
   drawing = true;
 
@@ -2503,26 +2509,28 @@ async function buildCaptureStream(){
     if(!drawing)
       return;
 
-    recordingContext.drawImage(
-      el.canvas,
-      0,
-      0,
-      width,
-      height
-    );
+    if(
+      el.streamImage.complete &&
+      el.streamImage.naturalWidth > 0
+    ){
+      recordingContext.drawImage(
+        el.streamImage,
+        0,
+        0,
+        width,
+        height
+      );
+    }
 
     drawTimer =
-      setTimeout(
-        drawLoop,
-        50
+      requestAnimationFrame(
+        drawLoop
       );
-
   }
 
   drawLoop();
 
   return captureStream;
-
 }
 
 async function startRecording(){
@@ -2530,100 +2538,169 @@ async function startRecording(){
   if(!connected || recording)
     return;
 
-  message("Preparing recording session...");
+  message(
+    "Preparing recording session..."
+  );
 
   try{
 
-    /*
-       First make the XIAO authoritative. If this fails we do not
-       create a browser recording that has no matching device state.
-    */
-    await xiaoCommand("/record/start");
+    await xiaoCommand(
+      "/record/start"
+    );
 
-    const mediaStream =
+    const videoStream =
       await buildCaptureStream();
+
+    await ensureAudioGraph();
+
+    const combinedStream =
+      new MediaStream();
+
+    videoStream
+      .getVideoTracks()
+      .forEach(
+        track =>
+          combinedStream.addTrack(track)
+      );
+
+    const audioTracks =
+      audioDestination.stream
+        .getAudioTracks();
+
+    if(audioTracks.length){
+      audioTracks.forEach(
+        track =>
+          combinedStream.addTrack(track)
+      );
+    }else{
+      throw new Error(
+        "Wired microphone audio track is unavailable."
+      );
+    }
 
     let mime = "";
 
-    if(MediaRecorder.isTypeSupported("video/webm;codecs=vp9"))
-      mime = "video/webm;codecs=vp9";
-    else if(MediaRecorder.isTypeSupported("video/webm;codecs=vp8"))
-      mime = "video/webm;codecs=vp8";
-    else if(MediaRecorder.isTypeSupported("video/webm"))
+    if(
+      MediaRecorder.isTypeSupported(
+        "video/webm;codecs=vp9,opus"
+      )
+    )
+      mime =
+        "video/webm;codecs=vp9,opus";
+    else if(
+      MediaRecorder.isTypeSupported(
+        "video/webm;codecs=vp8,opus"
+      )
+    )
+      mime =
+        "video/webm;codecs=vp8,opus";
+    else if(
+      MediaRecorder.isTypeSupported(
+        "video/webm"
+      )
+    )
       mime = "video/webm";
     else
-      throw new Error("WebM recording unsupported.");
+      throw new Error(
+        "WebM recording unsupported."
+      );
 
     recorder =
       new MediaRecorder(
-        mediaStream,
+        combinedStream,
         {
           mimeType:mime,
-          videoBitsPerSecond:1200000
+          videoBitsPerSecond:4000000,
+          audioBitsPerSecond:96000
         }
       );
 
     chunks = [];
 
-    recorder.ondataavailable = event => {
-      if(event.data && event.data.size)
-        chunks.push(event.data);
-    };
+    recorder.ondataavailable =
+      event => {
+        if(
+          event.data &&
+          event.data.size
+        )
+          chunks.push(event.data);
+      };
 
-    recorder.onstop = saveRecording;
+    recorder.onstop =
+      saveRecording;
 
     recorder.start(1000);
 
     recording = true;
     paused = false;
-    recordStartedAt = performance.now();
+    recordStartedAt =
+      performance.now();
     accumulatedPause = 0;
 
-    el.recordState.textContent = "Recording";
-    el.navDot.className = "statusDot recording";
-    el.navDot2.className = "statusDot recording";
-    el.navStatus.textContent = "RECORDING";
-    el.navStatus2.textContent = "RECORDING";
+    el.recordState.textContent =
+      "Recording";
+
+    el.navDot.className =
+      "statusDot recording";
+
+    el.navDot2.className =
+      "statusDot recording";
+
+    el.navStatus.textContent =
+      "RECORDING";
+
+    el.navStatus2.textContent =
+      "RECORDING";
 
     startTimer();
     updateButtons();
 
     message(
-      "Recording session active.",
+      "Recording video + wired microphone audio.",
       "#526b50"
     );
 
-  }
-  catch(e){
+  }catch(e){
 
-    console.error("Record start:", e);
+    console.error(
+      "Record start:",
+      e
+    );
 
     drawing = false;
 
     if(drawTimer)
-      clearTimeout(drawTimer);
+      cancelAnimationFrame(
+        drawTimer
+      );
 
-    if(recorder && recorder.state !== "inactive"){
-      try{ recorder.stop(); }catch(_){}
+    if(recorder &&
+       recorder.state !== "inactive"){
+      try{
+        recorder.stop();
+      }catch(_){}
     }
 
     if(captureStream){
-      captureStream.getTracks().forEach(t => t.stop());
+      captureStream
+        .getTracks()
+        .forEach(
+          t => t.stop()
+        );
     }
 
     captureStream = null;
     recorder = null;
 
-    /*
-       If the XIAO was already put into recording state but the
-       browser recorder failed, roll the device state back.
-    */
     try{
-      await xiaoCommand("/record/stop");
+      await xiaoCommand(
+        "/record/stop"
+      );
     }catch(_){}
 
     message(
-      "Record start failed: " + e.message,
+      "Record start failed: " +
+      e.message,
       "#9b514c"
     );
   }
@@ -2750,8 +2827,10 @@ async function stopRecording(){
 
   drawing = false;
 
-  if(drawTimer)
-    clearTimeout(drawTimer);
+  if(drawTimer){
+    cancelAnimationFrame(drawTimer);
+    drawTimer = null;
+  }
 
   const activeRecorder = recorder;
 
@@ -2816,7 +2895,11 @@ function saveRecording(){
   const blob =
     new Blob(
       chunks,
-      {type:"video/webm"}
+      {
+        type:
+          recorder?.mimeType ||
+          "video/webm"
+      }
     );
 
   const url =
