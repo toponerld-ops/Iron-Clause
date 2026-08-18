@@ -2172,134 +2172,314 @@ async function ensureAudioGraph(){
     window.webkitAudioContext;
 
   if(!AudioCtx)
-    throw new Error(
-      "Web Audio is unavailable in this browser."
-    );
+    throw new Error("Web Audio is unavailable in this browser.");
 
-  audioContext =
-    new AudioCtx();
+  audioContext = new AudioCtx();
 
   audioDestination =
     audioContext.createMediaStreamDestination();
 
-  // The microphone track always exists in the recorder, but this gain
-  // controls whether its samples are actually audible/included.
   micGain =
     audioContext.createGain();
 
   micGain.gain.value = 0;
 
-  micAnalyser =
-    audioContext.createAnalyser();
-
-  micAnalyser.fftSize = 256;
-  micAnalyser.smoothingTimeConstant = 0.78;
-
+  // The gain node is the single gate:
+  // MIC OFF = zero audio in the recording.
+  // MIC ON  = actual XIAO D3 audio in the recording.
   micGain.connect(audioDestination);
 
   await audioContext.resume();
 
   audioNextTime =
-    audioContext.currentTime + 0.05;
+    audioContext.currentTime + 0.08;
 }
 
-function appendAudioBytes(bytes){
+function setMicAudioEnabled(enabled, announce=true){
 
-  const combined =
-    new Uint8Array(
-      audioBuffer.length +
-      bytes.length
+  micAudioEnabled = !!enabled;
+
+  if(micGain && audioContext){
+    const now = audioContext.currentTime;
+
+    micGain.gain.cancelScheduledValues(now);
+    micGain.gain.setTargetAtTime(
+      micAudioEnabled ? 1 : 0,
+      now,
+      0.012
     );
+  }
 
-  combined.set(
-    audioBuffer,
-    0
-  );
+  if(el.mic){
+    el.mic.textContent =
+      micAudioEnabled ? "MIC ON" : "MIC OFF";
+    el.mic.classList.toggle(
+      "active",
+      micAudioEnabled
+    );
+  }
 
-  combined.set(
-    bytes,
-    audioBuffer.length
-  );
-
-  audioBuffer =
-    combined;
+  if(announce){
+    message(
+      micAudioEnabled
+        ? "Microphone audio INCLUDED in recording."
+        : "Microphone audio MUTED from recording.",
+      micAudioEnabled ? "#526b50" : "#77736c"
+    );
+  }
 }
 
-function consumeAudioBlock(){
+function toggleMicAudio(){
+  if(!recording) return;
+  setMicAudioEnabled(!micAudioEnabled, true);
+}
 
-  const BLOCK_BYTES =
-    1600 * 2; // 100 ms @ 16 kHz mono 16-bit
+/*
+  DIRECT XIAO MIC DATA PUMP
 
-  if(audioBuffer.length < BLOCK_BYTES)
-    return false;
+  The XIAO exposes the proven D3 ADC signal as 1024 PCM samples.
+  The browser polls every ~45 ms. Each response carries the absolute
+  end sample counter, so only samples not already played are scheduled.
 
-  const block =
-    audioBuffer.slice(
-      0,
-      BLOCK_BYTES
-    );
+  This avoids relying on an endless fetch() audio stream, which was the
+  weak point of the previous build.
+*/
+let micPumpTimer = 0;
+let micPumpBusy = false;
+let micLastEndCounter = 0;
+let micPumpStarted = false;
+let latestMicSamples = new Int16Array(1024);
+let micSampleLevel = 0;
+let micSamplePeak = 0;
 
-  audioBuffer =
-    audioBuffer.slice(
-      BLOCK_BYTES
-    );
+function schedulePCM(samples){
 
-  const samples =
-    block.length / 2;
+  if(!audioContext || !samples.length)
+    return;
 
   const buffer =
     audioContext.createBuffer(
       1,
-      samples,
+      samples.length,
       16000
     );
 
   const channel =
     buffer.getChannelData(0);
 
-  const view =
-    new DataView(
-      block.buffer
-    );
+  let rmsSum = 0;
+  let peak = 0;
 
-  for(let i=0; i<samples; i++){
-
-    const s =
-      view.getInt16(
-        i * 2,
-        true
-      );
-
-    channel[i] =
+  for(let i=0;i<samples.length;i++){
+    const v =
       Math.max(
         -1,
         Math.min(
           1,
-          s / 32768
+          samples[i] / 32768
         )
       );
+
+    channel[i] = v;
+
+    const a = Math.abs(v);
+    rmsSum += a * a;
+    if(a > peak) peak = a;
   }
+
+  const rms =
+    Math.sqrt(rmsSum / Math.max(1, samples.length));
+
+  micSampleLevel =
+    Math.min(100, Math.round(rms * 1800));
+
+  micSamplePeak =
+    Math.min(100, Math.round(peak * 100));
+
+  latestMicSamples =
+    samples.slice();
 
   const source =
     audioContext.createBufferSource();
 
   source.buffer = buffer;
-  source.connect(micAnalyser);
   source.connect(micGain);
 
+  const now =
+    audioContext.currentTime;
+
+  // Never schedule more than ~250 ms ahead.
   const startAt =
     Math.max(
       audioNextTime,
-      audioContext.currentTime + 0.03
+      now + 0.015
     );
 
   source.start(startAt);
 
   audioNextTime =
-    startAt +
-    buffer.duration;
+    startAt + buffer.duration;
 
-  return true;
+  source.onended = () => {
+    try { source.disconnect(); } catch(_){}
+  };
+}
+
+async function pollMicPCM(){
+
+  if(!micPumpStarted || !streamBaseUrl || micPumpBusy)
+    return;
+
+  micPumpBusy = true;
+
+  try{
+
+    const response =
+      await fetch(
+        streamBaseUrl +
+          "/mic/samples?t=" +
+          Date.now(),
+        {
+          cache:"no-store",
+          mode:"cors"
+        }
+      );
+
+    if(!response.ok)
+      throw new Error(
+        "MIC PCM HTTP " + response.status
+      );
+
+    const endCounter =
+      Number(
+        response.headers.get(
+          "X-Mic-End-Counter"
+        ) || "0"
+      );
+
+    const data =
+      new DataView(
+        await response.arrayBuffer()
+      );
+
+    const totalSamples =
+      Math.floor(data.byteLength / 2);
+
+    if(totalSamples <= 0){
+      micPumpBusy = false;
+      return;
+    }
+
+    const snapshot =
+      new Int16Array(totalSamples);
+
+    for(let i=0;i<totalSamples;i++){
+      snapshot[i] =
+        data.getInt16(
+          i * 2,
+          true
+        );
+    }
+
+    /*
+      First response: use the newest portion for the visualizer/audio
+      and establish the absolute counter.
+    */
+    if(!micLastEndCounter){
+      micLastEndCounter = endCounter;
+      latestMicSamples = snapshot.slice();
+
+      // Do not dump the entire old buffer into the recorder.
+      // Start with the newest 256 samples so startup is quiet and clean.
+      const warmup =
+        snapshot.slice(
+          Math.max(0, snapshot.length - 256)
+        );
+
+      schedulePCM(warmup);
+    } else {
+
+      const delta =
+        endCounter - micLastEndCounter;
+
+      if(delta > 0){
+
+        // The response contains the latest 1024 samples. If polling is
+        // healthy, delta is normally <1024 and these are the new samples.
+        if(delta <= snapshot.length){
+
+          const newSamples =
+            snapshot.slice(
+              snapshot.length - delta
+            );
+
+          schedulePCM(newSamples);
+
+        } else {
+          // We missed too much data. Reset cleanly instead of duplicating
+          // old audio, which would sound like echoes/repeats.
+          micLastEndCounter = endCounter;
+          latestMicSamples =
+            snapshot.slice();
+        }
+
+        micLastEndCounter =
+          endCounter;
+      } else if(delta < 0){
+        // Counter reset/restart.
+        micLastEndCounter =
+          endCounter;
+      }
+    }
+
+  }catch(e){
+
+    console.warn(
+      "XIAO MIC PCM:",
+      e
+    );
+
+  }finally{
+
+    micPumpBusy = false;
+  }
+}
+
+function startAudioStream(){
+
+  if(!streamBaseUrl || micPumpStarted)
+    return;
+
+  micPumpStarted = true;
+  micLastEndCounter = 0;
+
+  if(micPumpTimer)
+    clearInterval(micPumpTimer);
+
+  // 45 ms < 64 ms snapshot duration, so we should not outrun the buffer.
+  pollMicPCM();
+  micPumpTimer =
+    setInterval(
+      pollMicPCM,
+      45
+    );
+}
+
+function stopAudioStream(){
+
+  micPumpStarted = false;
+  micPumpBusy = false;
+  micLastEndCounter = 0;
+
+  if(micPumpTimer){
+    clearInterval(micPumpTimer);
+    micPumpTimer = 0;
+  }
+
+  if(audioContext){
+    audioNextTime =
+      audioContext.currentTime + 0.08;
+  }
 }
 
 function setMicTestUI(active){
@@ -2321,11 +2501,6 @@ function setMicTestUI(active){
     if(el.micPeak) el.micPeak.textContent = "PEAK · 0%";
   }
 }
-
-let latestMicSamples = new Int16Array(256);
-let micSampleLevel = 0;
-let micSamplePeak = 0;
-let micSamplePoll = 0;
 
 function drawMicSpectrum(){
   const canvas = el.micSpectrum;
@@ -2412,55 +2587,36 @@ function drawMicSpectrum(){
   c.stroke();
 }
 
-async function pollMicSamples(){
-  if(!micTestRunning || !streamBaseUrl) return;
-
-  try{
-    const response = await fetch(
-      streamBaseUrl + "/mic/samples?t=" + Date.now(),
-      {cache:"no-store", mode:"cors"}
-    );
-    if(!response.ok) throw new Error("MIC SAMPLES HTTP " + response.status);
-
-    const data = await response.arrayBuffer();
-    const view = new DataView(data);
-    const count = Math.min(256, Math.floor(data.byteLength/2));
-    const samples = new Int16Array(256);
-    const offset = 256-count;
-
-    for(let i=0;i<count;i++){
-      samples[offset+i] = view.getInt16(i*2, true);
-    }
-
-    latestMicSamples = samples;
-  }catch(e){
-    // Keep the last valid frame so the UI does not flicker on a missed poll.
-  }
-}
-
 function startMicVisualizer(){
-  if(micVisualFrame) cancelAnimationFrame(micVisualFrame);
-  if(micSamplePoll) clearInterval(micSamplePoll);
-  latestMicSamples = new Int16Array(256);
-  pollMicSamples();
-  micSamplePoll = setInterval(pollMicSamples, 90);
+
+  if(micVisualFrame)
+    cancelAnimationFrame(micVisualFrame);
+
+  latestMicSamples =
+    new Int16Array(1024);
+
   const loop=()=>{
     drawMicSpectrum();
-    micVisualFrame=requestAnimationFrame(loop);
+    micVisualFrame =
+      requestAnimationFrame(loop);
   };
+
   loop();
 }
 
 function stopMicVisualizer(){
+
   if(micVisualFrame){
     cancelAnimationFrame(micVisualFrame);
-    micVisualFrame=0;
+    micVisualFrame = 0;
   }
-  if(micSamplePoll){
-    clearInterval(micSamplePoll);
-    micSamplePoll=0;
-  }
-  latestMicSamples = new Int16Array(256);
+
+  latestMicSamples =
+    new Int16Array(1024);
+
+  micSampleLevel = 0;
+  micSamplePeak = 0;
+
   drawMicSpectrum();
 }
 
@@ -2509,39 +2665,6 @@ async function toggleMicTest(){
   }
 }
 
-
-function setMicAudioEnabled(enabled, announce=true){
-
-  micAudioEnabled = !!enabled;
-
-  if(micGain && audioContext){
-    const now = audioContext.currentTime;
-    micGain.gain.cancelScheduledValues(now);
-    micGain.gain.setTargetAtTime(
-      micAudioEnabled ? 1 : 0,
-      now,
-      0.015
-    );
-  }
-
-  if(el.mic){
-    el.mic.textContent =
-      micAudioEnabled ? "MIC ON" : "MIC OFF";
-    el.mic.classList.toggle(
-      "active",
-      micAudioEnabled
-    );
-  }
-
-  if(announce){
-    message(
-      micAudioEnabled
-        ? "Microphone audio INCLUDED in recording."
-        : "Microphone audio MUTED from recording.",
-      micAudioEnabled ? "#526b50" : "#77736c"
-    );
-  }
-}
 
 function toggleMicAudio(){
 
