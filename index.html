@@ -120,82 +120,34 @@ button:disabled{ cursor:not-allowed; opacity: 0.5; }
 </div>
 
 <script>
-"use strict";
-
-const pages = {
-  intro: document.getElementById("pageIntro"),
-  evidence: document.getElementById("pageEvidence")
-};
-const pageButtons = document.querySelectorAll(".pageButton");
-
-function showPage(name) {
-  Object.entries(pages).forEach(([key, page]) => {
-    page.classList.toggle("active", key === name);
-  });
-  pageButtons.forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.page === name);
-  });
-}
-
-pageButtons.forEach(btn => btn.addEventListener("click", () => showPage(btn.dataset.page)));
-
-// --- NEW SEAMLESS LOGIC ---
-const el = {
-  ip: document.getElementById("ip"),
-  connect: document.getElementById("connectBtn"),
-  streamImage: document.getElementById("streamImage"),
-  placeholder: document.getElementById("placeholder"),
-  navDot: document.getElementById("navDot"),
-  navDot2: document.getElementById("navDot2"),
-  statusText: document.getElementById("navStatus"),
-  statusText2: document.getElementById("navStatus2"),
-  message: document.getElementById("message")
-};
-
 let deviceIp = "";
 
-/**
- * START MJPEG:
- * This function bypasses the lag by telling the browser to open a persistent
- * high-speed pipe to the stream server on port 81.
- */
 function startMJPEG() {
-    if(!deviceIp) return;
-
-    // Use Port 81 (the raw socket we set in the firmware)
-    const streamUrl = `http://${deviceIp}:81`;
+    const ipInput = document.getElementById("ip").value.trim();
+    if (!ipInput) return;
     
-    el.placeholder.style.display = "none";
-    el.streamImage.style.display = "block";
+    deviceIp = ipInput;
+    const streamImg = document.getElementById("streamImage");
     
-    // Crucial: Set the src directly. Native browser C++ decoders will 
-    // run this as fast as the network allows (25-50 FPS).
-    el.streamImage.src = streamUrl;
+    // Step 1: Kill any existing stream
+    streamImg.src = "";
+    
+    // Step 2: Establish new high-speed stream
+    // We target Port 81 and the /stream path defined in the firmware
+    const streamUrl = `http://${deviceIp}:81/stream`;
+    
+    streamImg.style.display = "block";
+    document.getElementById("placeholder").style.display = "none";
+    
+    // The browser handles the MJPEG speed automatically
+    streamImg.src = streamUrl;
 
-    // Update Dots
-    [el.navDot, el.navDot2].forEach(dot => dot.classList.add("online"));
-    el.statusText.innerText = el.statusText2.innerText = "ONLINE";
-    el.message.innerHTML = "STREAM CONNECTED: HIGH SPEED ACTIVE";
+    // Optional: UI Updates
+    document.getElementById("navStatus").innerText = "ONLINE";
+    document.getElementById("navDot").classList.add("online");
 }
 
-el.connect.onclick = () => {
-    deviceIp = el.ip.value.trim();
-    if(deviceIp) startMJPEG();
-};
-
-el.streamImage.onerror = () => {
-    if(deviceIp) {
-        console.warn("Reconnecting stream...");
-        setTimeout(startMJPEG, 1000);
-    }
-};
-
-async function sendCommand(path) {
-    if(!deviceIp) return;
-    try {
-        await fetch(`http://${deviceIp}${path}`, { mode: 'no-cors' });
-    } catch (e) {}
-}
+document.getElementById("connectBtn").onclick = startMJPEG;
 </script>
 </body>
 </html>
