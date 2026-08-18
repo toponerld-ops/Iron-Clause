@@ -762,7 +762,7 @@ button:disabled{
 }
 
 /* =========================================================
-   D3 ANALOG MICROPHONE
+   MICROPHONE SPECTRUM
 ========================================================= */
 
 .micTestCard{margin-top:18px;background:var(--cream);color:var(--ink);border-radius:8px;padding:20px 24px;border:1px solid rgba(69,68,63,.12)}
@@ -1634,11 +1634,6 @@ let micAnalyser = null;
 let micAudioEnabled = false;
 let micTestRunning = false;
 let micVisualFrame = 0;
-let micVizPollHandle = 0;
-let micVizMagnitudes = new Float32Array(64);
-let micVizLevel = 0;
-let micVizPeak = 0;
-let micVizRaw = 0;
 let audioBuffer = new Uint8Array(0);
 let audioNextTime = 0;
 
@@ -2327,66 +2322,10 @@ function setMicTestUI(active){
   }
 }
 
-function computeMicFFT(samples){
-  const N = samples.length;
-  if(N < 32) return new Float32Array(64);
-
-  // Use a Hann-windowed 256-point DFT. The ESP32 supplies the samples;
-  // the browser only performs the visualization math.
-  const mags = new Float32Array(64);
-  const mean = samples.reduce((a,b)=>a+b,0) / N;
-  const windowed = new Float32Array(N);
-  let sumSq = 0;
-  let peak = 0;
-
-  for(let n=0;n<N;n++){
-    const centered = samples[n] - mean;
-    const v = centered / 32768;
-    const av = Math.abs(v);
-    sumSq += v*v;
-    if(av > peak) peak = av;
-    windowed[n] = v * (0.5 - 0.5*Math.cos((2*Math.PI*n)/(N-1)));
-  }
-
-  micVizLevel = Math.min(1, Math.sqrt(sumSq/N) * 4.0);
-  micVizPeak = Math.min(1, peak * 1.5);
-
-  for(let k=1;k<64;k++){
-    let re=0, im=0;
-    const angle = (2*Math.PI*k)/N;
-    for(let n=0;n<N;n++){
-      const a = angle*n;
-      re += windowed[n]*Math.cos(a);
-      im -= windowed[n]*Math.sin(a);
-    }
-    const mag = Math.sqrt(re*re + im*im) / N;
-    mags[k] = Math.min(1, Math.pow(mag * 18, 0.62));
-  }
-  mags[0] = 0;
-  return mags;
-}
-
-async function pollMicSamples(){
-  if(!connected || !micTestRunning || !baseUrl) return;
-
-  try{
-    const response = await fetch(
-      streamBaseUrl + "/mic/samples?t=" + Date.now(),
-      {cache:"no-store", mode:"cors"}
-    );
-
-    if(!response.ok)
-      throw new Error("Mic samples HTTP " + response.status);
-
-    const data = await response.json();
-    if(!Array.isArray(data.samples) || !data.samples.length) return;
-
-    micVizRaw = data.samples[data.samples.length - 1] || 0;
-    micVizMagnitudes = computeMicFFT(data.samples);
-  }catch(e){
-    console.warn("Direct D3 mic telemetry:", e);
-  }
-}
+let latestMicSamples = new Int16Array(256);
+let micSampleLevel = 0;
+let micSamplePeak = 0;
+let micSamplePoll = 0;
 
 function drawMicSpectrum(){
   const canvas = el.micSpectrum;
@@ -2405,75 +2344,106 @@ function drawMicSpectrum(){
   const c = canvas.getContext("2d");
   const w = canvas.width, h = canvas.height;
   c.clearRect(0,0,w,h);
-
   c.strokeStyle = "rgba(69,68,63,.10)";
   c.lineWidth = 1;
 
   for(let y=h*.25;y<h;y+=h*.25){
-    c.beginPath();
-    c.moveTo(0,Math.round(y)+.5);
-    c.lineTo(w,Math.round(y)+.5);
-    c.stroke();
+    c.beginPath(); c.moveTo(0,Math.round(y)+.5); c.lineTo(w,Math.round(y)+.5); c.stroke();
   }
-
   for(let x=w*.125;x<w;x+=w*.125){
-    c.beginPath();
-    c.moveTo(Math.round(x)+.5,0);
-    c.lineTo(Math.round(x)+.5,h);
-    c.stroke();
+    c.beginPath(); c.moveTo(Math.round(x)+.5,0); c.lineTo(Math.round(x)+.5,h); c.stroke();
   }
 
   if(!micTestRunning) return;
 
-  const bars = micVizMagnitudes.length;
-  const gap = Math.max(2,w/900);
-  const barW = Math.max(2,w/bars-gap);
+  const samples = latestMicSamples;
+  let sum=0, peak=0;
+  for(let i=0;i<samples.length;i++){
+    const v=Math.abs(samples[i])/32768;
+    sum += v*v;
+    if(v>peak) peak=v;
+  }
 
-  for(let i=0;i<bars;i++){
-    const value = Math.max(0, Math.min(1, micVizMagnitudes[i]));
-    const barH = Math.max(2, value*h*.84);
-    const x = i*(w/bars)+gap/2;
-    const y = h-barH;
+  const rms=Math.sqrt(sum/samples.length);
+  const level=Math.min(100,Math.round(rms*1800));
+  const peakPct=Math.min(100,Math.round(peak*100));
 
-    c.fillStyle = value > .58
-      ? "rgba(82,107,80,.90)"
-      : "rgba(111,98,79,.78)";
+  micSampleLevel = level;
+  micSamplePeak = peakPct;
+
+  if(el.micLevel) el.micLevel.textContent = "LEVEL · " + (level<2 ? "SILENT" : level+"%");
+  if(el.micPeak) el.micPeak.textContent = "PEAK · " + peakPct + "%";
+
+  // Simple FFT-like visualizer using the energy of grouped time samples.
+  // This is intentionally driven by the actual D3 PCM snapshots.
+  const barCount=48;
+  const gap=Math.max(2,w/900);
+  const barW=Math.max(2,w/barCount-gap);
+  const groupSize=Math.max(1,Math.floor(samples.length/barCount));
+
+  for(let i=0;i<barCount;i++){
+    let energy=0;
+    let max=0;
+    const a=i*groupSize;
+    const b=Math.min(samples.length,a+groupSize);
+    for(let j=a;j<b;j++){
+      const v=Math.abs(samples[j])/32768;
+      energy += v*v;
+      if(v>max) max=v;
+    }
+    const rmsBand=Math.sqrt(energy/Math.max(1,b-a));
+    const value=Math.min(1, Math.pow(rmsBand*18.0,.72));
+    const barH=Math.max(2,value*h*.82);
+    const x=i*(w/barCount)+gap/2;
+    const y=h-barH;
+
+    c.fillStyle=value>.58 ? "rgba(82,107,80,.90)" : "rgba(111,98,79,.78)";
     c.fillRect(x,y,barW,barH);
   }
 
-  // Live signal envelope line derived directly from D3 samples.
-  c.strokeStyle = "rgba(82,107,80,.45)";
+  c.strokeStyle="rgba(82,107,80,.32)";
   c.beginPath();
-  const envelope = Math.min(1, micVizLevel);
-  const center = h*.54;
-  const amp = Math.max(2, envelope*h*.28);
-  c.moveTo(0,center);
-  c.lineTo(w,center-amp);
-  c.stroke();
-
-  if(el.micLevel){
-    const levelPct = Math.min(100, Math.round(micVizLevel*100));
-    el.micLevel.textContent =
-      "LEVEL · " + (levelPct < 2 ? "SILENT" : levelPct + "%");
+  for(let i=0;i<samples.length;i++){
+    const x=(i/(samples.length-1))*w;
+    const v=samples[i]/32768;
+    const y=h*.52-v*h*.28;
+    if(i===0) c.moveTo(x,y); else c.lineTo(x,y);
   }
+  c.stroke();
+}
 
-  if(el.micPeak){
-    el.micPeak.textContent =
-      "PEAK · " + Math.min(100,Math.round(micVizPeak*100)) + "%";
+async function pollMicSamples(){
+  if(!micTestRunning || !streamBaseUrl) return;
+
+  try{
+    const response = await fetch(
+      streamBaseUrl + "/mic/samples?t=" + Date.now(),
+      {cache:"no-store", mode:"cors"}
+    );
+    if(!response.ok) throw new Error("MIC SAMPLES HTTP " + response.status);
+
+    const data = await response.arrayBuffer();
+    const view = new DataView(data);
+    const count = Math.min(256, Math.floor(data.byteLength/2));
+    const samples = new Int16Array(256);
+    const offset = 256-count;
+
+    for(let i=0;i<count;i++){
+      samples[offset+i] = view.getInt16(i*2, true);
+    }
+
+    latestMicSamples = samples;
+  }catch(e){
+    // Keep the last valid frame so the UI does not flicker on a missed poll.
   }
 }
 
 function startMicVisualizer(){
   if(micVisualFrame) cancelAnimationFrame(micVisualFrame);
-  if(micVizPollHandle) clearInterval(micVizPollHandle);
-
-  micVizMagnitudes.fill(0);
-  micVizLevel = 0;
-  micVizPeak = 0;
-
+  if(micSamplePoll) clearInterval(micSamplePoll);
+  latestMicSamples = new Int16Array(256);
   pollMicSamples();
-  micVizPollHandle = setInterval(pollMicSamples, 100);
-
+  micSamplePoll = setInterval(pollMicSamples, 90);
   const loop=()=>{
     drawMicSpectrum();
     micVisualFrame=requestAnimationFrame(loop);
@@ -2486,13 +2456,11 @@ function stopMicVisualizer(){
     cancelAnimationFrame(micVisualFrame);
     micVisualFrame=0;
   }
-  if(micVizPollHandle){
-    clearInterval(micVizPollHandle);
-    micVizPollHandle=0;
+  if(micSamplePoll){
+    clearInterval(micSamplePoll);
+    micSamplePoll=0;
   }
-  micVizMagnitudes.fill(0);
-  micVizLevel=0;
-  micVizPeak=0;
+  latestMicSamples = new Int16Array(256);
   drawMicSpectrum();
 }
 
@@ -2533,7 +2501,7 @@ async function toggleMicTest(){
     startMicVisualizer();
     startAudioStream();
 
-    message("D3 analog microphone test running. Speak, clap or tap the mic.","#526b50");
+    message("Microphone test running. Speak or tap the mic.","#526b50");
   }catch(e){
     setMicTestUI(false);
     stopMicVisualizer();
@@ -2586,7 +2554,7 @@ function toggleMicAudio(){
 
 async function startAudioStream(){
 
-  if(!baseUrl || audioRunning)
+  if(!streamBaseUrl || audioRunning)
     return;
 
   try{
@@ -2963,9 +2931,6 @@ async function startRecording(){
     );
 
     await ensureAudioGraph();
-
-    // IMPORTANT: /audio is an endless stream. Do NOT await it here,
-    // otherwise startRecording() never reaches MediaRecorder.start().
     startAudioStream();
 
     // Every recording starts silent. Press MIC ON to include audio.
@@ -3237,15 +3202,9 @@ async function stopRecording(){
   message("Finalising recording...");
 
   /*
-     Stop the XIAO first, but always finish the browser recorder even
-     if the device request fails. This prevents half-saved WebM files.
+     Finish the browser recorder BEFORE stopping the XIAO sampler.
+     This preserves the final microphone audio block in the WebM.
   */
-  try{
-    await xiaoCommand("/record/stop");
-  }catch(e){
-    console.warn("XIAO stop:", e);
-  }
-
   drawing = false;
 
   if(drawTimer){
@@ -3276,6 +3235,12 @@ async function stopRecording(){
     });
   }else if(chunks.length){
     saveRecording();
+  }
+
+  try{
+    await xiaoCommand("/record/stop");
+  }catch(e){
+    console.warn("XIAO stop:", e);
   }
 
   recording = false;
