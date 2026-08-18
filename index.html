@@ -762,7 +762,7 @@ button:disabled{
 }
 
 /* =========================================================
-   MICROPHONE SPECTRUM
+   D3 ANALOG MICROPHONE
 ========================================================= */
 
 .micTestCard{margin-top:18px;background:var(--cream);color:var(--ink);border-radius:8px;padding:20px 24px;border:1px solid rgba(69,68,63,.12)}
@@ -1599,6 +1599,7 @@ const el = {
 
 let baseUrl = "";
 let streamUrl = "";
+let streamBaseUrl = "";
 
 const savedXiao = localStorage.getItem("ironClauseXiao");
 if (savedXiao) el.ip.value = savedXiao.replace(/^https?:\/\//i, "");
@@ -1633,6 +1634,11 @@ let micAnalyser = null;
 let micAudioEnabled = false;
 let micTestRunning = false;
 let micVisualFrame = 0;
+let micVizPollHandle = 0;
+let micVizMagnitudes = new Float32Array(64);
+let micVizLevel = 0;
+let micVizPeak = 0;
+let micVizRaw = 0;
 let audioBuffer = new Uint8Array(0);
 let audioNextTime = 0;
 
@@ -2321,6 +2327,67 @@ function setMicTestUI(active){
   }
 }
 
+function computeMicFFT(samples){
+  const N = samples.length;
+  if(N < 32) return new Float32Array(64);
+
+  // Use a Hann-windowed 256-point DFT. The ESP32 supplies the samples;
+  // the browser only performs the visualization math.
+  const mags = new Float32Array(64);
+  const mean = samples.reduce((a,b)=>a+b,0) / N;
+  const windowed = new Float32Array(N);
+  let sumSq = 0;
+  let peak = 0;
+
+  for(let n=0;n<N;n++){
+    const centered = samples[n] - mean;
+    const v = centered / 32768;
+    const av = Math.abs(v);
+    sumSq += v*v;
+    if(av > peak) peak = av;
+    windowed[n] = v * (0.5 - 0.5*Math.cos((2*Math.PI*n)/(N-1)));
+  }
+
+  micVizLevel = Math.min(1, Math.sqrt(sumSq/N) * 4.0);
+  micVizPeak = Math.min(1, peak * 1.5);
+
+  for(let k=1;k<64;k++){
+    let re=0, im=0;
+    const angle = (2*Math.PI*k)/N;
+    for(let n=0;n<N;n++){
+      const a = angle*n;
+      re += windowed[n]*Math.cos(a);
+      im -= windowed[n]*Math.sin(a);
+    }
+    const mag = Math.sqrt(re*re + im*im) / N;
+    mags[k] = Math.min(1, Math.pow(mag * 18, 0.62));
+  }
+  mags[0] = 0;
+  return mags;
+}
+
+async function pollMicSamples(){
+  if(!connected || !micTestRunning || !baseUrl) return;
+
+  try{
+    const response = await fetch(
+      streamBaseUrl + "/mic/samples?t=" + Date.now(),
+      {cache:"no-store", mode:"cors"}
+    );
+
+    if(!response.ok)
+      throw new Error("Mic samples HTTP " + response.status);
+
+    const data = await response.json();
+    if(!Array.isArray(data.samples) || !data.samples.length) return;
+
+    micVizRaw = data.samples[data.samples.length - 1] || 0;
+    micVizMagnitudes = computeMicFFT(data.samples);
+  }catch(e){
+    console.warn("Direct D3 mic telemetry:", e);
+  }
+}
+
 function drawMicSpectrum(){
   const canvas = el.micSpectrum;
   if(!canvas) return;
@@ -2338,65 +2405,75 @@ function drawMicSpectrum(){
   const c = canvas.getContext("2d");
   const w = canvas.width, h = canvas.height;
   c.clearRect(0,0,w,h);
+
   c.strokeStyle = "rgba(69,68,63,.10)";
   c.lineWidth = 1;
 
   for(let y=h*.25;y<h;y+=h*.25){
-    c.beginPath(); c.moveTo(0,Math.round(y)+.5); c.lineTo(w,Math.round(y)+.5); c.stroke();
+    c.beginPath();
+    c.moveTo(0,Math.round(y)+.5);
+    c.lineTo(w,Math.round(y)+.5);
+    c.stroke();
   }
+
   for(let x=w*.125;x<w;x+=w*.125){
-    c.beginPath(); c.moveTo(Math.round(x)+.5,0); c.lineTo(Math.round(x)+.5,h); c.stroke();
+    c.beginPath();
+    c.moveTo(Math.round(x)+.5,0);
+    c.lineTo(Math.round(x)+.5,h);
+    c.stroke();
   }
 
-  if(!micAnalyser || !micTestRunning) return;
+  if(!micTestRunning) return;
 
-  const bins = new Uint8Array(micAnalyser.frequencyBinCount);
-  const time = new Uint8Array(micAnalyser.fftSize);
-  micAnalyser.getByteFrequencyData(bins);
-  micAnalyser.getByteTimeDomainData(time);
+  const bars = micVizMagnitudes.length;
+  const gap = Math.max(2,w/900);
+  const barW = Math.max(2,w/bars-gap);
 
-  let sum=0, peak=0;
-  for(let i=0;i<time.length;i++){
-    const v=Math.abs(time[i]-128)/128;
-    sum += v*v; if(v>peak) peak=v;
-  }
+  for(let i=0;i<bars;i++){
+    const value = Math.max(0, Math.min(1, micVizMagnitudes[i]));
+    const barH = Math.max(2, value*h*.84);
+    const x = i*(w/bars)+gap/2;
+    const y = h-barH;
 
-  const rms=Math.sqrt(sum/time.length);
-  const level=Math.min(100,Math.round(rms*220));
-  const peakPct=Math.min(100,Math.round(peak*100));
-
-  if(el.micLevel) el.micLevel.textContent = "LEVEL · " + (level<3 ? "SILENT" : level+"%");
-  if(el.micPeak) el.micPeak.textContent = "PEAK · " + peakPct + "%";
-
-  const barCount=Math.min(64,bins.length);
-  const step=bins.length/barCount;
-  const gap=Math.max(2,w/900);
-  const barW=Math.max(2,w/barCount-gap);
-
-  for(let i=0;i<barCount;i++){
-    const index=Math.min(bins.length-1,Math.floor(i*step));
-    const value=Math.pow(bins[index]/255,.72);
-    const barH=Math.max(2,value*h*.82);
-    const x=i*(w/barCount)+gap/2;
-    const y=h-barH;
-
-    c.fillStyle=value>.58 ? "rgba(82,107,80,.90)" : "rgba(111,98,79,.78)";
+    c.fillStyle = value > .58
+      ? "rgba(82,107,80,.90)"
+      : "rgba(111,98,79,.78)";
     c.fillRect(x,y,barW,barH);
   }
 
-  c.strokeStyle="rgba(82,107,80,.32)";
+  // Live signal envelope line derived directly from D3 samples.
+  c.strokeStyle = "rgba(82,107,80,.45)";
   c.beginPath();
-  for(let i=0;i<time.length;i++){
-    const x=(i/(time.length-1))*w;
-    const v=(time[i]-128)/128;
-    const y=h*.52-v*h*.18;
-    if(i===0) c.moveTo(x,y); else c.lineTo(x,y);
-  }
+  const envelope = Math.min(1, micVizLevel);
+  const center = h*.54;
+  const amp = Math.max(2, envelope*h*.28);
+  c.moveTo(0,center);
+  c.lineTo(w,center-amp);
   c.stroke();
+
+  if(el.micLevel){
+    const levelPct = Math.min(100, Math.round(micVizLevel*100));
+    el.micLevel.textContent =
+      "LEVEL · " + (levelPct < 2 ? "SILENT" : levelPct + "%");
+  }
+
+  if(el.micPeak){
+    el.micPeak.textContent =
+      "PEAK · " + Math.min(100,Math.round(micVizPeak*100)) + "%";
+  }
 }
 
 function startMicVisualizer(){
   if(micVisualFrame) cancelAnimationFrame(micVisualFrame);
+  if(micVizPollHandle) clearInterval(micVizPollHandle);
+
+  micVizMagnitudes.fill(0);
+  micVizLevel = 0;
+  micVizPeak = 0;
+
+  pollMicSamples();
+  micVizPollHandle = setInterval(pollMicSamples, 100);
+
   const loop=()=>{
     drawMicSpectrum();
     micVisualFrame=requestAnimationFrame(loop);
@@ -2409,6 +2486,13 @@ function stopMicVisualizer(){
     cancelAnimationFrame(micVisualFrame);
     micVisualFrame=0;
   }
+  if(micVizPollHandle){
+    clearInterval(micVizPollHandle);
+    micVizPollHandle=0;
+  }
+  micVizMagnitudes.fill(0);
+  micVizLevel=0;
+  micVizPeak=0;
   drawMicSpectrum();
 }
 
@@ -2447,7 +2531,7 @@ async function toggleMicTest(){
     startMicVisualizer();
     startAudioStream();
 
-    message("Microphone test running. Speak or tap the mic.","#526b50");
+    message("D3 analog microphone test running. Speak, clap or tap the mic.","#526b50");
   }catch(e){
     setMicTestUI(false);
     stopMicVisualizer();
@@ -2519,7 +2603,7 @@ async function startAudioStream(){
 
     const response =
       await fetch(
-        baseUrl +
+        streamBaseUrl +
         "/audio?t=" +
         Date.now(),
         {
@@ -2619,11 +2703,15 @@ async function connectPreview(){
   baseUrl = url;
 
   const parsed = new URL(url);
-  streamUrl =
+  streamBaseUrl =
     parsed.protocol +
     "//" +
     parsed.hostname +
-    ":81/stream";
+    ":81";
+
+  streamUrl =
+    streamBaseUrl +
+    "/stream";
   localStorage.setItem("ironClauseXiao", baseUrl);
   setConnection(false);
   message("Checking XIAO connection...");
@@ -2689,6 +2777,7 @@ function disconnect(){
 
   baseUrl = "";
   streamUrl = "";
+  streamBaseUrl = "";
 
   hidePreview();
 
