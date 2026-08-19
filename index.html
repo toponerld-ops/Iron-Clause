@@ -833,6 +833,18 @@ button:disabled{
 }
 
 /* =========================================================
+   MICROPHONE
+========================================================= */
+.micPanel{margin-top:16px;padding-top:16px;border-top:1px solid #c9c1b6;}
+.micHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.micLabel,.micState{font-family:"DM Mono",monospace;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);}
+.micCanvas{width:100%;height:76px;display:block;background:#11110f;border:1px solid #c3bcb1;border-radius:5px;}
+.micRow{display:grid;grid-template-columns:1fr 88px;gap:7px;align-items:center;margin-top:8px;}
+.micLevel{font-family:"DM Mono",monospace;font-size:8px;color:var(--muted);}
+.micBtn{border:1px solid #c3bcb1;background:transparent;color:var(--ink);padding:9px 6px;font-size:8px;letter-spacing:.08em;text-transform:uppercase;}
+.micBtn.on{background:var(--green);border-color:var(--green);color:white;}
+
+/* =========================================================
    MOBILE
 ========================================================= */
 
@@ -1280,6 +1292,18 @@ button:disabled{
 
           </div>
 
+          <div class="micPanel">
+            <div class="micHeader">
+              <span class="micLabel">Analog microphone · D3 / A0</span>
+              <span id="micState" class="micState">OFF</span>
+            </div>
+            <canvas id="micCanvas" class="micCanvas" width="600" height="150"></canvas>
+            <div class="micRow">
+              <span id="micLevel" class="micLevel">LEVEL 0% · P-P <span id="micP2P">0</span></span>
+              <button id="micBtn" class="micBtn" disabled>MIC OFF</button>
+            </div>
+          </div>
+
         </div>
 
 
@@ -1488,6 +1512,12 @@ const el = {
   recordState:$("recordState"),
   timer:$("timer"),
 
+  micCanvas:$("micCanvas"),
+  micState:$("micState"),
+  micLevel:$("micLevel"),
+  micP2P:$("micP2P"),
+  micBtn:$("micBtn"),
+
   brightness:$("brightness"),
   contrast:$("contrast"),
   saturation:$("saturation"),
@@ -1508,6 +1538,7 @@ const el = {
 
 let baseUrl = "";
 let streamUrl = "";
+let micBaseUrl = "";
 
 const savedXiao = localStorage.getItem("ironClauseXiao");
 if (savedXiao) el.ip.value = savedXiao.replace(/^https?:\/\//i, "");
@@ -1578,7 +1609,7 @@ let micPollHandle = null;
 let lastMicSequence = 0;
 let micQueue = new Float32Array(0);
 const micCanvas = document.getElementById("micCanvas");
-const micCtx = micCanvas.getContext("2d");
+const micCtx = micCanvas ? micCanvas.getContext("2d") : null;
 
 function appendMicAudio(samples){
   const next = new Float32Array(micQueue.length + samples.length);
@@ -1589,6 +1620,7 @@ function appendMicAudio(samples){
 }
 
 function drawMic(samples, p2p){
+  if(!micCanvas || !micCtx) return;
   const w=micCanvas.width, h=micCanvas.height;
   micCtx.clearRect(0,0,w,h);
   micCtx.strokeStyle="#d0c6b7";
@@ -1641,14 +1673,14 @@ async function ensureAudioSystem(){
 async function pollMic(){
   if(!connected || !baseUrl) return;
   try{
-    const r=await fetch(baseUrl+"/mic/samples?t="+Date.now(),{cache:"no-store"});
+    const r=await fetch(micBaseUrl+"/mic/samples?since="+lastMicSequence+"&t="+Date.now(),{cache:"no-store"});
     if(!r.ok) throw new Error("Mic HTTP "+r.status);
     const seq=Number(r.headers.get("X-Mic-Samples")||0);
     const buf=await r.arrayBuffer();
     const raw=new Int16Array(buf);
     const samples=new Float32Array(raw.length);
     for(let i=0;i<raw.length;i++) samples[i]=raw[i]/32768;
-    if(seq && seq===lastMicSequence) return;
+    if(!raw.length) return;
     lastMicSequence=seq;
     drawMic(samples,0);
     // Status endpoint supplies the real ADC P-P; PCM is fed to recorder when enabled.
@@ -1659,7 +1691,7 @@ async function pollMic(){
 async function pollMicStatus(){
   if(!connected || !baseUrl) return;
   try{
-    const r=await fetch(baseUrl+"/mic?t="+Date.now(),{cache:"no-store"});
+    const r=await fetch(micBaseUrl+"/mic?t="+Date.now(),{cache:"no-store"});
     const d=await r.json();
     const level=Math.min(100,(Number(d.p2p||0)/180)*100);
     document.getElementById("micLevel").textContent="LEVEL "+level.toFixed(0)+"%";
@@ -1667,6 +1699,24 @@ async function pollMicStatus(){
     const c=document.getElementById("micState");
     if(!micEnabled) c.textContent="OFF";
   }catch(e){}
+}
+
+function startMicPolling(){
+  if(micPollHandle) clearInterval(micPollHandle);
+  lastMicSequence=0;
+  pollMic();
+  pollMicStatus();
+  micPollHandle=setInterval(()=>{
+    pollMic();
+    pollMicStatus();
+  },70);
+}
+
+function stopMicPolling(){
+  if(micPollHandle){
+    clearInterval(micPollHandle);
+    micPollHandle=null;
+  }
 }
 
 async function toggleMic(){
@@ -1772,6 +1822,12 @@ function updateButtons(){
 
   el.stop.disabled =
     !recording;
+
+  if(el.micBtn){
+    el.micBtn.disabled = !recording;
+    el.micBtn.textContent = micEnabled ? "MIC ON" : "MIC OFF";
+    el.micBtn.classList.toggle("on", micEnabled);
+  }
 
   el.disconnect.disabled =
     !connected;
@@ -2423,6 +2479,13 @@ async function connectPreview(){
     "//" +
     parsed.hostname +
     ":81/stream";
+
+  micBaseUrl =
+    parsed.protocol +
+    "//" +
+    parsed.hostname +
+    ":81";
+
   localStorage.setItem("ironClauseXiao", baseUrl);
   setConnection(false);
   message("Checking XIAO connection...");
@@ -2436,6 +2499,7 @@ async function connectPreview(){
     showPreview();
     message("XIAO connected. Starting live feed...", "#526b50");
     startMJPEG();
+    startMicPolling();
     loadCameraSettings();
     loadReminders();
   } catch(e) {
@@ -2462,9 +2526,11 @@ function disconnect(){
   }
 
   stopMJPEG();
+  stopMicPolling();
 
   baseUrl = "";
   streamUrl = "";
+  micBaseUrl = "";
 
   hidePreview();
 
@@ -3136,6 +3202,10 @@ el.resume.onclick =
 
 el.stop.onclick =
   stopRecording;
+
+if(el.micBtn){
+  el.micBtn.onclick = toggleMic;
+}
 
 document.getElementById("micBtn").onclick = toggleMic;
 
