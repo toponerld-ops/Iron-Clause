@@ -1605,6 +1605,7 @@ let audioDestination = null;
 let audioProcessor = null;
 let audioKeepAliveGain = null;
 let audioReady = false;
+let micSourcePos = 0;
 let micEnabled = false;
 let micPollHandle = null;
 let lastMicSequence = 0;
@@ -1659,19 +1660,23 @@ async function ensureAudioSystem(){
     const out=e.outputBuffer.getChannelData(0);
     out.fill(0);
     if(!micEnabled || micQueue.length < 2) return;
+
     const ratio=16000/audioContext.sampleRate;
-    let srcPos=0;
-    for(let i=0;i<out.length;i++){
-      const a=Math.floor(srcPos);
+    let produced=0;
+
+    while(produced < out.length && micSourcePos < micQueue.length - 1){
+      const a=Math.floor(micSourcePos);
       const b=Math.min(a+1,micQueue.length-1);
-      const f=srcPos-a;
-      out[i]=micQueue[a]*(1-f)+micQueue[b]*f;
-      srcPos+=ratio;
-      if(srcPos>=micQueue.length-1){
-        const consumed=Math.floor(srcPos);
-        micQueue=micQueue.slice(consumed);
-        break;
-      }
+      const f=micSourcePos-a;
+      out[produced]=micQueue[a]*(1-f)+micQueue[b]*f;
+      micSourcePos += ratio;
+      produced++;
+    }
+
+    if(micSourcePos >= 1){
+      const consumed=Math.floor(micSourcePos);
+      micQueue=micQueue.slice(consumed);
+      micSourcePos -= consumed;
     }
   };
 
@@ -1692,7 +1697,9 @@ async function pollMic(){
     const r=await fetch(micBaseUrl+"/mic/samples?since="+lastMicSequence+"&t="+Date.now(),{cache:"no-store"});
     if(!r.ok) throw new Error("Mic HTTP "+r.status);
     const seq=Number(r.headers.get("X-Mic-Samples")||0);
+    const sampleRate=Number(r.headers.get("X-Mic-Sample-Rate")||16000);
     const buf=await r.arrayBuffer();
+    if(seq < lastMicSequence) return;
     const raw=new Int16Array(buf);
     const samples=new Float32Array(raw.length);
     for(let i=0;i<raw.length;i++) samples[i]=raw[i]/32768;
@@ -1703,6 +1710,7 @@ async function pollMic(){
     appendMicAudio(samples);
     const state = document.getElementById("micState");
     if(state && !micEnabled) state.textContent = "READY";
+    if(sampleRate !== 16000 && state && !micEnabled) state.textContent = "RATE "+sampleRate;
   }catch(e){
     console.warn("MIC:",e);
     const state = document.getElementById("micState");
@@ -1719,7 +1727,7 @@ async function pollMicStatus(){
     document.getElementById("micLevel").textContent="LEVEL "+level.toFixed(0)+"%";
     document.getElementById("micP2P").textContent="P-P "+d.p2p;
     const c=document.getElementById("micState");
-    if(!micEnabled) c.textContent="OFF";
+    if(!micEnabled) c.textContent=d.running?"READY":"WAITING";
   }catch(e){}
 }
 
@@ -2750,6 +2758,7 @@ async function startRecording(){
     if(audioTrack) mediaStream.addTrack(audioTrack);
     micEnabled = false;
     micQueue = new Float32Array(0);
+    micSourcePos = 0;
     lastMicSequence = 0;
     document.getElementById("micState").textContent = "OFF";
     document.getElementById("micBtn").textContent = "MIC OFF";
