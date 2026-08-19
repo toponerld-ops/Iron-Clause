@@ -1603,6 +1603,7 @@ let drawTimer = null;
 let audioContext = null;
 let audioDestination = null;
 let audioProcessor = null;
+let audioKeepAliveGain = null;
 let audioReady = false;
 let micEnabled = false;
 let micPollHandle = null;
@@ -1646,6 +1647,13 @@ async function ensureAudioSystem(){
   audioContext = new (window.AudioContext || window.webkitAudioContext)();
   await audioContext.resume();
   audioDestination = audioContext.createMediaStreamDestination();
+
+  // ScriptProcessorNode must have an active graph connection in some
+  // Chromium builds. Keep its execution alive through a zero-gain monitor
+  // path while the real audio goes to MediaStreamDestination.
+  audioKeepAliveGain = audioContext.createGain();
+  audioKeepAliveGain.gain.value = 0.0;
+
   audioProcessor = audioContext.createScriptProcessor(1024,0,1);
   audioProcessor.onaudioprocess = e => {
     const out=e.outputBuffer.getChannelData(0);
@@ -1666,7 +1674,15 @@ async function ensureAudioSystem(){
       }
     }
   };
+
+  // Actual recording path.
   audioProcessor.connect(audioDestination);
+
+  // Silent browser-output path keeps ScriptProcessor processing active
+  // without playing the microphone through the computer speakers.
+  audioProcessor.connect(audioKeepAliveGain);
+  audioKeepAliveGain.connect(audioContext.destination);
+
   audioReady=true;
 }
 
@@ -1685,7 +1701,13 @@ async function pollMic(){
     drawMic(samples,0);
     // Status endpoint supplies the real ADC P-P; PCM is fed to recorder when enabled.
     appendMicAudio(samples);
-  }catch(e){ console.warn("MIC:",e); }
+    const state = document.getElementById("micState");
+    if(state && !micEnabled) state.textContent = "READY";
+  }catch(e){
+    console.warn("MIC:",e);
+    const state = document.getElementById("micState");
+    if(state) state.textContent = "ERROR";
+  }
 }
 
 async function pollMicStatus(){
@@ -1722,6 +1744,7 @@ function stopMicPolling(){
 async function toggleMic(){
   if(!recording){ message("Start a recording first.","#9b514c"); return; }
   await ensureAudioSystem();
+  if(audioContext.state !== "running") await audioContext.resume();
   micEnabled=!micEnabled;
   if(audioContext.state==="suspended") await audioContext.resume();
   document.getElementById("micState").textContent=micEnabled?"ON":"OFF";
